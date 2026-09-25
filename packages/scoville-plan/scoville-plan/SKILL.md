@@ -1,0 +1,95 @@
+---
+name: scoville-plan
+description: Maintain, resume, audit and hand off repository Plans, Work Items and Decisions, including their wording. Use for Scoville Plan requests, repository-owned planning or Decisions, durable work across interruption or compaction, format-version-1 projects, messages during active planned work, and adding, removing, reordering or cleaning up Plan points. Exclude pure informational questions with no retained action, small contained tasks needing no durable Plan, and explicit opt-out.
+compatibility: "Codex with repository read/write access and Python 3.11+. Direct Markdown/YAML planning; no service or network required. Bundled selector and validator are required for their operations. Missing dependencies or helper errors block the affected operation."
+---
+
+# Scoville Plan
+
+Maintain native `format_version: 1` Plans, Work Items and Decisions by editing
+Markdown/YAML directly. Use the repository's planning owner. A small reversible
+task needs no new Plan unless required locally. On explicit opt-out, read no
+references or records under this Skill and make no Skill-derived changes or
+claims; report a conflicting repository requirement.
+
+All Skills included in this suite must be installed and enabled. Use the
+applicable owner without checking sibling availability. Load only instructions
+needed for the task. Explicit invocation gates and user exclusions still apply.
+
+
+
+
+
+Plan owns its records' wording and lifecycle. It does not start Workflow or
+choose dispatch routes. Run one editor at a time; do not change affected files
+or model settings concurrently. Reads and Skill upgrades require no migration.
+
+## Authority and evidence
+
+1. Follow system/safety and explicit user instructions, repository rules, then
+   the supported native profile. Runtime plans are disposable mirrors.
+2. Preserve actual scope, choices, dependencies and history. Source, silence,
+   current behavior and structural validation are not authorization or proof
+   that work occurred. Apply historical stops only to their recorded scope.
+3. Ask only for a missing material choice: activation, cancellation, deletion,
+   changed scope, weaker Acceptance, ambiguous succession or Decision transition.
+   Already authorized directions need no repeated approval.
+4. Record explicit human choices as accepted Decisions. Unresolved material
+   choices become proposals; report alternatives, tradeoffs and effect, and
+   ask only before dependent work. Link affected mutable Work Items.
+5. At work start inventory Decision frontmatter and read relevant proposals
+   (all proposals for a full audit). Preserve unresolved choices at handoff.
+6. Mark done only after observing every Acceptance criterion and retaining its
+   evidence. Failed or partial work remains unfinished. Report observed checks
+   separately from unverified behavior.
+7. Stop affected execution on an explicit stop or invalidating correction.
+   Answer informational questions and continue. Append additive work through
+   edit.md. Direct Plan maintenance never creates a Work Item about maintenance.
+8. Keep required facts once in their owning field, in the existing record's
+   language unless the user chooses another. New records use the request or
+   owning Plan's language. Keep format labels and identifiers unchanged.
+
+## Work Item template
+
+```text
+### W-001 Observable outcome
+
+Status: todo
+Depends on: []
+Blocked by: []
+Decisions: []
+Outcome: One independently resumable result.
+Acceptance: Observable checks and their required results.
+Steps:
+1. Perform one coherent unit at the known repository-relative paths and verify its result.
+Evidence: []
+Next action: The first unfinished action or unobserved check.
+```
+
+Omit Steps when no ordered units are needed. Steps add no separate lifecycle.
+Use [granularity](references/planning-granularity.md) only when outcome or Step
+boundaries need judgment, not for a routine insertion with known boundaries.
+
+## Load only the current route
+
+| Operation | Additional reference |
+| --- | --- |
+| Insert, refine, order, select, progress, block, complete or cancel Work Items; ordinary recovery | [edit.md](references/edit.md) |
+| Read direction, list records, select dispatch units | [read-only.md](references/read-only.md) |
+| Create/restructure, activate, finish, cancel or delete Plan; change Goal | [native-project-lifecycle.md](references/native-project-lifecycle.md) and edit.md |
+| Create, audit or transition Decisions | [native-decision-format.md](references/native-decision-format.md) and edit.md |
+| Audit wording | edit.md; Decision reference for Decision sections |
+| Validate or diagnose structure | edit.md; operation reference only if a diagnostic needs it |
+
+An unknown profile requires listing the root first. PROJECT_INDEX.md,
+docs/plans and docs/decisions must form a complete supported profile. Initialize
+only when all three are absent and a durable Plan was requested. Preserve
+partial, foreign, unsupported or ambiguous state; repair only a representation
+defect that changes no intent.
+
+After every completed write operation, validate the complete resulting profile
+using the command and diagnostic handling in edit.md.
+Python 3.11+ and the bundled validator and selector are required. A missing
+runtime, missing helper or helper error blocks its operation.
+Report outcome, active or blocked work, actual evidence, unresolved choices and
+the next action. These direct edits provide no locks or atomic transactions.
