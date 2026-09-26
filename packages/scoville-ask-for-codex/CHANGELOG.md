@@ -1,7 +1,15 @@
 # Changelog
 
+## v1.0.2 - 2026-09-26
+
+- Carry complete adviser instructions and existing reply authorization in mixed consultations, with task IDs separate from host identifiers.
+- Preserve explicitly selected adviser presets when defaults name another adviser.
+- Require matching sender, reference and reviewed scope before accepting an answer.
+- Keep Claude timeout state separate from native return destinations and require explicit authority to resume.
+
 ## v1.0.1 - 2026-09-26
 
+- Make separate adviser chats explicit in the Skill invocation so host task rules do not redirect Ask into subagents.
 - Carry existing user authorization into native adviser assignments instead of treating the dispatch as permission to reply.
 - Report undelivered answers with their destination and retain the complete answer for recovery; respect host-required progress waits.
 

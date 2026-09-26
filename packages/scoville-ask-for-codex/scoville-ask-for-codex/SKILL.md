@@ -1,6 +1,6 @@
 ---
 name: scoville-ask-for-codex
-description: Ask one or more configured advisers for independent read-only advice or reviews from Codex, through native Codex tasks or Claude CLI. Use when the user requests an Ask consultation, a second opinion, or a review by specified advisers. Ordinary questions to the current assistant do not trigger a consultation.
+description: Ask one or more configured advisers for independent read-only advice or reviews from Codex, through separate native Codex chats or Claude CLI. Use when the user requests an Ask consultation, a second opinion, or a review by specified advisers. Ordinary questions to the current assistant do not trigger a consultation.
 compatibility: "Codex desktop online, Python 3.11+, filesystem access and bundled helpers. Native advisers require task controls, caller identity and a saved project. Claude advisers require authenticated Claude Code CLI; Opus 5.5 requires CLI 2.1.280+. No manual helper fallback."
 ---
 
@@ -22,7 +22,11 @@ Resolve settings with `scripts/ask.py`, using unsaved request overrides above
 the selected project's `.scoville/config.json` (`ask` section), then
 [config.default.json](config.default.json). Select exactly the requested
 advisers, routes, models and efforts. Adviser IDs identify results; optional
-display names never change native task titles. Read
+display names never change native task titles. An explicitly named adviser
+selects that preset even when the default adviser list contains another
+adviser. The default adviser list applies only when no adviser is named; it is
+not an allowlist. For multiple advisers, resolve and report each selected
+preset separately. Read
 [configuration and helper inputs](references/configuration.md) for resolution,
 migration or the first helper invocation.
 
@@ -36,9 +40,11 @@ Resolve settings once; native create_thread validates the requested model and
 effort on the actual host. No model-catalog subprocess is required. Report a
 host rejection without substituting another model or route.
 
-Native Ask uses a separate Codex chat per adviser, never a subagent. If the
-host requires an explicit new-chat request and none was given, name that
-specific missing authorization before dispatch. Do not silently change routes.
+Native Ask requires a separate Codex chat per adviser; subagents cannot
+implement this Skill. The user's request must explicitly include those adviser
+chats. The package's default invocation prompt does so because the chat-based
+route is part of Ask's design. If another invocation omits that request, name
+the missing authorization before dispatch. Do not silently change routes.
 
 ## Ask and collect
 
@@ -46,18 +52,25 @@ specific missing authorization before dispatch. Do not silently change routes.
    evidence. Include paths and working-tree scope only when relevant. Exclude
    the caller's verdict, intermediate reasoning, previous adviser answers,
    unrelated history and secrets from fresh consultations.
-2. Resolve the verified calling task ID and its exact current title, plus the
-   saved project for native advisers. Never infer identity from title or
-   recency. Read [native task operation](references/native.md) for native
-   advisers, or [Claude operation](references/claude.md) for CLI advisers.
+2. For native advisers, resolve the verified calling task ID, exact current
+   title and saved project. Never infer identity from title or recency.
+   Claude-only requests use the Claude session rules and do not need a native
+   return destination. Read [native task operation](references/native.md) for
+   native advisers, or [Claude operation](references/claude.md) for CLI advisers.
 3. For native advisers, call create_thread directly with the question and
-   adviser role under [native operation](references/native.md). For Claude,
+   adviser role under [native operation](references/native.md). Its title is
+   exactly `S-ASK <UPPERCASE selected model ID> - <exact calling task title>`.
+   For Claude,
    use the existing prepare/claude route. Invoke each selected adviser once.
 4. Retain each native task ID, adviser settings and current question. Follow
    native operation's host requirements before ending the caller turn;
    authorized adviser messages
-   resume it. Accept each complete answer once, by actual sender and question.
-   Keep partial answers and failures visible and collect remaining answers
+   resume it. Accept a complete answer only when sender, consultation reference
+   and reviewed scope or revision match the retained request. A receipt,
+   truncated answer or mismatch remains unresolved; use the relevant route's
+   recovery rules. For a known native task, that is one targeted native status
+   query or `read_thread` call for only the missing answer or state, never a
+   polling loop. Keep partial answers and failures visible and collect remaining answers
    without polling or automatic replacement. A receipt alone is not an answer.
 5. Present answers with material evidence and limits. For a consultation,
    synthesize agreement, differences and useful conclusions without inventing

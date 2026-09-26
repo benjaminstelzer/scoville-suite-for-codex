@@ -8,9 +8,10 @@ after retaining results and finishing any pending handoff. Keep unfinished
 state for resume.
 An existing child must be reconciled by its retained exact task/host ID before
 a new one starts. A saved result is evidence only for what was actually observed.
-Read each necessary source once per unchanged unit. Recover from the run record
-and canonical Plan, not the predecessor's entire conversation. Fetch only a
-specific missing fact. Do not relay child progress or inspect its changing files.
+Reuse loaded, unchanged rules and selections across roles. Recover from the
+run record and canonical Plan; read a predecessor chat only for a named missing
+fact that the handoff and current files cannot supply. Do not relay child
+progress or inspect its changing files.
 Announce a real dispatch, accepted result or blocker once, in one short sentence.
 Before the first dispatch, state the Plan being executed, the selected Step
 groups and why they belong together in one or two sentences. Use this as the
@@ -18,6 +19,13 @@ dispatch announcement; do not add a second explanation of the same choice.
 
 Treat takeover messages as lifecycle notices, not role results. Match the actual
 sender to the retained successor. A notice never accepts work or advances the Plan.
+
+Keep the run record current, not chronological. When retaining a transition,
+replace the affected role counter, unit state, active handle and next action
+together. Keep past results in their retained files or Plan evidence, with only
+still-needed references in the cursor. Do not add a separate consistency check.
+At run completion, mark the unit and run finished and clear the active role and
+child; leave no executing role in the finished cursor.
 
 ## One unit through acceptance
 
@@ -27,8 +35,7 @@ sender to the retained successor. A notice never accepts work or advances the Pl
 2. Apply [dispatch](operations-dispatch.md). Record the intended dispatch, create
    the worker with its complete assignment, and retain the returned task ID.
    Pending IDs remain pending. An uncertain creation is reconciled, not retried.
-3. Retain the returned task ID and obey any host-required wait for progress
-   before ending this coordinator turn. Otherwise use the message-driven flow: the worker
+3. After dispatch, use the message-driven flow: the worker
    sends its result after all work and checks stop; that message resumes the
    coordinator. Add no polling loop, progress relay, reminders or inspection of changing
    files. This idle interval is not Plan completion. Do not insert narration
@@ -56,6 +63,9 @@ sender to the retained successor. A notice never accepts work or advances the Pl
    an explicit requirement or unresolved materiality. The worker's yes/no
    fields help identify the boundary but never override the observed diff.
    Routine documentation with two consistent no values may skip review.
+   The coordinator never edits product files, including mechanical formatting
+   fixes. Send source defects through the existing review/repair path; do not
+   accept or commit them as corrected until that role returns the correction.
 7. When needed, directly create one fresh read-only reviewer for the same unit,
    using its configured pair and the worker result. For `changes_requested`,
    handle Plan-owned corrections in the coordinator and send only source-owned
@@ -81,10 +91,11 @@ python "<workflow-skill-directory>/scripts/check_context_checkpoint.py" --projec
 ```
 
 `rollover` requires [rollover](operations-rollover.md), with no next-unit work
-in this coordinator. `continue` permits the next eligible unit. Report
-unavailable telemetry without guessing occupancy or claiming a handoff.
-Invalid configuration blocks continuation until corrected. A failed helper
-is a failure, not an unavailable-signal result.
+in this coordinator. `continue` permits the next eligible unit. Unavailable or
+stale telemetry returns `continue`: retain this coordinator and select the next
+eligible unit without estimating occupancy or searching manually for telemetry.
+Invalid configuration blocks continuation until corrected. A failed helper is
+a failure, not an unavailable-signal result.
 
 Accepting a Step group does not complete the Work Item. Continue with its next
 unaccepted Step; complete the item only after all its work and Acceptance. Continue the requested scope
@@ -143,9 +154,11 @@ Retain completed effects, unaccepted changes and the next action. Reconcile the
 Plan once the child's actual state is known.
 
 On resume or compaction, recover the run record, the Plan, the actual diff and
-any pending exact task. If delivery or completion is missing, make one targeted
-read_thread or native status query for that known task; retrieve only the
-missing result or state. Persist a recovered result before accepting it.
+any pending exact task. If delivery or completion is missing, recover only the existing result/state
+from the known task. Prefer one read_thread or native status query to avoid
+an extra turn. A scoped message requesting that same result uses the existing
+run authorization too; it must not restart work or change the assignment.
+Persist the recovered result before accepting it.
 Unknown creation or a still-running task remains pending: do not recreate it,
 start a second writer or loop. A failed send may leave the result in the
 worker's final answer. Continue from the first unperformed action. Do not

@@ -17,7 +17,7 @@ their individual host requirements and test evidence.
 
 ## How it works
 
-- The calling task coordinates directly and selects a Step, a consecutive Step group or a whole Work Item. Small related Steps share setup and produce one checkable result; authored order stays intact. Risk determines model and reasoning effort. Workers implement in the existing checkout.
+- The calling task coordinates directly and selects a Step, a consecutive Step group or a whole Work Item. Small related Steps share setup and produce one checkable result. Authored order stays intact. Risk determines model and reasoning effort. Workers implement in the existing checkout.
 - After dispatch, the coordinator becomes idle. One native message carries the result and resumes it. Ordinary progress does not trigger supervision or repeated messages.
 - Fresh reviewers check code and critical documentation changes. Routine changes can skip review after a bounded consistency check.
 - The coordinator corrects Plan findings. Repair workers correct project findings, with further review when changes are material or unclear.
@@ -60,7 +60,7 @@ GPT-6 SOL Medium, including grouped work, review, repair and context rollover.
 - **Configured routing.** Risk selects the model and effort. Unsupported required pairs block rather than silently falling back.
 - **Independent review where needed.** Code and critical documentation changes require a fresh reviewer. Unresolved worker findings allow at most three repair workers before user input is required.
 - **Measured rollover.** By default, the coordinator hands over at or above 25 percent after an accepted unit. Child roles hand over strictly above 75 percent at a natural boundary. Missing or stale measurements are not guessed. Both thresholds are configurable.
-- **Retained results before cleanup.** Archive once by exact task ID after retaining the result. If the child's turn end is unknown, request self-archival without waiting. Rollover retains the successor's takeover first; a successor coordinator requests its predecessor's self-archival. No archival confirmation or check follows. Report tool errors. Tasks awaiting a user decision and the final coordinator remain open.
+- **Retained results before cleanup.** Archive once by exact task ID after retaining the result. If the child's turn end is unknown, request self-archival without waiting. Rollover retains the successor's takeover first. A successor coordinator requests its predecessor's self-archival. No archival confirmation or check follows. Report tool errors. Tasks awaiting a user decision and the final coordinator remain open.
 - **Accepted work before commit.** When committing is already authorized, a unit commit includes its accepted changes and complete accumulated Plan state. Failed hooks and outstanding backup requirements are not bypassed.
 - **A binding scope.** Without a narrower boundary, continue through the active Plan. Preserve explicit stops and decisions. Archiving a task is not cancelling it.
 
@@ -71,6 +71,14 @@ GPT-6 SOL Medium, including grouped work, review, repair and context rollover.
 ## What it costs
 
 - Separate worker and reviewer tasks, context handoffs and Plan updates use additional tokens and time.
+- **Known issue.** Some Codex clients do not expose
+  [`close_agent`](https://github.com/openai/codex/issues/36211). Worker and
+  reviewer roles therefore use separate Codex chats that can be archived,
+  adding visible task entries and cleanup. Even closed child threads can
+  [remain visible](https://github.com/openai/codex/issues/30903).
+- **Known issue.** Desktop-created threads can be
+  [missing from Codex Mobile](https://github.com/openai/codex/issues/24464).
+  Mobile monitoring and follow-up can therefore be unreliable for these roles.
 
 ## How it was developed
 
@@ -79,7 +87,8 @@ GPT-6 SOL Medium, including grouped work, review, repair and context rollover.
 - Real-project histories are analyzed alongside results to identify failures and unnecessary context use.
 - Targeted simulation and optimization workflows inform revisions. Changes are retained only when the required behavior survives.
 
-- Remaining testing must cover automatic context compaction immediately after handoff and waiting beyond the host's maximum wait duration.
+- Compaction immediately after handoff and host-level delivery failures remain
+  unverified outside their dated development evidence.
 
 ## Compatibility
 
@@ -95,14 +104,14 @@ contradictory measurements do not by themselves block valid bounded work.
 
 Native approval can hold a result message pending. Keep the exact task ID
 without duplicate sends. The coordinator takes the complete result directly
-from the native message; no parser or routine result read is needed.
+from the native message. No parser or routine result read is needed.
 Use `read_thread` only for targeted recovery of a known missing result or state.
 The host must support authorized child messages that resume the coordinator.
 If unavailable, Workflow reports the limitation before dispatch.
 
 This package requires every Skill included in this suite to be installed and
 enabled. Partial installation is not supported. Skills keep their own task
-scope and invocation rules; Workflow still requires an explicit request.
+scope and invocation rules. Workflow still requires an explicit request.
 
 ## Install
 
@@ -148,10 +157,10 @@ S-FIXR-#1-W-010/STEPS-1-3
 ```
 
 The number counts tasks separately for each role within the workflow run. A new
-successor gets the next number; continuing the same task keeps its number.
+successor gets the next number. Continuing the same task keeps its number.
 The manager shows the Plan ID. Workers, reviewers and repair workers show their
 assigned range without its title: STEP-2 for one Step or STEPS-1-3 for a group.
-A whole Work Item with Steps shows their full range; only an item without Steps
+A whole Work Item with Steps shows their full range. Only an item without Steps
 has no Step suffix. Uppercase
 affects display only. Rollover keeps the same logical workflow run even
 though the successor's displayed number increases.

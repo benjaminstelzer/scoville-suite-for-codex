@@ -27,10 +27,10 @@ S-FIXR-#1-W-010/STEPS-1-3
 ```
 
 The number counts tasks separately for each role within the workflow run. A new
-successor gets the next number; continuing the same task keeps its number.
+successor gets the next number. Continuing the same task keeps its number.
 The manager shows the Plan ID. Workers, reviewers and repair workers show their
 assigned range without its title: STEP-2 for one Step or STEPS-1-3 for a group.
-A whole Work Item with Steps shows their full range; only an item without Steps
+A whole Work Item with Steps shows their full range. Only an item without Steps
 has no Step suffix. Uppercase
 affects display only. Rollover keeps the same logical workflow run even
 though the successor's displayed number increases.

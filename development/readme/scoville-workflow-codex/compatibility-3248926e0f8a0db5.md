@@ -12,7 +12,7 @@ contradictory measurements do not by themselves block valid bounded work.
 
 Native approval can hold a result message pending. Keep the exact task ID
 without duplicate sends. The coordinator takes the complete result directly
-from the native message; no parser or routine result read is needed.
+from the native message. No parser or routine result read is needed.
 Use `read_thread` only for targeted recovery of a known missing result or state.
 The host must support authorized child messages that resume the coordinator.
 If unavailable, Workflow reports the limitation before dispatch.

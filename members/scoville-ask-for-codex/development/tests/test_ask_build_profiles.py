@@ -27,6 +27,9 @@ class AskBuildProfileTests(unittest.TestCase):
             member = receipt["members"][0]
             package = output / member["package_path"] / NAME
             self.assertTrue((package / "SKILL.md").is_file())
+            invocation = (package / "agents" / "openai.yaml").read_text(encoding="utf-8")
+            self.assertIn("$scoville-ask-for-codex", invocation)
+            self.assertIn("separate adviser chat", invocation)
             for script in ("ask.py", "list_models.py", "ask_claude.py", "ask_settings.py"):
                 self.assertTrue((package / "scripts" / script).is_file(), script)
             self.assertEqual([package / "SKILL.md"], list(output.rglob("SKILL.md")))

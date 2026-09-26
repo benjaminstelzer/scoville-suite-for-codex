@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.6.2 - 2026-09-26
+
+- Start worker, reviewer and fixer numbering at 1 for each assigned Step range. Keep those counters through rollovers.
+- Stop checks after a context handoff and start its successor without waiting for a native turn-end event.
+- Preserve existing message authorization in every role assignment and keep helper unit parameters distinct from display titles.
+
+- Keep the live cursor current, reuse loaded contracts, and delegate product-file repairs without repeating dispatch context.
+- Load dispatch and rollover contracts before route or context-boundary advice.
+- Continue bounded work when telemetry is unavailable and return worker handoffs through the normal role result.
+
 ## v0.6.1 - 2026-09-26
 
 - Preserve existing user authorization for internal messages across worker dispatches and coordinator rollovers.

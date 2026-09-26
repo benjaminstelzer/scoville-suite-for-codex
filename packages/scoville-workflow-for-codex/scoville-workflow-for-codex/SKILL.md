@@ -40,9 +40,11 @@ Use the host-provided calling ID or `CODEX_THREAD_ID` directly. Do not list chat
 or dump environment variables when the required identity is already known.
 
 Read [operations](references/operations.md) for the complete ordinary loop and
-[dispatch](references/operations-dispatch.md) before the first unit. Read
-[rollover](references/operations-rollover.md) before a context handoff or a
-rollover continuation. The checkpoint at accepted boundaries is part of the
+[dispatch](references/operations-dispatch.md) before classifying a route,
+selecting a model pair, or handling the first unit. Read
+[rollover](references/operations-rollover.md) before explaining or handling a
+worker or coordinator context boundary, context handoff, or rollover
+continuation. The checkpoint at accepted boundaries is part of the
 ordinary loop, so it cannot be skipped by not loading the rollover reference.
 These three references contain the entire runtime procedure, including review,
 checkpoint, compaction recovery and stop behavior.
@@ -54,7 +56,8 @@ The optional project [AGENTS block](references/agents-setup.md) is additional
 setup only. Its absence does not prevent a run or require another activation.
 
 Keep a small current-run record in `.scoville/workflow.md`, using ordinary
-Markdown: workflow run number, counters for the four roles, coordinator task/host IDs, Plan ID, exact
+Markdown: workflow run number, coordinator counter, child-role counters labelled
+with their exact assigned unit, coordinator task/host IDs, Plan ID, exact
 workspace/project, requested scope, current unit and role, active child handle,
 original executor pair, repair count, retained result or handoff and next action.
 For a rollover, also retain predecessor/successor handles and the pending next
@@ -67,10 +70,13 @@ actual task/host ID in the run record. Set its title with `set_thread_title` to
 `S-MNGR-#1-<plan_id>`. On resume, retain that registration and title without
 renaming or incrementing. A rollover successor receives coordinator #2, then #3.
 
-For titles, count tasks separately for each role, starting each at 1. Assign the
-next role number when retaining a new creation handle. A rollover successor is
-a new task and increments its role counter. Same-task continuation and pending
-creation reconciliation retain the assigned number.
+Count coordinator tasks per workflow run. Count executor, reviewer and repair
+tasks separately per assigned unit (Work Item and exact Step range), starting
+each role at 1. A new unit starts its child-role counters again at 1; another
+task for the same role and unit uses the next number. A rollover keeps the
+assigned unit and its counters, including across coordinator rollover.
+Assign the number when retaining a new creation handle. Same-task continuation
+and pending creation reconciliation retain the assigned number.
 
 Use the role counter directly. Display titles are uppercase:
 - `S-MNGR-#<n>-PLAN-NNNN`

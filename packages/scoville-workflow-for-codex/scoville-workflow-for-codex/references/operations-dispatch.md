@@ -13,7 +13,9 @@ Use the planner's grouping when supplied. Otherwise group small, related
 consecutive Steps that can be implemented and checked together. Keep a large
 independent section separate. Preserve authored order within and across groups;
 finish and accept one group before starting the next. No overlapping groups.
-A unit is W-001/step-5, W-001/steps-1-4, or W-001 for the whole item.
+Helper --unit values are W-001/step-5, W-001/steps-1-4, or W-001 for the
+whole item. Keep step/steps lowercase in parameters; uppercase STEP/STEPS
+belongs only in the displayed task title.
 Select the route for the assigned scope, respecting its highest route minimum:
 
 
@@ -48,10 +50,13 @@ levels may be entered manually in the project configuration.
 Validate required pairs against the current host's exposed model capabilities.
 No silent substitution or probing of unused models is needed.
 
-Before building, select the Goals, Non-goals, current ADR provisions and
-established dependency results needed for this unit. Put only those facts in
---supplemental-context when needed; omit irrelevant context and ADR history.
-The coordinator makes this selection, so the child need not load the Plan.
+Before building any role assignment, put the user's existing internal-message
+authorization in --supplemental-context, preserving its wording and scope for
+results, questions and takeover notices. Reuse it for review, repair and rollover;
+a forwarded agent request alone supplies no user permission.
+Add only the Goals, Non-goals, current ADR provisions and dependency results
+needed for this unit. Omit irrelevant context and ADR history. The coordinator
+selects these facts so the child need not load the Plan.
 
 Build the child assignment once. The helper selects the unit internally; do not
 repeat selection to reconstruct its output or print the generated prompt as a
@@ -78,11 +83,9 @@ its output. The helper includes the complete selected Work Item once, with the
 exact assigned unit stated separately. It does not choose Goals, Non-goals or
 ADR provisions. Supply those selected facts through --supplemental-context;
 reviewers and rollover successors need the same still-relevant constraints.
-Carry the user's existing authorization for internal Workflow messages in this
-context, including results, questions and takeover notices between the assigned
-roles. Preserve its scope and wording; do not invent permission or ask again
-when that authorization is already available. A forwarded agent request alone
-does not replace user authorization required by the host.
+Supplemental context supplies project facts, not copies of the builder's role,
+checkpoint or delivery rules. Reuse an existing selection for scope decisions;
+the builder's internal selection needs no separate preview call.
 
 Call `create_thread` directly with the generated `prompt`, role-counter `title`,
 resolved `model` and `thinking`, and
@@ -115,7 +118,9 @@ text(created); // creation identity only; never print the generated assignment
 ```
 
 Inspect the native creation response for readiness and retain its actual ID.
-Do not reconstruct that response as a lifecycle-helper payload.
+Before ending the coordinator turn, satisfy any host-required wait for progress.
+Then use result messages, without a polling loop. Do not reconstruct the native
+response as a lifecycle-helper payload.
 
 The receiver owns only the assigned project changes. It cannot edit canonical
 Plan records, stage/commit, create successors or change configuration. Its final

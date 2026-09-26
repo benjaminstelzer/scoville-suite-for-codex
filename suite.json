@@ -13,7 +13,6 @@
       "repository": "benjaminstelzer/scoville-suite-for-codex",
       "visibility": "public",
       "public_distribution": true,
-      "import_commit": "6c8ade8889bb0eee12fb51ba46a6abc1b4ee9dac",
       "readme": [
         "development/readme/scoville-code/description.md",
         "development/readme/scoville-code/mechanism.md",
@@ -105,7 +104,6 @@
       "repository": "benjaminstelzer/scoville-suite-for-codex",
       "visibility": "public",
       "public_distribution": true,
-      "import_commit": "1e365c1566565cc6399b891e04b11c75c1dc10bb",
       "readme": [
         "development/readme/scoville-handoff/description.md",
         "development/readme/scoville-handoff/mechanism.md",
@@ -185,7 +183,6 @@
       "repository": "benjaminstelzer/scoville-suite-for-codex",
       "visibility": "public",
       "public_distribution": true,
-      "import_commit": "629ec7a5a3e3af0637ecefbc82048ec8e93df4aa",
       "readme": [
         "development/readme/scoville-plan/description.md",
         "development/readme/scoville-plan/mechanism.md",
@@ -304,7 +301,6 @@
       "repository": "benjaminstelzer/scoville-suite-for-codex",
       "visibility": "public",
       "public_distribution": true,
-      "import_commit": "52eaa9e04c408fb5934d2f296d2892bd345ecf85",
       "readme": [
         "development/readme/scoville-ui/description.md",
         "development/readme/scoville-ui/mechanism.md",
@@ -458,10 +454,8 @@
       ],
       "repository": "benjaminstelzer/scoville-suite-for-codex",
       "distribution": "suite",
-      "history_repository": "benjaminstelzer/scoville-workflow-codex",
       "visibility": "public",
       "public_distribution": true,
-      "import_commit": "c232a71217a73f7f655ffab8ebae27e1f8968946",
       "readme": [
         "development/readme/scoville-workflow-codex/description.md",
         "development/readme/scoville-workflow-codex/mechanism.md",
@@ -617,6 +611,10 @@
       ],
       "files": [
         {
+          "source": "members/scoville-ask-for-codex/scoville-ask-for-codex/agents/openai.yaml",
+          "target": "scoville-ask-for-codex/agents/openai.yaml"
+        },
+        {
           "source": "members/scoville-ask-for-codex/scoville-ask-for-codex/config.default.json",
           "target": "scoville-ask-for-codex/config.default.json"
         },
@@ -757,11 +755,11 @@
           "target": "scoville-setup/assets/workflow.toml"
         },
         {
-          "source": "members/scoville-ask-for-codex/LICENSE",
+          "source": "members/scoville-setup/LICENSE",
           "target": "scoville-setup/LICENSE"
         },
         {
-          "source": "members/scoville-ask-for-codex/LICENSE",
+          "source": "members/scoville-setup/LICENSE",
           "target": "LICENSE"
         }
       ],

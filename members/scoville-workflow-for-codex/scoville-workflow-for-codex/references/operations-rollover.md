@@ -8,14 +8,27 @@ saved record do not replace creation and continuation in a new task.
 
 ## Worker, reviewer or repair
 
-After a coherent change and its immediate checks, with unfinished work, the
-child runs its supplied checkpoint. `context_handoff` means: retain completed effects, current state,
+While assigned work remains, run the supplied checkpoint after each bounded
+implementation-and-check, review, or UI-check batch, before starting another
+correction or check batch. Failed checks also end a batch. Finish any running
+operation first. When assigned work and checks are complete, return the normal
+role result without another checkpoint. Pending coordinator review and
+acceptance are not unfinished child work.
+
+A `continue` outcome resumes the remaining bounded work. Unavailable telemetry
+also continues bounded work without estimating occupancy or searching manually
+for telemetry. A `context_handoff` outcome returns the normal role result with
+that status and ends the task. Run no further test, correction or checkpoint
+after that outcome; put the next action in the handoff for the successor.
+
+`context_handoff` means: retain completed effects, current state,
 checks, unresolved facts and a concrete remaining assignment, return that status
 and end. Identify finished Steps or parts and the next unfinished action.
 A longer handoff may be a Markdown file named in the result.
 
-The coordinator retains the context_handoff message after the predecessor
-has stopped all work. It then creates one successor of the same role, unit, workspace,
+The context_handoff message reports that project work has stopped. The
+coordinator retains it and creates one successor without waiting for a native
+turn-end event: same role, unit, workspace,
 launched model/effort and logical attempt, with the complete Work Item, its relevant supplied constraints
 and the short handoff. Do not restart completed work or consume a repair
 attempt. Use the next counter for that role in its title while keeping the

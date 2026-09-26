@@ -4,6 +4,14 @@ Start the round in a normal Codex caller chat. Desktop multi-agent v2 subagents
 cannot receive send_message_to_thread deliveries; return the request to their
 parent instead of creating an adviser from that unsupported caller.
 
+The user must explicitly request the separate adviser chats and return messages
+required for the consultation. The package's default invocation prompt includes
+that request. These chats are the Skill's execution mechanism, not generic
+subtasks subject to a subagent default. Current subagents have no supported
+close operation, so repeated Ask rounds can exhaust their shared slots. Do not
+substitute a subagent. Resolve authorization before dispatch when another
+invocation omits the required chat or message scope.
+
 Resolve the requested advisers once, then use create_thread directly for each.
 Preserve the selected saved project and its local checkout. Each adviser gets
 fresh context and exactly `S-ASK <UPPERCASE selected model ID> - <calling task title>`.
@@ -12,10 +20,16 @@ ID; preserve the caller title and technical model parameter. Keep existing
 chat titles and follow-up identities unchanged.
 Use the actual caller ID and title; titles do not identify tasks.
 
-The prompt contains references/adviser.md, references/native-delivery.md,
-return_to_thread_id, a short consultation_reference, mode, scope and the user's
-question with necessary raw evidence. Exclude the caller's verdict and unrelated
-history. Native parameters are model=<resolved model>, thinking=<resolved effort>
+Build each native assignment from these parts, including in mixed native/Claude rounds:
+- The full instructions from references/adviser.md and references/native-delivery.md.
+- The actual return_to_thread_id (task ID only; keep host separate),
+  consultation_reference, mode and exact scope.
+- The user's question, necessary raw evidence and existing message authorization
+  with its actual wording and scope.
+
+A question alone or filenames without their instructions are not a complete
+assignment. Exclude the caller's verdict and unrelated history.
+Native parameters are model=<resolved model>, thinking=<resolved effort>
 and target={type:project,projectId:<saved-id>,environment:{type:local}}.
 The host validates availability; report failure without changing the model.
 
@@ -38,9 +52,12 @@ reply in any order, including while the caller is already active; retain each
 once and end the turn again if another answer remains pending and the host
 permits it. Add no polling loop.
 
-On a host completion event, resume or reported missing delivery, make one targeted native status query
-or read_thread call for the known task and only the missing answer/state. An
-unresolved task remains pending; do not create a replacement or loop.
+On a host completion event, resume or reported missing delivery, recover the
+existing answer/state from the retained task. Prefer one read_thread or native
+status query to avoid an extra turn. A request to resend that answer is also
+covered by existing consultation-message authorization. Keep the same reference
+and scope; recovery does not start a new review. An unresolved task remains
+pending; do not create a replacement or loop.
 `RESULT NOT DELIVERED` is a diagnostic in the adviser chat, not a wake-up event.
 Do not claim automatic recovery without an observed host event or message.
 

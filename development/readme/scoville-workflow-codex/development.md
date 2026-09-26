@@ -5,4 +5,5 @@
 - Real-project histories are analyzed alongside results to identify failures and unnecessary context use.
 - Targeted simulation and optimization workflows inform revisions. Changes are retained only when the required behavior survives.
 
-- Remaining testing must cover automatic context compaction immediately after handoff and waiting beyond the host's maximum wait duration.
+- Compaction immediately after handoff and host-level delivery failures remain
+  unverified outside their dated development evidence.

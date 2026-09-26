@@ -16,6 +16,11 @@ Read the `claude.timeout_seconds` default from the imported settings in
 [configuration.md](configuration.md). A positive finite `timeout_seconds` on the request overrides it for that call. At the
 deadline the adapter terminates its process family and returns `ok:false` with
 `code:claude_timeout`; it does not retry. Any unconfirmed cleanup is reported.
+After timeout, retain any previously confirmed session ID and requested
+settings, mark actual metadata unknown when unavailable, and do not claim the
+interrupted turn was saved. A status request does not authorize resuming the
+timed-out consultation. A failure does not authorize a higher budget or another
+provider.
 
 Retain the JSON answer, permission denials, requested/reported settings and
 exact session ID. Permission denials are evidence gaps even when an answer is
@@ -28,5 +33,7 @@ working directory and session ID; set `session_id` on the next `claude` request
 with a new prompt/reference/scope. Do not use “most recent session”, resume by
 display name or silently create a fresh session. No automatic retry after an
 uncertain process result. CLI sessions have no Codex sidebar row.
+The Claude session ID is the continuation handle; no native task handle or
+native return destination applies to this route.
 
 If CLI authentication is missing or its OAuth session cannot refresh, report the error and ask the user to run `claude auth login` in a separate terminal, complete browser sign-in and verify with `claude auth status`. Keep running sessions open. Resume the requested check after authentication succeeds; never inspect or copy credential files.
