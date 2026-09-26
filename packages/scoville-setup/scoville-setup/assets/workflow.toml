@@ -3,8 +3,8 @@ schema_version = 1
 
 [context]
 # Coordinator: at or above; workers: strictly above. Percent of context window.
-coordinator_percent = 25
-worker_percent = 75
+coordinator_percent = 40
+worker_percent = 60
 
 [execute.ultra_low]
 model = "gpt-6-sol"

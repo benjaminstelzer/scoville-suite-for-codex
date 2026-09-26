@@ -22,7 +22,9 @@ sender to the retained successor. A notice never accepts work or advances the Pl
 
 Keep the run record current, not chronological. When retaining a transition,
 replace the affected role counter, unit state, active handle and next action
-together. Keep past results in their retained files or Plan evidence, with only
+together. Write related cursor changes and any due Plan updates together where possible.
+For child creation, keep the required pre-dispatch intent and returned handle
+as separate writes; omit other intermediate progress writes. Keep past results in their retained files or Plan evidence, with only
 still-needed references in the cursor. Do not add a separate consistency check.
 At run completion, mark the unit and run finished and clear the active role and
 child; leave no executing role in the finished cursor.

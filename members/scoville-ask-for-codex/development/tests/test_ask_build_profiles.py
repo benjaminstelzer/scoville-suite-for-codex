@@ -66,7 +66,7 @@ class AskBuildProfileTests(unittest.TestCase):
             builder.render_readmes(ROOT, True, builder.load(ROOT, "general", "suite"), preview)
             readme = (preview / "README.md").read_text(encoding="utf-8")
             self.assertIn(NAME, readme)
-            self.assertIn("Codex online", readme)
+            self.assertIn("For Codex. Available as a standalone Skill.", readme)
             self.assertIn("Install this Skill for all my projects from this exact package directory:", readme)
             self.assertIn(
                 "https://github.com/benjaminstelzer/scoville-ask-for-codex/tree/main/scoville-ask-for-codex",

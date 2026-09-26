@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.6.4 - 2026-09-27
+
+- Set Codex Workflow rollover defaults to 40% for coordinators and 60% for workers, reviewers and fixers.
+- Check context before commands expected to add substantial context, keep full logs and exit status, and read large output selectively.
+- Group related coordinator state updates while preserving dispatch and rollover recovery.
+
 ## v0.6.3 - 2026-09-27
 
 - Archive blocked Workflow workers when they are replaced. Keep a worker open when it will continue after clarification.

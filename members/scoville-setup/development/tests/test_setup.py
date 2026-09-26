@@ -39,7 +39,7 @@ class SetupTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(shown["effective"]["ask"]["claude"]["timeout_seconds"], 3600)
             self.assertEqual(shown["effective"]["workflow"]["context"],
-                             {"coordinator_percent": 25, "worker_percent": 75})
+                             {"coordinator_percent": 40, "worker_percent": 60})
             self.assertFalse((project / ".scoville").exists())
             result, saved = run("set", {"ask": {"claude": {"timeout_seconds": 2400}},
                                         "workflow": {"context": {"worker_percent": 82}}})

@@ -38,8 +38,8 @@ Use Scoville Setup to inspect or change project settings in
 select model/reasoning pairs, and `context` sets rollover thresholds. Missing
 values use the bundled defaults. Starting a run creates no configuration file.
 
-Default rollover triggers are at or above 25% context usage for the coordinator
-and strictly above 75% for workers, reviewers and fixers. Progress is saved in `.scoville/workflow.md`. Change settings
+Default rollover triggers are at or above 40% context usage for the coordinator
+and strictly above 60% for workers, reviewers and fixers. Progress is saved in `.scoville/workflow.md`. Change settings
 between runs and avoid parallel edits to the shared project checkout.
 
 See the [dispatch rules](scoville-workflow-for-codex/references/operations-dispatch.md)

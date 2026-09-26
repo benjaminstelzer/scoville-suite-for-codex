@@ -11,7 +11,9 @@ saved record do not replace creation and continuation in a new task.
 While assigned work remains, run the supplied checkpoint after each bounded
 implementation-and-check, review, or UI-check batch, before starting another
 correction or check batch. Failed checks also end a batch. Finish any running
-operation first. When assigned work and checks are complete, return the normal
+operation first. Checkpoint before commands expected to add substantial context unless
+just checked with no material context growth since. Save large output to a file with the exit
+status; read failures and a summary first, then relevant details as needed. When assigned work and checks are complete, return the normal
 role result without another checkpoint. Pending coordinator review and
 acceptance are not unfinished child work.
 
