@@ -1,13 +1,12 @@
 ## How it works
 
-- The calling task coordinates directly and selects a Step, a consecutive Step group or a whole Work Item. Small related Steps share setup and produce one checkable result. Authored order stays intact. Risk determines model and reasoning effort. Workers implement in the existing checkout.
-- After dispatch, the coordinator becomes idle. One native message carries the result and resumes it. Ordinary progress does not trigger supervision or repeated messages.
-- Fresh reviewers check code and critical documentation changes. Routine changes can skip review after a bounded consistency check.
-- The coordinator corrects Plan findings. Repair workers correct project findings, with further review when changes are material or unclear.
-- With existing commit authority, accepted work and Plan updates enter one commit. Failed checks and open decisions do not count as acceptance.
-- At an accepted boundary with more work remaining, the coordinator hands over at or above 25% context use. Workers, reviewers and repairs hand over above 75% at natural stopping points.
-- Both thresholds are configurable and measure current context, not total tokens spent. Missing or stale measurements are not guessed.
-- A successor retains the assignment and checkout. A context handoff is not another repair attempt. Results are saved before exact-task archival. Archive errors are reported without blocking accepted work.
+- The coordinator selects a Step, related consecutive Steps or a whole Work Item. Grouping shares setup and produces a checkable result while preserving the Plan's order.
+- Risk determines the worker's model and effort. The worker implements in the existing checkout and returns its result by message.
+- Fresh reviewers inspect code and critical documentation. Routine changes may skip review after a consistency check.
+- The coordinator fixes Plan findings; repair workers fix project findings. Material or unclear changes receive another review.
+- Accepted changes and Plan updates enter one commit when committing is authorized.
+- At a configured context threshold, a successor continues the same assignment and checkout. The coordinator hands over after acceptance; child roles use a natural stopping point. Rollover does not consume a repair attempt.
+- Results and successor takeover are retained before retiring tasks. Archive errors are reported without blocking accepted work.
 
 ```mermaid
 flowchart TD

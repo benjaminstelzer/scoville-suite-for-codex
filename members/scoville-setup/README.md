@@ -4,8 +4,8 @@ Save the Scoville settings for your project in one file. Setup shows the effecti
 
 ## How it works
 
-- Reads `.scoville/config.json` from the selected project root, with imported Ask and Workflow defaults for missing values.
-- Uses the same loader and validation as the consumers before saving requested changes.
+- Read project settings from `.scoville/config.json`, using defaults for missing values.
+- Validate requested changes with the same checks used by Ask and Workflow, then save them.
 
 ## What it enforces
 
@@ -15,12 +15,11 @@ Save the Scoville settings for your project in one file. Setup shows the effecti
 
 ## What it costs
 
-- Reads the defaults and project configuration and runs local validation. You choose which settings to retain. No model calls are made by the helper.
+- You choose which settings to save. The helper reads and validates them locally without model calls.
 
 ## How it was developed
 
-- Built from the shared configuration contract introduced for Ask and Workflow.
-- Package tests exercise showing settings, explicit changes, invalid inputs and the actual consumers.
+- Tests exercise settings display, authorized changes, invalid inputs and consumption by Ask and Workflow.
 
 - Development links: [Source](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-setup) | [Tests](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-setup/development/tests) | [Notes](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/members/scoville-setup/development/README.md)
 
@@ -39,7 +38,7 @@ and enabled.
 
 Ask Scoville Setup to show the settings for this project, or tell it which values to save. You can configure Ask advisers, model and effort, Claude budget, timeout, persistence, customizations and web tools. Workflow supports model/reasoning pairs for each route and the coordinator/worker context rollover percentages.
 
-The helper returns the effective values. A one-time choice remains in the request or Plan Step unless you ask to save it. Setup is included only in the Codex Suite. Ask and Workflow work without running Setup first.
+The helper returns the effective values. A one-time choice remains in the request or Plan Step unless you ask to save it.
 Setup saves the regular reasoning levels `low`, `medium`, `high` and `xhigh`.
 Other supported levels require manual configuration and remain unchanged when
 Setup saves unrelated settings.

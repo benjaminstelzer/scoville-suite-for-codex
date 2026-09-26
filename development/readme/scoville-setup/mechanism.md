@@ -1,4 +1,4 @@
 ## How it works
 
-- Reads `.scoville/config.json` from the selected project root, with imported Ask and Workflow defaults for missing values.
-- Uses the same loader and validation as the consumers before saving requested changes.
+- Read project settings from `.scoville/config.json`, using defaults for missing values.
+- Validate requested changes with the same checks used by Ask and Workflow, then save them.

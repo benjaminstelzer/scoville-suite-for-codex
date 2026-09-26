@@ -1,43 +1,38 @@
 # Scoville Ask for Codex
 
-A second opinion should give you another assessment, not repeat your own reasoning back to you. Scoville Ask sends a self-contained question to the advisers you choose and brings their answers back to the original task. One configuration replaces the five separate Ask Skills.
+Scoville Ask sends your question and relevant evidence to independently
+configured advisers, then returns their assessments to the original task.
+Use it for a second opinion, a patch review or a comparison of approaches.
 
 ## How it works
 
-- Select one or more advisers, each with its own model, reasoning effort and native Codex or Claude CLI route.
-- Send independent questions, retain task or session handles and continue the same consultation when needed.
-- Use separate reviews for review requests. For general questions, combine independent answers into a synthesis.
+- Select advisers with their own model, effort and Codex or Claude CLI route.
+- Send independent questions and retain each conversation for follow-up.
+- Return separate reviews or synthesize answers to a general question.
 
 ## What it enforces
 
-- Advisers inspect and answer. Changes remain with the calling task.
-- Native tasks use `S-ASK <UPPERCASE model ID> - <original task title>`. Technical model IDs stay unchanged. Identity comes from task IDs and consultation references.
-- Invalid settings, unavailable models and failed advisers remain visible. There is no silent replacement model or route.
+- **Independent advice.** Advisers inspect and answer. The calling task owns changes.
+- **Traceable answers.** Task IDs, consultation references and scope identify each response. Native chat titles show the model and original task.
+- **Visible failures.** Invalid settings, unavailable models and failed consultations are reported without silently replacing the model or route.
 
-Native advisers follow a read-only instruction, but the host does not add a
-technical write barrier when creating their task. Claude permits Read, Grep and
-Glob by default. Enable `claude.web_tools` explicitly for WebSearch and WebFetch.
-Claude model communication remains online even when these web tools are off.
+Native advisers are instructed to stay read-only. The host provides no separate
+write barrier. Claude permits Read, Grep and Glob by default. WebSearch and
+WebFetch require `claude.web_tools`. Model communication always needs network access.
 
 ## What it costs
 
-- Each adviser adds a separate model call and waiting time. Native tasks use the connected Codex account, and Claude CLI uses its own configured account.
-- **Known issue.** Some Codex clients do not expose
-  [`close_agent`](https://github.com/openai/codex/issues/36211). Native advisers
-  therefore use separate Codex chats that can be archived, adding visible task
-  entries and cleanup. Even closed child threads can
-  [remain visible](https://github.com/openai/codex/issues/30903).
-- **Known issue.** Desktop-created threads can be
-  [missing from Codex Mobile](https://github.com/openai/codex/issues/24464).
-  Mobile monitoring and follow-up can therefore be unreliable for native advisers.
-- You maintain the adviser configuration and review disagreements. More advisers do not guarantee a better answer.
+- Each adviser adds a model call and waiting time through its configured Codex or Claude account.
+- Native advisers add separate chats and cleanup. Some Codex clients lack
+  [`close_agent`](https://github.com/openai/codex/issues/36211), and closed
+  threads can [remain visible](https://github.com/openai/codex/issues/30903).
+- Desktop-created chats may be [missing from Codex Mobile](https://github.com/openai/codex/issues/24464), limiting mobile follow-up.
+- You choose the advisers and assess disagreements. More opinions do not guarantee a better answer.
 
 ## How it was developed
 
-- Consolidated the native and Claude adapters from the previous Ask Suite.
-- Functional and instruction checks include Luna comprehension cases and
-  independent reviews. Dated development records distinguish requested model
-  settings from verified provider telemetry and simulated calls from live checks.
+- Native Codex chats and Claude CLI adapters were checked through functional tests, Luna comprehension cases and independent reviews.
+- Development records distinguish requested settings from observed model telemetry, and simulated consultations from live execution.
 
 - Development links: [Source](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-ask-for-codex) | [Tests](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-ask-for-codex/development/tests) | [Notes](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/members/scoville-ask-for-codex/development/README.md)
 
@@ -46,31 +41,12 @@ Claude model communication remains online even when these web tools are off.
 **Codex online.** Native advisers require Codex desktop task controls, a
 verified calling task and a saved project. All routes require network access
 and Python 3.11 or newer. Use a frontier LLM from the Fable, Astra, SOL or Opus
-families, version 5.0 or newer. Tests performed are recorded separately from
-this minimum.
+families, version 5.0 or newer.
 
 The native task host checks the requested model and effort when it creates the adviser chat. A rejected request is reported without substituting another model. Native third-party models require a suitable provider connection, such as EasyCLIProxy where configured. The Claude CLI route requires installed, authenticated Claude Code. Opus 5.5 requires version 2.1.280 or newer. See “How to Ask with Claude Code” for setup.
 
-Ask is also available as a standalone Skill from
-[scoville-ask-for-codex](https://github.com/benjaminstelzer/scoville-ask-for-codex).
-Its standalone package works independently. Installing the complete suite uses
-the suite packages and includes every member.
-
-Python 3.11 or newer is required. Choose a working interpreter once for the
-session and use it wherever examples say `python`. Verify its actual version
-with `--version`. On Windows try `py -3`, then `python`. On macOS/Linux try
-`python3`. A Windows Store alias that opens the Store or returns no usable
-version is not an interpreter. Python 3.9/3.10 is too old for these helpers.
-macOS does not imply any particular installed Python version. Quote script
-and project paths, including paths without spaces in the current example.
-If Python is missing, use the authorized normal package manager or official
-installer and verify its version. Report installation or permission failures.
-Project settings use `.scoville/config.json`. Follow the selected installation
-or migration instructions. A helper error has no manual fallback.
-
-This package requires every Skill included in this suite to be installed and
-enabled. Partial installation is not supported. Skills keep their own task
-scope and invocation rules. Workflow still requires an explicit request.
+Install and enable every Skill in the suite. Each applies to its own task scope.
+Start Workflow by asking for it explicitly.
 
 ## Install
 

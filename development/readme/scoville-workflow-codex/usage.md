@@ -9,13 +9,9 @@ Use $scoville-workflow-for-codex to execute the active Scoville Plan in this sav
 Name a Work Item or end boundary to limit the run. Without one, the coordinator
 continues through the active Plan.
 
-The calling task coordinates the run directly. A project `AGENTS.md` addition is
-optional setup on explicit request. It is not a prerequisite for execution.
-
-`$scw` is recognized after loading the Skill, but native short-name discovery
-is not yet verified. Use the full name for installation checks.
-`scoflow codex` is also accepted. Ordinary requests such as “implement the plan”
-or “use workers” do not activate Workflow.
+The calling chat coordinates the run. Use the full Skill name to start it
+reliably; `$scw` also works once the Skill is loaded. Ordinary requests such as
+“implement the plan” do not activate Workflow.
 
 Task titles identify the work and role:
 
@@ -26,28 +22,25 @@ S-REVW-#2-W-010/STEPS-1-3
 S-FIXR-#1-W-010/STEPS-1-3
 ```
 
-The number counts tasks separately for each role within the workflow run. A new
-successor gets the next number. Continuing the same task keeps its number.
-The manager shows the Plan ID. Workers, reviewers and repair workers show their
-assigned range without its title: STEP-2 for one Step or STEPS-1-3 for a group.
-A whole Work Item with Steps shows their full range. Only an item without Steps
-has no Step suffix. Uppercase
-affects display only. Rollover keeps the same logical workflow run even
-though the successor's displayed number increases.
+Manager numbers count coordinators within a run. Worker, reviewer and fixer
+numbers each start at 1 for the assigned Work Item and exact Step range.
+A successor for that same role and unit gets the next number; continuing the
+same chat keeps its number. Rollover preserves the unit and repair attempt.
+
+Titles show the Plan or Work Item and assigned range: `STEP-2` or `STEPS-1-3`.
+A whole Work Item shows its full Step range, or no suffix when it has no Steps.
+Uppercase applies to titles only.
 
 ### Configuration
 
-Save settings under `workflow` in the project's `.scoville/config.json`.
-`execute.CLASS` and `review.CLASS` contain model/reasoning pairs. `context`
-sets coordinator and worker rollover thresholds. Missing values come from
-this Skill's imported `assets/workflow.toml`. Reading or starting creates no
-configuration file. One run uses one workspace. Change settings between runs,
-and do not edit the same project files in parallel while a run is working.
-Concurrent edits have no automatic conflict-recovery guarantee.
-Route classification, Step overrides and repair escalation follow the
-[dispatch rules](scoville-workflow-for-codex/references/operations-dispatch.md).
-Use Scoville Setup to display these settings or save explicit changes. It is
-part of the suite and does not start workflows. Default rollover thresholds
-are 25 percent for the coordinator and 75 percent for child roles. The
-coordinator hands over at or above its threshold, child roles strictly above
-it. The run cursor is ordinary Markdown in `.scoville/workflow.md`.
+Use Scoville Setup to inspect or change project settings in
+`.scoville/config.json`. Under `workflow`, `execute.CLASS` and `review.CLASS`
+select model/reasoning pairs, and `context` sets rollover thresholds. Missing
+values use the bundled defaults. Starting a run creates no configuration file.
+
+Default rollover thresholds are 25% for the coordinator and strictly above 75%
+for child roles. Progress is saved in `.scoville/workflow.md`. Change settings
+between runs and avoid parallel edits to the shared project checkout.
+
+See the [dispatch rules](scoville-workflow-for-codex/references/operations-dispatch.md)
+for task classification, Step overrides and repair escalation.

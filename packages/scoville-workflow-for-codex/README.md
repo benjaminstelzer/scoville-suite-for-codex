@@ -1,30 +1,26 @@
 # Scoville Workflow for Codex
 
-A long software task can leave one agent planning, coding, reviewing its own
-changes and remembering every earlier decision. Context grows while unfinished
-work becomes harder to track.
+Long software tasks need consistent direction, independent review and a way to
+continue when a conversation fills up. Scoville Workflow coordinates those
+responsibilities across Codex chats using a repository Plan.
 
-Scoville Workflow supports structured, AI-assisted software development and
-long-term project maintenance, including larger codebases. It is not intended
-for fast vibe coding or throwaway prototyping. Plan preserves direction and
-decisions, Code requires maintainable changes and meaningful checks, and Workflow
-coordinates workers, fresh reviewers and continuation. Together they help keep
-project development recoverable without making one conversation carry its history.
+Workers implement bounded assignments, fresh reviewers inspect the result,
+and the coordinator records accepted work. Context handoffs preserve unfinished
+work for a successor. The workflow suits structured development and long-term
+maintenance, including larger codebases.
 
-Workflow is suite-only and requires Codex desktop with native task controls.
-Workflow execution has been tested in Codex. For other suite members, check
-their individual host requirements and test evidence.
+Install it through the complete Codex Suite. It requires Codex desktop's native
+task controls.
 
 ## How it works
 
-- The calling task coordinates directly and selects a Step, a consecutive Step group or a whole Work Item. Small related Steps share setup and produce one checkable result. Authored order stays intact. Risk determines model and reasoning effort. Workers implement in the existing checkout.
-- After dispatch, the coordinator becomes idle. One native message carries the result and resumes it. Ordinary progress does not trigger supervision or repeated messages.
-- Fresh reviewers check code and critical documentation changes. Routine changes can skip review after a bounded consistency check.
-- The coordinator corrects Plan findings. Repair workers correct project findings, with further review when changes are material or unclear.
-- With existing commit authority, accepted work and Plan updates enter one commit. Failed checks and open decisions do not count as acceptance.
-- At an accepted boundary with more work remaining, the coordinator hands over at or above 25% context use. Workers, reviewers and repairs hand over above 75% at natural stopping points.
-- Both thresholds are configurable and measure current context, not total tokens spent. Missing or stale measurements are not guessed.
-- A successor retains the assignment and checkout. A context handoff is not another repair attempt. Results are saved before exact-task archival. Archive errors are reported without blocking accepted work.
+- The coordinator selects a Step, related consecutive Steps or a whole Work Item. Grouping shares setup and produces a checkable result while preserving the Plan's order.
+- Risk determines the worker's model and effort. The worker implements in the existing checkout and returns its result by message.
+- Fresh reviewers inspect code and critical documentation. Routine changes may skip review after a consistency check.
+- The coordinator fixes Plan findings; repair workers fix project findings. Material or unclear changes receive another review.
+- Accepted changes and Plan updates enter one commit when committing is authorized.
+- At a configured context threshold, a successor continues the same assignment and checkout. The coordinator hands over after acceptance; child roles use a natural stopping point. Rollover does not consume a repair attempt.
+- Results and successor takeover are retained before retiring tasks. Archive errors are reported without blocking accepted work.
 
 ```mermaid
 flowchart TD
@@ -48,70 +44,50 @@ flowchart TD
 
 ## What it enforces
 
-Scoville Workflow requires a frontier LLM from the Fable, Astra, SOL or Opus
-families, version 5.0 or newer. The simplified native workflow was tested with
-GPT-6 SOL Medium, including grouped work, review, repair and context rollover.
+- **Explicit activation.** Start Workflow by asking for it by name.
+- **Separate responsibilities.** The coordinator owns Plan updates, assignments and authorized commits. Workers implement. Reviewers inspect without editing.
+- **One active assignment.** Tasks share the existing checkout. The run record retains progress and the next action. Change settings between runs and avoid parallel project edits.
+- **Bounded context.** Workers receive the Work Item, assigned Step range and relevant goals, decisions and dependencies. They need not reopen the Plan or earlier chats.
+- **Configured models.** Risk determines model and effort. Unavailable required pairs are reported without substitution.
+- **Independent review.** Code and critical documentation require a fresh reviewer. Unresolved findings allow up to three repairs before user input.
+- **Context handoffs.** Default triggers are at or above 25% for the coordinator after accepted work and strictly above 75% for child roles at natural boundaries. Thresholds are configurable. Missing measurements are not guessed.
+- **Retained results.** Save results before archiving a task. Confirm successor takeover before retiring a predecessor. Report archive errors without confirmation loops. Decision requests and the final coordinator remain open.
+- **Accepted commits.** Existing commit authority covers accepted changes and accumulated Plan state. Hooks and required backups remain binding.
+- **Defined scope.** Follow the active Plan or the user's narrower boundary, preserving stops and open decisions.
 
-- **Explicit activation.** Asking for implementation or delegation alone does not start Workflow.
-- **Separate responsibilities.** The coordinator owns Plan updates, dispatch and accepted commits. Workers implement. Reviewers stay read-only.
-- **One live checkout.** Tasks use the existing working state. Workflow does not create an isolated worktree without an explicit choice.
-- **Single-run operation.** One worker handles one unit at a time. The run record retains the active task and next action. Change configuration between runs and avoid parallel project edits.
-- **Only the assigned scope.** Dispatch contains the full Work Item once and names the assigned Step range. The coordinator adds only relevant Goals, Non-goals, current Decisions and dependency facts. Workers do not reopen the Plan or predecessor chats.
-- **Configured routing.** Risk selects the model and effort. Unsupported required pairs block rather than silently falling back.
-- **Independent review where needed.** Code and critical documentation changes require a fresh reviewer. Unresolved worker findings allow at most three repair workers before user input is required.
-- **Measured rollover.** By default, the coordinator hands over at or above 25 percent after an accepted unit. Child roles hand over strictly above 75 percent at a natural boundary. Missing or stale measurements are not guessed. Both thresholds are configurable.
-- **Retained results before cleanup.** Archive once by exact task ID after retaining the result. If the child's turn end is unknown, request self-archival without waiting. Rollover retains the successor's takeover first. A successor coordinator requests its predecessor's self-archival. No archival confirmation or check follows. Report tool errors. Tasks awaiting a user decision and the final coordinator remain open.
-- **Accepted work before commit.** When committing is already authorized, a unit commit includes its accepted changes and complete accumulated Plan state. Failed hooks and outstanding backup requirements are not bypassed.
-- **A binding scope.** Without a narrower boundary, continue through the active Plan. Preserve explicit stops and decisions. Archiving a task is not cancelling it.
-
-- The canonical Plan owns progress. Workflow does not add a persistent Codex goal or another continuation loop alongside its coordinator.
-
-- For delivery recovery, permission boundaries and failure handling, see [Native Codex operations](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-workflow-for-codex/scoville-workflow-for-codex/references/operations.md).
+See [Native Codex operations](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-workflow-for-codex/scoville-workflow-for-codex/references/operations.md)
+for delivery, permissions and recovery.
 
 ## What it costs
 
-- Separate worker and reviewer tasks, context handoffs and Plan updates use additional tokens and time.
-- **Known issue.** Some Codex clients do not expose
-  [`close_agent`](https://github.com/openai/codex/issues/36211). Worker and
-  reviewer roles therefore use separate Codex chats that can be archived,
-  adding visible task entries and cleanup. Even closed child threads can
-  [remain visible](https://github.com/openai/codex/issues/30903).
-- **Known issue.** Desktop-created threads can be
-  [missing from Codex Mobile](https://github.com/openai/codex/issues/24464).
-  Mobile monitoring and follow-up can therefore be unreliable for these roles.
+- Worker and reviewer chats, handoffs and Plan updates consume tokens and time.
+- Separate chats add sidebar entries and cleanup. Some Codex clients lack
+  [`close_agent`](https://github.com/openai/codex/issues/36211), and closed
+  threads can [remain visible](https://github.com/openai/codex/issues/30903).
+- Desktop-created threads may be [missing from Codex Mobile](https://github.com/openai/codex/issues/24464), limiting mobile monitoring and follow-up.
 
 ## How it was developed
 
-- Workflow grew out of a CLI-based Scoville workflow whose communication and supervision added work of their own.
-- The native version kept Plan ownership, routing, review and rollover, while moving execution into ordinary Codex tasks.
-- Real-project histories are analyzed alongside results to identify failures and unnecessary context use.
-- Targeted simulation and optimization workflows inform revisions. Changes are retained only when the required behavior survives.
-
-- Compaction immediately after handoff and host-level delivery failures remain
-  unverified outside their dated development evidence.
+- Real project histories informed assignment scope, review, communication and context handoffs.
+- GPT-6 SOL Medium tests covered grouped work, review, repair and rollover. Targeted Luna tests found instruction-following gaps.
+- Simulated delivery checks do not establish live reliability. Immediate post-handoff compaction and host-level delivery failures have not been fully verified.
 
 ## Compatibility
 
-Requires Codex desktop, a saved local project, native task creation,
-messaging and archival controls, access to the task's own `CODEX_THREAD_ID`,
-and Scoville Plan v1.8.0 or a compatible source_text selector. Python 3.11+ runs the deterministic helpers.
-There is no CLI or Claude Code execution path.
+Requires Codex desktop, a saved local project, native task creation, messaging
+and archival, access to the task ID, Python 3.11+, and the complete Codex Suite.
+Use a frontier LLM from the Fable, Astra, SOL or Opus families, version 5.0 or newer.
 
-Tasks must share the existing checkout. If the host cannot provide that,
-Workflow asks for a decision instead of silently creating another workspace.
-Measured rollover uses native `token_count` data when available. Missing or
-contradictory measurements do not by themselves block valid bounded work.
+Tasks must share the existing checkout. Authorized result messages must be able
+to resume the coordinator. If the host cannot support either, Workflow reports
+the limitation before dispatch.
 
-Native approval can hold a result message pending. Keep the exact task ID
-without duplicate sends. The coordinator takes the complete result directly
-from the native message. No parser or routine result read is needed.
-Use `read_thread` only for targeted recovery of a known missing result or state.
-The host must support authorized child messages that resume the coordinator.
-If unavailable, Workflow reports the limitation before dispatch.
+Context rollover uses native measurements when available. Missing measurements
+allow bounded work to continue. Delivery recovery retains the known task and
+its result; host approval may delay delivery.
 
-This package requires every Skill included in this suite to be installed and
-enabled. Partial installation is not supported. Skills keep their own task
-scope and invocation rules. Workflow still requires an explicit request.
+Install and enable every Skill in the suite. Each applies to its own task scope.
+Start Workflow by asking for it explicitly.
 
 ## Install
 
@@ -139,13 +115,9 @@ Use $scoville-workflow-for-codex to execute the active Scoville Plan in this sav
 Name a Work Item or end boundary to limit the run. Without one, the coordinator
 continues through the active Plan.
 
-The calling task coordinates the run directly. A project `AGENTS.md` addition is
-optional setup on explicit request. It is not a prerequisite for execution.
-
-`$scw` is recognized after loading the Skill, but native short-name discovery
-is not yet verified. Use the full name for installation checks.
-`scoflow codex` is also accepted. Ordinary requests such as “implement the plan”
-or “use workers” do not activate Workflow.
+The calling chat coordinates the run. Use the full Skill name to start it
+reliably; `$scw` also works once the Skill is loaded. Ordinary requests such as
+“implement the plan” do not activate Workflow.
 
 Task titles identify the work and role:
 
@@ -156,31 +128,28 @@ S-REVW-#2-W-010/STEPS-1-3
 S-FIXR-#1-W-010/STEPS-1-3
 ```
 
-The number counts tasks separately for each role within the workflow run. A new
-successor gets the next number. Continuing the same task keeps its number.
-The manager shows the Plan ID. Workers, reviewers and repair workers show their
-assigned range without its title: STEP-2 for one Step or STEPS-1-3 for a group.
-A whole Work Item with Steps shows their full range. Only an item without Steps
-has no Step suffix. Uppercase
-affects display only. Rollover keeps the same logical workflow run even
-though the successor's displayed number increases.
+Manager numbers count coordinators within a run. Worker, reviewer and fixer
+numbers each start at 1 for the assigned Work Item and exact Step range.
+A successor for that same role and unit gets the next number; continuing the
+same chat keeps its number. Rollover preserves the unit and repair attempt.
+
+Titles show the Plan or Work Item and assigned range: `STEP-2` or `STEPS-1-3`.
+A whole Work Item shows its full Step range, or no suffix when it has no Steps.
+Uppercase applies to titles only.
 
 ### Configuration
 
-Save settings under `workflow` in the project's `.scoville/config.json`.
-`execute.CLASS` and `review.CLASS` contain model/reasoning pairs. `context`
-sets coordinator and worker rollover thresholds. Missing values come from
-this Skill's imported `assets/workflow.toml`. Reading or starting creates no
-configuration file. One run uses one workspace. Change settings between runs,
-and do not edit the same project files in parallel while a run is working.
-Concurrent edits have no automatic conflict-recovery guarantee.
-Route classification, Step overrides and repair escalation follow the
-[dispatch rules](scoville-workflow-for-codex/references/operations-dispatch.md).
-Use Scoville Setup to display these settings or save explicit changes. It is
-part of the suite and does not start workflows. Default rollover thresholds
-are 25 percent for the coordinator and 75 percent for child roles. The
-coordinator hands over at or above its threshold, child roles strictly above
-it. The run cursor is ordinary Markdown in `.scoville/workflow.md`.
+Use Scoville Setup to inspect or change project settings in
+`.scoville/config.json`. Under `workflow`, `execute.CLASS` and `review.CLASS`
+select model/reasoning pairs, and `context` sets rollover thresholds. Missing
+values use the bundled defaults. Starting a run creates no configuration file.
+
+Default rollover thresholds are 25% for the coordinator and strictly above 75%
+for child roles. Progress is saved in `.scoville/workflow.md`. Change settings
+between runs and avoid parallel edits to the shared project checkout.
+
+See the [dispatch rules](scoville-workflow-for-codex/references/operations-dispatch.md)
+for task classification, Step overrides and repair escalation.
 
 ## Sources
 

@@ -1,16 +1,13 @@
 # Scoville Workflow for Codex
 
-A long software task can leave one agent planning, coding, reviewing its own
-changes and remembering every earlier decision. Context grows while unfinished
-work becomes harder to track.
+Long software tasks need consistent direction, independent review and a way to
+continue when a conversation fills up. Scoville Workflow coordinates those
+responsibilities across Codex chats using a repository Plan.
 
-Scoville Workflow supports structured, AI-assisted software development and
-long-term project maintenance, including larger codebases. It is not intended
-for fast vibe coding or throwaway prototyping. Plan preserves direction and
-decisions, Code requires maintainable changes and meaningful checks, and Workflow
-coordinates workers, fresh reviewers and continuation. Together they help keep
-project development recoverable without making one conversation carry its history.
+Workers implement bounded assignments, fresh reviewers inspect the result,
+and the coordinator records accepted work. Context handoffs preserve unfinished
+work for a successor. The workflow suits structured development and long-term
+maintenance, including larger codebases.
 
-Workflow is suite-only and requires Codex desktop with native task controls.
-Workflow execution has been tested in Codex. For other suite members, check
-their individual host requirements and test evidence.
+Install it through the complete Codex Suite. It requires Codex desktop's native
+task controls.

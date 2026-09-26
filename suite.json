@@ -594,7 +594,6 @@
           "audience": "suite"
         },
         "development/readme/scoville-ask-for-codex/compatibility.md",
-        "shared:codex-runtime-requirements.md",
         "shared:skill-installation-contract.md",
         "shared:scoville-install.md",
         "shared:scoville-suite-install.md",

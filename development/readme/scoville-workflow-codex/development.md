@@ -1,9 +1,5 @@
 ## How it was developed
 
-- Workflow grew out of a CLI-based Scoville workflow whose communication and supervision added work of their own.
-- The native version kept Plan ownership, routing, review and rollover, while moving execution into ordinary Codex tasks.
-- Real-project histories are analyzed alongside results to identify failures and unnecessary context use.
-- Targeted simulation and optimization workflows inform revisions. Changes are retained only when the required behavior survives.
-
-- Compaction immediately after handoff and host-level delivery failures remain
-  unverified outside their dated development evidence.
+- Real project histories informed assignment scope, review, communication and context handoffs.
+- GPT-6 SOL Medium tests covered grouped work, review, repair and rollover. Targeted Luna tests found instruction-following gaps.
+- Simulated delivery checks do not establish live reliability. Immediate post-handoff compaction and host-level delivery failures have not been fully verified.
