@@ -54,6 +54,8 @@ child; leave no executing role in the finished cursor.
 5. Handle `context_handoff` through [rollover](operations-rollover.md) before
    review or acceptance. `needs_user_decision` remains open for the answer.
    For `blocked` or a native failure, preserve the changes and actual diagnostic.
+   When replacing that child, archive it through the rule below as part of the
+   replacement. Keep it open if the same child will continue after clarification.
    Continue independent eligible work only if it cannot mix unaccepted changes,
    invalidate required backups or advance a dependent Plan item.
 6. Inspect the actual scoped diff, changed paths and named checks only as needed
@@ -135,8 +137,9 @@ archive call. Report an explicit tool error if returned.
 
 For `context_handoff`, first retain the successor's takeover notice under the
 rollover reference, then use the same rule for the predecessor. Do not archive
-unfinished work, a task awaiting a user decision or a requested stop before its
-actual state is known. Archival is never a substitute for stopping work.
+a child still working, awaiting a user decision, or whose state after a requested
+stop is unknown. An unfinished Work Item does not keep a replaced child open.
+Archival is never a substitute for stopping work.
 Do not add a final archival audit or scan unrelated chats. Keep the final coordinator
 visible. Replaced coordinators self-archive on their successor’s takeover message under
 the rollover reference.

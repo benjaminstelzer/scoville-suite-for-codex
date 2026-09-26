@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.6.3 - 2026-09-27
+
+- Archive blocked Workflow workers when they are replaced. Keep a worker open when it will continue after clarification.
+
 ## v0.6.2 - 2026-09-26
 
 - Start worker, reviewer and fixer numbering at 1 for each assigned Step range. Keep those counters through rollovers.
