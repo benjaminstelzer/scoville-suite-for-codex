@@ -11,7 +11,7 @@ A second opinion should give you another assessment, not repeat your own reasoni
 ## What it enforces
 
 - Advisers inspect and answer. Changes remain with the calling task.
-- Native tasks use `Ask <model> · <original task title>`. Identity comes from task IDs and consultation references.
+- Native tasks use `S-ASK <UPPERCASE model ID> - <original task title>`. Technical model IDs stay unchanged. Identity comes from task IDs and consultation references.
 - Invalid settings, unavailable models and failed advisers remain visible. There is no silent replacement model or route.
 
 Native advisers follow a read-only instruction, but the host does not add a
@@ -33,7 +33,7 @@ Claude model communication remains online even when these web tools are off.
 
 **Codex online.** Requires Codex desktop with native task controls for native advisers, a verified calling task and saved project, network access, and Python 3.11 or newer. Use a frontier LLM from the Fable, Astra, SOL or Opus families, version 5.0 or newer. Tests performed are recorded separately from this minimum.
 
-The model catalog comes from the current Codex app-server through `model/list`. A listed model still needs to be accepted by the task host. Native third-party models require a suitable provider connection, such as EasyCLIProxy where configured. The Claude CLI route requires installed, authenticated Claude Code. Opus 5.5 requires version 2.1.280 or newer. See “How to Ask with Claude Code” for setup.
+The native task host checks the requested model and effort when it creates the adviser chat. A rejected request is reported without substituting another model. Native third-party models require a suitable provider connection, such as EasyCLIProxy where configured. The Claude CLI route requires installed, authenticated Claude Code. Opus 5.5 requires version 2.1.280 or newer. See “How to Ask with Claude Code” for setup.
 
 The Python helpers are required. A missing interpreter or helper failure has no manual replacement route. Tasks use the host’s normal sidebar sorting.
 

@@ -2,10 +2,12 @@
 
 ## v0.6.0 - 2026-09-25
 
-- Use the calling task as coordinator and dispatch one Plan unit at a time.
+- Use the calling task as coordinator and dispatch one Step, consecutive Step group or whole Work Item at a time, preserving authored order.
 - Keep automatic context rollover at 25 percent for coordinators and above 75 percent for child roles, with project overrides.
 - Use separate role counters in S-MNGR, S-WORK, S-REVW and S-FIXR titles.
-- Read original completed task results with preserved line breaks and stop child checkpoints after their own work and checks finish.
+- Receive complete results directly through native messages and stop child checkpoints after their own work and checks finish.
+- Pass the full Work Item once with the assigned range and only relevant constraints. Stop dispatch if the tool truncates the assignment.
+- Resume remaining work with compact handoffs and archive predecessors through native takeover messages without polling or archival verification.
 - Replace guard generations and transport receipts with a local Markdown run record. Retain results before archiving completed tasks.
 - Read project configuration over imported defaults. Setup offers low, medium, high and xhigh. Manually written configuration may use the other Plan reasoning values when the selected model supports them.
 

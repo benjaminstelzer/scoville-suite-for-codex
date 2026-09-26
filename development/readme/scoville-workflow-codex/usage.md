@@ -21,15 +21,17 @@ Task titles identify the work and role:
 
 ```text
 S-MNGR-#2-PLAN-0011
-S-WORK-#3-W-010/STEP-2
-S-REVW-#2-W-010/STEP-2
-S-FIXR-#1-W-010/STEP-2
+S-WORK-#3-W-010/STEPS-1-3
+S-REVW-#2-W-010/STEPS-1-3
+S-FIXR-#1-W-010/STEPS-1-3
 ```
 
 The number counts tasks separately for each role within the workflow run. A new
 successor gets the next number; continuing the same task keeps its number.
 The manager shows the Plan ID. Workers, reviewers and repair workers show their
-assigned unit without its title. A whole Work Item has no Step suffix. Uppercase
+assigned range without its title: STEP-2 for one Step or STEPS-1-3 for a group.
+A whole Work Item with Steps shows their full range; only an item without Steps
+has no Step suffix. Uppercase
 affects display only. Rollover keeps the same logical workflow run even
 though the successor's displayed number increases.
 

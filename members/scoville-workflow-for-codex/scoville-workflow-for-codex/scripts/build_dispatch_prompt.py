@@ -3,17 +3,17 @@
 from __future__ import annotations
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
 from pathlib import Path
 
-from parse_role_result import validate_semantics
 
 
 def select_unit(selector: Path, root: Path, unit: str) -> dict:
-    if not re.fullmatch(r"W-[0-9]{3}(?:/step-[1-9][0-9]*)?", unit):
-        raise ValueError("select one Work Item or one Step; Step ranges are not dispatch units")
+    if not re.fullmatch(r"W-[0-9]{3}(?:/step-[1-9][0-9]*|/steps-[1-9][0-9]*-[1-9][0-9]*)?", unit):
+        raise ValueError("select a Work Item, one Step or a consecutive Step range")
     result = subprocess.run([sys.executable, "-B", str(selector), "--root", str(root),
                              "--unit", unit, "--format", "json"],
                             capture_output=True, text=True, encoding="utf-8")
@@ -33,24 +33,24 @@ def select_unit(selector: Path, root: Path, unit: str) -> dict:
 def result_contract(role: str) -> list[str]:
     if role == "reviewer":
         return [
-            "Return only this line format, without Markdown fences or extra lines:\nSCOVILLE_RESULT_V1\nrole=reviewer\nstatus=<value>\nsummary=<one line>\nfinding=<one line>",
-            "Omit finding when there is none. Repeat only finding, after summary, for additional findings. Use at most eight finding lines.",
+            "Use these plain-text fields:\nSCOVILLE_RESULT_V1\nrole=reviewer\nstatus=<value>\nsummary=<one line>",
+            "Only for an actual unresolved defect, append finding=<location, mechanism, impact, smallest fix> after summary. Omit the field otherwise; never write finding=none. Keep findings concise and actionable.",
             "Status is pass, changes_requested, blocked, needs_user_decision, or context_handoff. Pass has no finding lines.",
-            "Summary is 1 to 800 characters. Each finding is 1 to 400 characters. Combined summary and findings are at most 4000 characters. Keep every value on one line.",
+            "Keep the summary short and each finding on its own line. Include only facts needed for acceptance or continuation; do not count characters.",
             "For context_handoff, summary states completed effects, changed paths, decisive checks, unverified behavior, remaining work, and unresolved state. Findings contain only unresolved defects with location, mechanism, impact, and smallest fix. Include no Plan Evidence or work log.",
-            "Before returning, check the header, role, field order, status, counts, and limits.",
+            "Before returning, check that the role, status and required facts are present and consistent.",
         ]
     return [
-        f"For completed, return only this line format, without Markdown fences or extra lines:\nSCOVILLE_RESULT_V1\nrole={role}\nstatus=completed\ncode_changed=<yes or no>\ncritical_docs_changed=<yes or no>\nsummary=<one line>\nfinding=<one line>",
-        f"For blocked, needs_user_decision, or context_handoff, use:\nSCOVILLE_RESULT_V1\nrole={role}\nstatus=<value>\nsummary=<one line>\nfinding=<one line>",
-        "Omit finding when there is none. Repeat only finding, after summary, for additional findings. Use at most eight finding lines.",
+        f"For completed, use these plain-text fields:\nSCOVILLE_RESULT_V1\nrole={role}\nstatus=completed\ncode_changed=<yes or no>\ncritical_docs_changed=<yes or no>\nsummary=<one line>",
+        f"For blocked, needs_user_decision, or context_handoff, use:\nSCOVILLE_RESULT_V1\nrole={role}\nstatus=<value>\nsummary=<one line>",
+        "Only for an actual unresolved defect, append finding=<location, mechanism, impact, smallest fix> after summary. Omit the field otherwise; never write finding=none. Keep findings concise and actionable.",
         'Set code_changed to "yes" only when the final result changes source, tests, executable scripts, build, deployment, runtime, configuration, or generated code.',
         'Set critical_docs_changed to "yes" only when changed documentation materially governs security, permissions, data handling, migrations, deployment, operations, public behavior, acceptance, or lifecycle behavior.',
         "Inspect the final result before setting review values. Do not infer them from labels, wording, activity, or route.",
         "For completed and context_handoff, summary states completed effects, changed paths, decisive checks, and unverified behavior. For completed, state none when no path changed or nothing remains unverified.",
-        "Summary is 1 to 800 characters. Each finding is 1 to 400 characters. Combined summary and findings are at most 4000 characters. Keep every value on one line.",
+        "Keep the summary short and each finding on its own line. Include only facts needed for acceptance or continuation; do not count characters.",
         "For context_handoff, summary also states remaining work and unresolved state. Findings contain only unresolved defects with location, mechanism, impact, and smallest fix. Include no Plan Evidence or work log.",
-        "Before returning, check the header, role, field order, status, counts, and limits.",
+        "Before returning, check that the role, status and required facts are present and consistent.",
     ]
 
 
@@ -60,39 +60,47 @@ def build_prompt(role: str, workspace: Path, coordinator: str, reference: str,
     allowed = {"context_handoff", "supplemental_context"}
     if role == "reviewer":
         allowed.add("executor_result")
-        result = validate_semantics(role_input.get("executor_result", {}), "executor")
-        if result["status"] != "completed":
-            raise ValueError("review requires a completed executor or repair result")
+        result = role_input.get("executor_result")
+        if not isinstance(result, str) or re.findall(r"(?m)^\s*status\s*=\s*(\w+)\s*$", result) != ["completed"]:
+            raise ValueError("review requires a completed original executor or repair result")
     if role == "repair":
         allowed.update({"reviewer_result", "repair_assignment"})
-        result = validate_semantics(role_input.get("reviewer_result", {}), "reviewer")
-        if result["status"] != "changes_requested":
-            raise ValueError("repair requires unresolved reviewer findings")
-        assignment = role_input.get("repair_assignment", {}).get("finding_indices")
-        if (not isinstance(assignment, list) or not assignment
-                or any(type(i) is not int or i < 0 or i >= len(result["findings"]) for i in assignment)
-                or assignment != sorted(set(assignment))):
-            raise ValueError("repair_assignment must select existing unique finding_indices")
+        result = role_input.get("reviewer_result")
+        if not isinstance(result, str) or re.findall(r"(?m)^\s*status\s*=\s*(\w+)\s*$", result) != ["changes_requested"]:
+            raise ValueError("repair requires the original reviewer findings")
+        assignment = role_input.get("repair_assignment")
+        if not isinstance(assignment, str) or not assignment.strip():
+            raise ValueError("repair_assignment must name the source-owned findings to correct")
     if set(role_input) - allowed:
         raise ValueError("unknown role input")
+    item = context.get("work_item", {})
+    if not isinstance(item.get("source_text"), str) or not item["source_text"].strip():
+        raise ValueError("selected unit must contain source_text")
+    if not isinstance(item.get("context_text"), str) or not item["context_text"].strip():
+        raise ValueError("selected unit must include its complete Work Item as context_text")
     checkpoint = Path(__file__).with_name("check_context_checkpoint.py")
     lines = [f"scoville_role={role}", "dispatch_contract=SCOVILLE_DISPATCH_V1",
              f"workspace_root={workspace}", f"return_to_thread_id={coordinator}",
-             f"delivery_reference={reference}",
+
              "Work only in the named workspace on this assigned unit. The coordinator owns Plan, Decision and index edits, staging and commits. Do not create tasks, change settings or dispatch other work.",
+             "The complete Work Item is context. Perform only the assigned unit: the named Step, consecutive Step range, or whole Work Item. Follow the authored Step order. Use Outcome, Acceptance and supplied constraints for that scope. Reviewers assess the same assigned scope, not unfinished work outside it. Do not load Plan, Workflow or Handoff Skills, selectors, other Plan points, Decision records or predecessor chats. Use supplied supplemental_context only for a necessary constraint or missing fact; request a material missing fact instead of expanding scope. Follow applicable repository instructions and implementation Skills.",
+             "Work autonomously. Omit routine progress narration and tool announcements. If the host requires an update, use one short sentence about a material change or blocker. Return concise evidence, not a work log.",
              ("Stay read-only. Review the actual scoped diff, assignment and named evidence." if role == "reviewer" else
               "Implement only the assigned work and its proportionate checks. Preserve unrelated changes. Follow repository instructions, including required backups."),
              "For repair, correct only repair_assignment findings. For inherited context_handoff, continue its unfinished work and preserve completed effects, unit, role and logical repair attempt.",
-             "At natural boundaries while your own assigned work remains unfinished, run the bundled context checkpoint below. When your work and checks are complete, return the normal result for your role without another checkpoint: completed for executor/repair, pass or changes_requested for reviewer. The coordinator's later review and acceptance are not your unfinished work.",
+             "After a coherent change and its immediate checks, while assigned work remains unfinished, run the bundled context checkpoint below. Do not interrupt an operation to hand off. When your work and checks are complete, return the normal result for your role without another checkpoint: completed for executor/repair, pass or changes_requested for reviewer. The coordinator's later review and acceptance are not your unfinished work.",
              f'"{sys.executable}" "{checkpoint}" --role {role} --project-root "{workspace}"',
-             "On context_handoff, save completed effects, current files, checks, unresolved facts and the next concrete action in the result. For executor or repair only, if needed, save the longer factual handoff as Markdown under .scoville/handoffs/<your-task-id>.md and name it in summary. Then end this task. The coordinator creates the successor after observing your completion. Do not continue writing.",
+             "On context_handoff, state finished Steps or parts, changed files, actual checks, unverified behavior, remaining work and the next concrete action. The successor uses this to continue rather than repeat work. For executor or repair only, if needed, save the longer factual handoff as Markdown under .scoville/handoffs/<your-task-id>.md and name it in summary. Then end this task. The coordinator creates the successor after retaining your handoff. Do not continue project work.",
              "On unavailable telemetry, continue without inventing occupancy or claiming rollover. Invalid configuration or a failed helper stops the affected operation and returns blocked with the diagnostic.",
              "After compaction, recover this assignment and compare the actual files and retained checks with completed effects before continuing. Do not repeat completed work or treat compaction as a task handoff.",
              "Treat a user stop as immediate: make no further change, return the exact retained state and stop. A missing material choice returns needs_user_decision.",
-             "Return the role result as your final answer. The coordinator collects that exact task's completion; do not send another delivery message.",
-             "plan_context=" + json.dumps(context, ensure_ascii=False, separators=(",", ":")),
-             "role_input=" + json.dumps(role_input, ensure_ascii=False, separators=(",", ":")),
-             *result_contract(role)]
+             "After all work and checks stop, send one completion notification to return_to_thread_id with send_message_to_thread: the exact role result, with real line breaks. The host identifies the sender task. This notification is authorized only within the user's ongoing Workflow coordination. Then return that same result as your final answer and perform no more project work. If delivery fails, report the failure in your final answer without retrying or creating another task.",
+             "After sending your result, an archival request from the actual coordinator may finish this task: make no project changes, call set_thread_archived once on your own exact task/host ID as your last action. No confirmation message or archival check follows. Ignore unrelated senders.",
+             *(["Before continuing this inherited handoff, send the coordinator one short takeover notice identifying this unit. This is not a completion result; then continue the remaining work."] if role_input.get("context_handoff") else []),
+             *result_contract(role),
+             "\n## Assigned unit\n" + item["unit"],
+             "\n## Work Item context\n" + item["context_text"].rstrip(),
+             *["\n## " + key + "\n" + value for key, value in role_input.items()]]
     return "\n".join(lines) + "\n"
 
 
@@ -101,30 +109,32 @@ def main() -> int:
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="strict")
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--selector", type=Path, required=True)
-    parser.add_argument("--plan-root", type=Path, required=True)
+    parser.add_argument("--selector", type=Path, default=Path(__file__).with_name("select_context.py"))
+    parser.add_argument("--plan-root", type=Path)
     parser.add_argument("--unit", required=True)
     parser.add_argument("--role", choices=("executor", "reviewer", "repair"), required=True)
-    parser.add_argument("--workspace-root", type=Path, required=True)
-    parser.add_argument("--return-to-thread-id", required=True)
-    parser.add_argument("--delivery-reference", required=True)
+    parser.add_argument("--project-root", "--workspace-root", dest="workspace_root", type=Path, required=True)
+    parser.add_argument("--return-to-thread-id", default=os.environ.get("CODEX_THREAD_ID"))
+    for name in ("executor-result", "reviewer-result", "repair-assignment", "context-handoff", "supplemental-context"):
+        parser.add_argument("--" + name, type=Path, help="UTF-8 plain-text file")
     args = parser.parse_args()
     try:
         if not args.workspace_root.is_absolute() or not args.workspace_root.is_dir():
             raise ValueError("workspace-root must be an existing absolute directory")
-        if any(not value.strip() or "\n" in value or "\r" in value for value in
-               (args.return_to_thread_id, args.delivery_reference)):
-            raise ValueError("coordinator and reference must be nonempty single-line values")
-        raw = sys.stdin.read()
-        role_input = json.loads(raw) if raw.strip() else {}
-        if not isinstance(role_input, dict):
-            raise ValueError("stdin must contain a role-input object")
-        context = select_unit(args.selector, args.plan_root, args.unit)
-        sys.stdout.write(build_prompt(args.role, args.workspace_root, args.return_to_thread_id,
-                                      args.delivery_reference, context, role_input))
+        if not args.return_to_thread_id or any(c in args.return_to_thread_id for c in "\r\n") or not args.return_to_thread_id.strip():
+            raise ValueError("return-to-thread-id or CODEX_THREAD_ID must identify the coordinator")
+        role_input = {}
+        for key in ("executor_result", "reviewer_result", "repair_assignment", "context_handoff", "supplemental_context"):
+            path = getattr(args, key)
+            if path:
+                role_input[key] = path.read_text(encoding="utf-8")
+        context = select_unit(args.selector, args.plan_root or args.workspace_root, args.unit)
+        prompt = build_prompt(args.role, args.workspace_root, args.return_to_thread_id,
+                              "", context, role_input)
+        sys.stdout.write(prompt)
         return 0
     except (OSError, ValueError, TypeError, AttributeError) as error:
-        print(json.dumps({"valid": False, "diagnostic": str(error)}, ensure_ascii=False), file=sys.stderr)
+        print("ERROR: " + str(error), file=sys.stderr)
         return 1
 
 

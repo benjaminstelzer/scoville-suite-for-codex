@@ -1,7 +1,7 @@
 ## What it enforces
 
 - Advisers inspect and answer. Changes remain with the calling task.
-- Native tasks use `Ask <model> · <original task title>`. Identity comes from task IDs and consultation references.
+- Native tasks use `S-ASK <UPPERCASE model ID> - <original task title>`. Technical model IDs stay unchanged. Identity comes from task IDs and consultation references.
 - Invalid settings, unavailable models and failed advisers remain visible. There is no silent replacement model or route.
 
 Native advisers follow a read-only instruction, but the host does not add a

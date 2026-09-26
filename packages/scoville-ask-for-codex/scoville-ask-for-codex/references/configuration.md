@@ -1,15 +1,30 @@
 # Settings and helper inputs
 
-All helpers use Python 3.11+. Run them from this installed package with its
-absolute path; never import a sibling Skill or use a development checkout.
-`ask.py` reads one JSON object from stdin and returns JSON. `ok:false` or a
-nonzero exit stops the affected operation. Native payload helpers make no host
-calls. `list_models.py` starts the configured Codex executable's read-only
-app-server session for `initialize` and paginated `model/list`, then closes it.
-It starts no adviser task. Its `--command` option accepts an explicit executable
-and arguments when the host's Codex binary is not on PATH. Use the executable
-for the current host/account; never assume a different CLI catalog proves
-desktop availability.
+Resolve locally with one complete command:
+
+```text
+python "<ask-skill-directory>/scripts/ask.py" --project-root "<absolute-project-root>"
+```
+
+Optional repeated `--adviser <configured-id>` selects only those advisers.
+For one selected adviser, use `--model <id>` and `--effort <level>` for unsaved
+overrides. For more complex settings, use a helper-generated or automatically
+serialized UTF-8 JSON request; never hand-write transport JSON:
+
+```text
+python "<ask-skill-directory>/scripts/ask.py" --input-file "<request.json>"
+```
+
+The object contains operation=resolve, project_root and optional overrides.
+The JSON response config.advisers supplies id, route, model and effort directly.
+These are technical settings, not a dispatch prompt. Use model and effort as
+create_thread model and thinking. Dispatch questions and adviser answers remain
+plain text. No model/list call or output repair is required. A nonzero exit or
+ok:false stops the operation with its diagnostic. Existing stdin JSON requests
+remain supported, including the unchanged Ask Claude interface.
+
+ask_settings.py, scoville_config.py and ask_claude.py are imported modules, not
+separate commands. Use the bundled ask.py from this installed package.
 
 The selected project root owns `.scoville/config.json`. Its `ask` section
 overrides this Skill's defaults. Missing files or fields use those defaults.
@@ -54,16 +69,11 @@ settings take precedence over new defaults unless explicitly changed.
 selected project's absolute root. When omitted, `cwd` supplies the root, or
 the process working directory if neither was supplied. `project_config` is
 rejected with migration guidance. Keep settings unchanged during a run.
-For native
-advisers it queries `model/list`, or accepts the unchanged freshly observed
-`catalog` from `list_models.py`; do not synthesize or edit a catalog to permit a
-model. Display the returned model/effort choices when configuration is requested.
+Native availability is checked by create_thread on the actual host, not by a
+separate CLI catalog. Display resolved settings when configuration is requested.
 
-`prepare` additionally requires `mode:review|consultation`, `question`, `scope`,
-and a unique `reference`. Native entries need verified `caller_id`, exact
-`caller_title`, `projectId`, `creation_authorized:true`, `prior_state:not_started`
-and the observed `prior_task_ids`. CLI entries need an existing absolute `cwd`.
-These authorization fields record existing authority; they do not grant it.
-
-`followup` takes `handle`, `archived:false`, `delivery_state:not_sent`, a new
-`reference`, `question`, `scope`, optional adviser `overrides` and fresh `catalog`.
+Claude-only prepare takes mode=review|consultation, question, scope, reference,
+creation_authorized and an absolute cwd, with overrides selecting only Claude
+advisers. It returns entries[].request unchanged for operation=claude. The Claude
+adapter, authorization, deadlines and follow-up session rules are unchanged.
+Native prepare and followup operations are removed; use native tools directly.

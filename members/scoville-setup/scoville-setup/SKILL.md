@@ -1,6 +1,7 @@
 ---
 name: scoville-setup
 description: Show or change the selected project's Scoville Ask and Workflow settings. Use for saved models, effort, Claude limits and context rollover thresholds. Excludes running workflows, installations, updates and monitoring.
+compatibility: "Codex Suite with Python 3.11+, bundled configuration helpers and filesystem access to the selected project. Configuration changes are local; this Skill starts no host tasks."
 ---
 
 # Scoville Setup
@@ -12,10 +13,10 @@ the imported Skill defaults per field. There is no personal settings layer or
 parent-directory search. This Skill is supplied only in the Codex Suite.
 
 Use the project's known absolute root. Ask for the root only if it is unknown.
-Before the first helper call, choose an available Python 3.11+ interpreter
-(`py -3.11` or a newer installed version on Windows, `python3` or `python`
-elsewhere). Verify its version and use that executable for all helper commands.
-The `python` examples below stand for this verified interpreter.
+Reuse an already verified Python 3.11+ interpreter. Otherwise check `py -3`
+on Windows or `python3` elsewhere; try `python` if needed. Choose it locally,
+without asking the user. Use that executable for the `python` examples.
+Report a missing runtime only when no suitable installed interpreter is found.
 
 Run the bundled helper with Python 3.11+:
 
@@ -29,7 +30,10 @@ effective values returned by the helper. Defaults are imported from Ask's
 Never maintain another copy of their values in these instructions.
 
 For an explicit request to save settings, pass only the requested fields as a
-JSON object on stdin to:
+JSON object on stdin to the command below. Generate that object with a serializer
+(such as Python `json.dumps` or PowerShell `ConvertTo-Json`); do not hand-write
+JSON text. Use UTF-8 for stdin. The successful JSON response contains the saved
+effective settings and can be read directly:
 
 ```text
 python "<setup-skill-directory>/scripts/setup.py" set --project-root "<project-root>"

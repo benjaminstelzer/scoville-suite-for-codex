@@ -1,6 +1,7 @@
 ---
 name: scoville-ask-for-codex
 description: Ask one or more configured advisers for independent read-only advice or reviews from Codex, through native Codex tasks or Claude CLI. Use when the user requests an Ask consultation, a second opinion, or a review by specified advisers. Ordinary questions to the current assistant do not trigger a consultation.
+compatibility: "Codex desktop online, Python 3.11+, filesystem access and bundled helpers. Native advisers require task controls, caller identity and a saved project. Claude advisers require authenticated Claude Code CLI; Opus 5.5 requires CLI 2.1.280+. No manual helper fallback."
 ---
 
 # Scoville Ask for Codex
@@ -25,17 +26,19 @@ display names never change native task titles. Read
 [configuration and helper inputs](references/configuration.md) for resolution,
 migration or the first helper invocation.
 
-Before the first helper call, choose an available Python 3.11+ interpreter
-(`py -3.11` or a newer installed version on Windows, `python3` or `python`
-elsewhere). Verify its version and use that executable for all helper commands.
-The `python` examples below stand for this verified interpreter.
+Reuse an already verified Python 3.11+ interpreter. Otherwise check `py -3`
+on Windows or `python3` elsewhere; try `python` if needed. Choose it locally,
+without asking the user. Use that executable for the `python` examples.
+Report a missing runtime only when no suitable installed interpreter is found.
 
-Python 3.11+, the bundled helpers and Codex online are required. Before native
-dispatch, `scripts/list_models.py` obtains the current `model/list` catalog.
-Validate every requested model and effort against it and the current host's
-task-creation capabilities. A catalog entry does not guarantee a successful
-task start. Report missing capabilities, invalid settings or helper errors;
-never substitute another model, route, subagent or manually built payload.
+Python 3.11+, the bundled configuration helper and Codex online are required.
+Resolve settings once; native create_thread validates the requested model and
+effort on the actual host. No model-catalog subprocess is required. Report a
+host rejection without substituting another model or route.
+
+Native Ask uses a separate Codex chat per adviser, never a subagent. If the
+host requires an explicit new-chat request and none was given, name that
+specific missing authorization before dispatch. Do not silently change routes.
 
 ## Ask and collect
 
@@ -47,17 +50,14 @@ never substitute another model, route, subagent or manually built payload.
    saved project for native advisers. Never infer identity from title or
    recency. Read [native task operation](references/native.md) for native
    advisers, or [Claude operation](references/claude.md) for CLI advisers.
-3. Run `ask.py` operation `prepare` with one unique consultation reference.
-   Retain each returned entry and creation-unknown handle before dispatch.
-   Invoke each selected adviser only once through its returned arguments or
-   request, within the user's existing authorization and the host's rules.
-   Advisers can run independently. Do not create a native task where the host
-   requires an explicit new-task request that the user has not given.
-4. Keep each result bound to adviser ID, consultation reference, scope and
-   task/session handle. Wait for actual completion, answer status questions
-   briefly and keep waiting. A receipt or partial delivery is not an answer.
-   Continue collecting successful advisers after another fails; report that
-   failure without an automatic replacement or unchanged retry.
+3. For native advisers, call create_thread directly with the question and
+   adviser role under [native operation](references/native.md). For Claude,
+   use the existing prepare/claude route. Invoke each selected adviser once.
+4. Retain each native task ID, adviser settings and current question. End the
+   caller turn while native answers are pending; authorized adviser messages
+   resume it. Accept each complete answer once, by actual sender and question.
+   Keep partial answers and failures visible and collect remaining answers
+   without polling or automatic replacement. A receipt alone is not an answer.
 5. Present answers with material evidence and limits. For a consultation,
    synthesize agreement, differences and useful conclusions without inventing
    consensus. No mandatory second exchange round. For reviews, distinguish

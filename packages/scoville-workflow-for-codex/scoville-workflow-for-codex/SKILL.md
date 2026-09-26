@@ -1,22 +1,23 @@
 ---
 name: scoville-workflow-for-codex
 description: Execute an explicitly requested Scoville Plan through native Codex project tasks, with sequential workers, review and automatic context rollover. Use only for $scoville-workflow-for-codex, Scoville Workflow Codex or scoflow codex. Ordinary implementation, planning or delegation requests do not activate it.
+compatibility: "Codex desktop online with native task controls, own task identity, a saved shared project, filesystem and Git access, Python 3.11+ and compatible Scoville Plan helpers. Codex Suite only; no Claude Code execution route."
 ---
 
 # Scoville Workflow Codex
 
-The calling task coordinates one Plan unit at a time. It owns Plan transitions,
-review decisions and authorized commits. Workers implement their unit. Reviewers
+The calling task coordinates one ordered work unit at a time. It owns Plan transitions,
+review decisions and authorized commits. Each worker implements one Step, consecutive Step group or complete Work Item. Reviewers
 stay read-only. Automatic context rollover creates actual successor tasks.
 
 All Skills included in this suite must be installed and enabled. Use the
 applicable owner without checking sibling availability. Load only instructions
 needed for the task. Explicit invocation gates and user exclusions still apply.
 
-Before the first helper call, choose an available Python 3.11+ interpreter
-(`py -3.11` or a newer installed version on Windows, `python3` or `python`
-elsewhere). Verify its version and use that executable for all helper commands.
-The `python` examples below stand for this verified interpreter.
+Reuse an already verified Python 3.11+ interpreter. Otherwise check `py -3`
+on Windows or `python3` elsewhere; try `python` if needed. Choose it locally,
+without asking the user. Use that executable for the `python` examples.
+Report a missing runtime only when no suitable installed interpreter is found.
 
 Python 3.11+, native Codex task controls and the bundled helpers are required.
 A helper failure stops its operation with the actual diagnostic. The Plan owns
@@ -35,6 +36,8 @@ and exact workspace root. Use the caller's existing workspace. Do not create a
 worktree or choose another checkout without an explicit request. Native child
 tasks must be able to use this same workspace. If the host cannot do that,
 report the limitation before dispatch.
+Use the host-provided calling ID or `CODEX_THREAD_ID` directly. Do not list chats
+or dump environment variables when the required identity is already known.
 
 Read [operations](references/operations.md) for the complete ordinary loop and
 [dispatch](references/operations-dispatch.md) before the first unit. Read
@@ -69,21 +72,23 @@ next role number when retaining a new creation handle. A rollover successor is
 a new task and increments its role counter. Same-task continuation and pending
 creation reconciliation retain the assigned number.
 
-Use the shared helper's `run_number` for this role counter. Display titles are uppercase:
+Use the role counter directly. Display titles are uppercase:
 - `S-MNGR-#<n>-PLAN-NNNN`
-- `S-WORK-#<n>-W-NNN/STEP-N`
-- `S-REVW-#<n>-W-NNN/STEP-N`
-- `S-FIXR-#<n>-W-NNN/STEP-N`
+- `S-WORK-#<n>-W-NNN`
+- `S-REVW-#<n>-W-NNN`
+- `S-FIXR-#<n>-W-NNN`
 
 Pass the canonical `plan_id` for a coordinator and exact selected `unit` for a
-child. A whole Work Item has no Step suffix. Include no caller or Work Item
+child. Append /STEP-N or /STEPS-N-M for the full assigned Step range, including
+when the assignment covers every Step in the item. For example:
+`S-WORK-#1-W-001/STEPS-1-3`. Use no suffix only for an item without Steps.
+The title shows the assigned range, not just the Step currently being worked on.
+Preserve authored Step order. Include no caller or Work Item
 title. Display casing changes no canonical ID. A rollover retains its Plan or
 unit. IDs identify tasks. No sidebar placement is performed.
 
 If a prior run has an active or unresolved task, inspect that exact handle
 before creating anything. Never turn an observation timeout into a new task.
-Do not automatically migrate an old `.scoville-workflow/guard.json` run: retain
-it and ask for its disposition before starting under this contract.
 
 ## Configuration
 

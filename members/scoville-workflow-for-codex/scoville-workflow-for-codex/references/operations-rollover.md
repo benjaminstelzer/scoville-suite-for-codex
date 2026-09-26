@@ -8,52 +8,54 @@ saved record do not replace creation and continuation in a new task.
 
 ## Worker, reviewer or repair
 
-At a natural boundary with unfinished work, the child runs its supplied
-checkpoint. `context_handoff` means: retain completed effects, current state,
+After a coherent change and its immediate checks, with unfinished work, the
+child runs its supplied checkpoint. `context_handoff` means: retain completed effects, current state,
 checks, unresolved facts and a concrete remaining assignment, return that status
-and end. A longer handoff may be a Markdown file named in the result.
+and end. Identify finished Steps or parts and the next unfinished action.
+A longer handoff may be a Markdown file named in the result.
 
-The coordinator waits for the predecessor's completed turn and retains its
-handoff. It then creates one successor of the same role, unit, workspace,
-launched model/effort and logical attempt, with the original selected Plan
-context plus the handoff. Do not restart completed work or consume a repair
+The coordinator retains the context_handoff message after the predecessor
+has stopped all work. It then creates one successor of the same role, unit, workspace,
+launched model/effort and logical attempt, with the complete Work Item, its relevant supplied constraints
+and the short handoff. Do not restart completed work or consume a repair
 attempt. Use the next counter for that role in its title while keeping the
-unit. Save the new task handle. Once actual host evidence shows the successor
-has started, archive the ended predecessor once by exact task/host ID and wait
-for the successor's result. Pending creation alone is not takeover. An unresolved
-creation is reconciled, never blindly recreated. The predecessor performs no
-further work after handing off. Archival failure is reported, not a blocker.
+unit. Save the new task handle. The successor reads the handoff, checks the relevant current files and sends
+one short takeover notice to the coordinator before continuing the remaining work. Match its actual sender
+to the retained successor, then archive the predecessor through the ordinary
+archival rule. No takeover polling. Pending creation alone is not takeover.
+Reconcile an unresolved creation, never recreate it. The predecessor performs
+no further project work after handing off.
 
 ## Coordinator
 
-At an accepted-unit boundary with requested work remaining, `rollover` requires:
+At an accepted-unit boundary with work remaining:
 
-1. Save the accepted Plan state and update `.scoville/workflow.md` with the same
-   run number, Plan ID, scope, workspace/project, exact predecessor
-   ID, retained results, next unit/action and any unresolved task handle. Retain
-   the role counters and assign the successor the next coordinator counter.
-2. Start the prompt at byte zero with `scoville_role=coordinator` followed by
-   a newline. Explicitly invoke `$scoville-workflow-for-codex` and give the exact
-   installed SKILL.md path. Build a factual continuation with four sections: Receiver Instructions,
-   Objective, State and Resume Steps. Include the exact installed Workflow path,
-   record path, predecessor task/host ID, accepted boundary, current model/effort
-   and the instruction to resume this same run. Load this Skill and its ordinary
-   operations in the successor. Do not reopen accepted units.
-3. Create one normal project coordinator task using the shared title helper and
-   the successor's coordinator counter as `run_number`, same workspace and launched model/effort. Save the returned successor
-   handle. If creation is pending, reconcile that attempt without recreating it.
-4. End the predecessor turn after retaining the handle. It performs no next-unit
-   selection, dispatch or project change. The successor waits for the exact
-   predecessor turn to finish before assuming the run record and writing.
-5. In the successor, verify the record names its actual task ID, this predecessor
-   and the same workspace/run. Resolve pending identity through actual host
-   evidence. Record itself as coordinator and continue the saved next action.
-   Archive the ended predecessor once, then report any archive failure and
-   continue. A missing predecessor completion or uncertain successor identity
-   blocks writes; an observation timeout is not completion.
+1. Save accepted Plan state and the continuation in `.scoville/workflow.md`:
+   same run, Plan, scope, project, role counters, predecessor task/host ID,
+   retained results, next unit/action and unresolved handles. Assign the next
+   coordinator counter and mark successor creation pending. Finish all project
+   writes before creating the successor.
+2. Create the successor in the same saved project with the same launched
+   model/effort and next coordinator title. Its short prompt gives the exact
+   installed Skill path, run-record path, predecessor task/host ID and next unit.
+   Tell it to resume that record and request the predecessor's self-archival
+   after takeover. Do not repeat Plan history or carry the predecessor chat.
+3. After create_thread, the predecessor makes no project writes and dispatches
+   no work. Keep the returned identity in the native tool result and end the
+   turn. An uncertain creation is reconciled on recovery, never recreated.
+4. The successor checks the saved run, workspace and predecessor against its
+   assignment, records its own actual task/host ID and continues the saved run.
+   Send one short takeover message to that predecessor: identify this run and
+   request self-archival. No wait_threads, status check, predecessor read or
+   end-of-turn handshake is needed: the predecessor stopped project writes
+   before creation. Never repeat completed work.
+5. The predecessor accepts the request only from the actual created successor
+   for this run. Call set_thread_archived once on its own exact task/host ID as
+   its last action. Make no project writes and never resume coordination.
+   No confirmation message or archival check follows. The successor continues
+   without waiting, checking or making an additional archive call.
 
-The successor's creation is the automatic task switch. No generation counter,
-guard transfer, parked activation, receipt chain or model-computed signature
-is involved. If creation fails or no supported host operation is available,
-retain the state and report the failure. Do not present compaction, a stored
-handoff or a promised future task as a successful rollover.
+These native messages are part of the authorized Workflow coordination. The
+final coordinator stays visible. A failed creation or delivery remains an
+explicit incomplete handoff; targeted recovery of a known task is allowed.
+Do not present compaction or a saved record as a completed rollover.

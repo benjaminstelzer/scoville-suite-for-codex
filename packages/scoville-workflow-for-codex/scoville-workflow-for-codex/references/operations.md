@@ -8,35 +8,49 @@ after retaining results and finishing any pending handoff. Keep unfinished
 state for resume.
 An existing child must be reconciled by its retained exact task/host ID before
 a new one starts. A saved result is evidence only for what was actually observed.
+Read each necessary source once per unchanged unit. Recover from the run record
+and canonical Plan, not the predecessor's entire conversation. Fetch only a
+specific missing fact. Do not relay child progress or inspect its changing files.
+Announce a real dispatch, accepted result or blocker once, in one short sentence.
+Before the first dispatch, state the Plan being executed, the selected Step
+groups and why they belong together in one or two sentences. Use this as the
+dispatch announcement; do not add a second explanation of the same choice.
+
+Treat takeover messages as lifecycle notices, not role results. Match the actual
+sender to the retained successor. A notice never accepts work or advances the Plan.
 
 ## One unit through acceptance
 
-1. Select the next eligible unit under Scoville Plan: one Step, or the complete
-   Work Item if it has no Steps. Check its assumptions against completed work.
-   Do not bundle Steps, skip prerequisites or rewrite started authored history.
-2. Apply [dispatch](operations-dispatch.md). Save the creation handle, create
+1. Select the next unfinished Step or consecutive Step group under dispatch.
+   Check prerequisites and preserve authored order. A whole Work Item may be
+   one group. Do not start a later group before accepting the preceding one.
+2. Apply [dispatch](operations-dispatch.md). Record the intended dispatch, create
    the worker with its complete assignment, and retain the returned task ID.
    Pending IDs remain pending. An uncertain creation is reconciled, not retried.
-3. Wait for that exact task with `wait_threads`, retaining its cursor. A timeout
-   means it is still being observed. Use `read_thread` only to retrieve missing
-   result or identity facts. Do not use repeated status narration as progress.
-4. After actual task completion, retrieve its original final `agentMessage.text`
-   with `read_thread`, matching the exact task and completed turn and selecting
-   `phase:final_answer`. Request `maxOutputCharsPerItem:6000` to cover the full
-   result contract. Preserve its line breaks. `wait_threads` is a status snapshot and may flatten or truncate
-   the answer; never parse that snapshot as the original result. If the original
-   is truncated or missing, retrieve the complete final item before judging its
-   format. Run `scripts/parse_role_result.py --role <role>` on that original text.
-   Retain the parsed result
-   before any acceptance or archive call. For a format-only failure, request
-   one correction in the same task; it may only restate its existing result.
-   A second malformed result is a reported blocker, not a fabricated success.
+3. After retaining the returned task ID, end this coordinator turn. The worker
+   sends its result after all work and checks stop; that message resumes the
+   coordinator. Do not poll, relay progress, send reminders or inspect changing
+   files. This idle interval is not Plan completion. Do not insert narration
+   between successful deterministic calls; required host updates stay brief.
+4. Match the message's actual sender task ID to the pending unit and role.
+   Read SCOVILLE_RESULT_V1 directly from that message, without a status call,
+   read_thread or parser invocation. Check the role, allowed status and required facts below. A reviewer pass
+   must not contain unresolved findings. Tolerate field order, whitespace,
+   fences and other cosmetic differences when the meaning is clear.
+   Reject missing, conflicting or ambiguous required facts; do not invent them. Retain the original result and next action before
+   acceptance or archival. Only missing or ambiguous required facts warrant one clarification in the
+   same task, without further source changes; unresolved facts stay blocked.
+   A message already retained for this pending assignment is not accepted twice.
+   Missing delivery is handled only on an actual resume or user intervention
+   through the recovery rule below, never with a periodic check.
 5. Handle `context_handoff` through [rollover](operations-rollover.md) before
    review or acceptance. `needs_user_decision` remains open for the answer.
    For `blocked` or a native failure, preserve the changes and actual diagnostic.
    Continue independent eligible work only if it cannot mix unaccepted changes,
    invalidate required backups or advance a dependent Plan item.
-6. Inspect the actual scoped diff, changed paths and named checks. Review is
+6. Inspect the actual scoped diff, changed paths and named checks only as needed
+   for scope, review and Acceptance decisions. Do not routinely repeat the
+   worker's diagnosis, tests or the reviewer's review. Review is
    required for code, executable/configuration changes, critical documentation,
    an explicit requirement or unresolved materiality. The worker's yes/no
    fields help identify the boundary but never override the observed diff.
@@ -71,22 +85,49 @@ unavailable telemetry without guessing occupancy or claiming a handoff.
 Invalid configuration blocks continuation until corrected. A failed helper
 is a failure, not an unavailable-signal result.
 
-A completed Step does not complete its Work Item. Continue the requested scope
+Accepting a Step group does not complete the Work Item. Continue with its next
+unaccepted Step; complete the item only after all its work and Acceptance. Continue the requested scope
 without another routine permission request. Only after all of its real work
 and acceptance checks finish, complete the Plan/index through their owner and
 mark the run record finished. Report a narrower boundary as that boundary.
 
+## Result contract for direct acceptance
+
+Required information: `SCOVILLE_RESULT_V1`, `role`, `status`, completed-result
+flags and `summary`; `finding` is optional. Field order is not significant.
+Executor/repair statuses: completed, blocked, needs_user_decision, context_handoff.
+Reviewer statuses: pass, changes_requested, blocked, needs_user_decision,
+context_handoff. Only completed executor/repair results require
+`code_changed=yes|no` then `critical_docs_changed=yes|no`; other results omit them.
+Keep summaries and findings concise. Do not count characters or request
+restatements solely for formatting.
+For completed/context_handoff, summary names effects, changed paths, decisive
+checks and unverified behavior; handoff also names remaining work and unknowns.
+A finding names an actual unresolved defect with location, mechanism, impact
+and smallest fix. Omit the field when none exists; an explicit no-findings
+value also means no finding and needs no correction.
+These rules are
+complete; do not inspect helper source or load a parser to accept a message.
+
 ## Archive once, after retaining the result
 
-After actual child completion and retention of its result or failure, use the
-shared lifecycle helper's `archive`, call `set_thread_archived` once with its
-exact task/host ID, then check the actual reply with `verify_archive`. Record the
-outcome with the retained task handle so resume does not repeat the call.
-For `context_handoff`, wait for successor takeover under the rollover reference.
-Report a failure or missing state; it does not invalidate acceptance or block
-the next unit. Leave active tasks and tasks awaiting a user decision open.
-Keep the final coordinator visible. A successor may archive its ended
-predecessor as described in the rollover reference.
+Retain the child's result or failure before archival. If native evidence already
+shows it ended, call `set_thread_archived` directly once with its exact task/host
+ID. No archival verification or confirmation is required.
+
+If its turn end is not yet known, send one short self-archival request to that
+child after retaining its result. Do not add a wait or status query just to
+archive it. The child verifies the coordinator and self-archives once as its
+last action. No reply is expected. Continue without a check, resend or additional
+archive call. Report an explicit tool error if returned.
+
+For `context_handoff`, first retain the successor's takeover notice under the
+rollover reference, then use the same rule for the predecessor. Do not archive
+unfinished work, a task awaiting a user decision or a requested stop before its
+actual state is known. Archival is never a substitute for stopping work.
+Do not add a final archival audit or scan unrelated chats. Keep the final coordinator
+visible. Replaced coordinators self-archive on their successor’s takeover message under
+the rollover reference.
 
 ## Stop and resume
 
@@ -98,6 +139,11 @@ Retain completed effects, unaccepted changes and the next action. Reconcile the
 Plan once the child's actual state is known.
 
 On resume or compaction, recover the run record, the Plan, the actual diff and
-any pending exact task. Continue from the first unperformed action. Do not
+any pending exact task. If delivery or completion is missing, make one targeted
+read_thread or native status query for that known task; retrieve only the
+missing result or state. Persist a recovered result before accepting it.
+Unknown creation or a still-running task remains pending: do not recreate it,
+start a second writer or loop. A failed send may leave the result in the
+worker's final answer. Continue from the first unperformed action. Do not
 repeat accepted work, recreate an unresolved child or upgrade an active old
 runtime contract in place.

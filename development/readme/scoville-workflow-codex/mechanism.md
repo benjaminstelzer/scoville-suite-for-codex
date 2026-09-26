@@ -1,6 +1,7 @@
 ## How it works
 
-- The calling task coordinates directly and selects one Plan Step, or a Work Item without Steps, and routes its model and reasoning effort by risk. Workers implement in the existing checkout.
+- The calling task coordinates directly and selects a Step, a consecutive Step group or a whole Work Item. Small related Steps share setup and produce one checkable result; authored order stays intact. Risk determines model and reasoning effort. Workers implement in the existing checkout.
+- After dispatch, the coordinator becomes idle. One native message carries the result and resumes it. Ordinary progress does not trigger supervision or repeated messages.
 - Fresh reviewers check code and critical documentation changes. Routine changes can skip review after a bounded consistency check.
 - The coordinator corrects Plan findings. Repair workers correct project findings, with further review when changes are material or unclear.
 - With existing commit authority, accepted work and Plan updates enter one commit. Failed checks and open decisions do not count as acceptance.
@@ -24,6 +25,6 @@ flowchart TD
     N -->|No| D["Finish"]
     N -->|Yes| T{"Context threshold reached?"}
     T -->|No| C
-    T -->|Yes| H["Save the run and start a successor coordinator<br/>Continue after the predecessor ends"]
+    T -->|Yes| H["Save the run and stop project writes<br/>Successor takes over and requests predecessor archival"]
     H --> C
 ```

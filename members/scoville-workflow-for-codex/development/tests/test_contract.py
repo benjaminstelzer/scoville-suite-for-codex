@@ -127,9 +127,8 @@ class NativeWorkflowContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             role_result_parser.parse_role_result(raw.replace('\n', ' '), 'executor')
         operations = (PACKAGE / 'references/operations.md').read_text(encoding='utf-8')
-        self.assertIn('agentMessage.text', operations)
-        self.assertIn('phase:final_answer', operations)
-        self.assertIn('never parse that snapshot as the original result', operations)
+        self.assertIn('Read SCOVILLE_RESULT_V1 directly from that message', operations)
+        self.assertIn('without a status call', operations)
 
     def test_model_resolver_rejects_malformed_user_config(self):
         source = (PACKAGE / "assets" / "workflow.toml").read_text(encoding="utf-8")
@@ -175,7 +174,7 @@ class NativeWorkflowContractTests(unittest.TestCase):
                 (root / 'docs/plans/0001-test.md').write_text(fixture.plan().replace(
                     '1. Inspect the producer.', '1. ' + annotation + ' Inspect the producer.'), encoding='utf-8')
                 (root / 'docs/decisions/0001-test.md').write_text(fixture.DECISION, encoding='utf-8')
-                context = prompt_builder.select_unit(SELECTOR, root, 'W-003/step-1')
+                context = prompt_builder.select_unit(SELECTOR, root, 'W-003')
                 self.assertIn(annotation, context['work_item']['source_text'])
                 prompt = prompt_builder.build_prompt('executor', root, 'manager', 'test', context, {})
                 self.assertIn(annotation, prompt)
@@ -218,17 +217,24 @@ class NativeWorkflowContractTests(unittest.TestCase):
                 for name, content in files.items():
                     (root / name).write_bytes(content.replace('\n', ending).encode('utf-8'))
                 before = {p: p.read_bytes() for p in root.rglob('*') if p.is_file()}
-                for unit in ('W-004', 'W-003/step-2'):
+                for unit in ('W-004', 'W-003', 'W-003/step-2', 'W-003/steps-1-2'):
                     context = prompt_builder.select_unit(SELECTOR, root, unit)
                     completed = subprocess.run([sys.executable, '-B', str(PACKAGE / 'scripts/build_dispatch_prompt.py'),
-                        '--selector', str(SELECTOR), '--plan-root', str(root), '--unit', unit,
-                        '--role', 'executor', '--workspace-root', str(root),
-                        '--return-to-thread-id', 'manager', '--delivery-reference', 'dispatch'],
+                        '--unit', unit, '--role', 'executor', '--project-root', str(root),
+                        '--return-to-thread-id', 'manager'],
                         input='{}', text=True, encoding='utf-8', capture_output=True,
                         env={**os.environ, 'PYTHONIOENCODING': 'cp1252'})
                     self.assertEqual(completed.returncode, 0, completed.stderr)
-                    embedded = next(line for line in completed.stdout.splitlines() if line.startswith('plan_context='))
-                    self.assertEqual(json.loads(embedded.split('=', 1)[1]), context)
+                    prompt = completed.stdout
+                    embedded = prompt.split('## Work Item context\n', 1)[1]
+                    self.assertEqual(embedded.rstrip() + '\n', context['work_item']['context_text'])
+                    self.assertEqual(prompt.count(context['work_item']['context_text'].rstrip()), 1)
+                    self.assertIn('## Assigned unit\n' + unit, prompt)
+                    self.assertFalse(prompt.startswith('{'))
+                    for decision in context['decisions']:
+                        self.assertNotIn(decision, prompt)
+                    self.assertIn(context['work_item']['acceptance'], prompt)
+                    self.assertIn(context['work_item']['outcome'], prompt)
                     self.assertEqual(context['work_item']['unit'], unit)
                     self.assertTrue(context['work_item']['source_text'])
                 for unit in ('W-003/step-1..2', 'W-003/step-0', 'W-999', 'W-003/step-4'):
@@ -237,9 +243,9 @@ class NativeWorkflowContractTests(unittest.TestCase):
                 self.assertEqual(before, {p: p.read_bytes() for p in root.rglob('*') if p.is_file()})
 
     def test_role_inputs_preserve_handoff_and_reject_premature_review(self):
-        context = {'work_item': {'unit': 'W-001', 'source_text': 'Exact assignment ✓'}}
-        completed = dict(status='completed', summary='Fixed file, checked behavior.', findings=[],
-                         review=dict(code_changed='yes', critical_docs_changed='no'))
+        context = {'work_item': {'unit': 'W-001', 'source_text': 'Exact assignment ✓', 'context_text': 'Exact assignment ✓'}}
+        completed = ('SCOVILLE_RESULT_V1\nrole=executor\nstatus=completed\n'
+                     'code_changed=yes\ncritical_docs_changed=no\nsummary=Fixed and checked.')
         def build(role, data):
             return prompt_builder.build_prompt(role, PACKAGE, 'manager', 'dispatch', context, data)
         handoff = {'context_handoff': 'Finished first change; remaining check in module A.',
@@ -249,27 +255,40 @@ class NativeWorkflowContractTests(unittest.TestCase):
             if role == 'reviewer':
                 data['executor_result'] = completed
             if role == 'repair':
-                data.update(reviewer_result=dict(status='changes_requested', summary='One defect.',
-                                                 findings=['A: wrong output.', 'B: Plan correction.']),
-                            repair_assignment=dict(finding_indices=[0]))
+                data.update(reviewer_result='SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=changes_requested\nsummary=Two defects.\nfinding=A: wrong output.\nfinding=B: Plan correction.',
+                            repair_assignment='Correct A: wrong output only.')
             prompt = build(role, data)
-            self.assertIn('while your own assigned work remains unfinished', prompt)
             self.assertIn("The coordinator's later review and acceptance are not your unfinished work", prompt)
             self.assertIn(str(Path(sys.executable)), prompt)
-            value = next(line for line in prompt.splitlines() if line.startswith('role_input='))
-            self.assertEqual(json.loads(value.split('=', 1)[1]), data)
+            for key, value in data.items():
+                self.assertIn('## ' + key + '\n' + value, prompt)
         for status in ('blocked', 'needs_user_decision', 'context_handoff'):
             with self.assertRaisesRegex(ValueError, 'review requires a completed'):
-                build('reviewer', {'executor_result': dict(status=status, summary='Pending', findings=[])})
-        findings = dict(status='changes_requested', summary='Two defects.', findings=['A', 'B'])
-        for indices in ([], [2], [-1], [True], [1, 0], [0, 0]):
+                build('reviewer', {'executor_result': 'SCOVILLE_RESULT_V1\nrole=executor\nstatus=' + status + '\nsummary=Pending'})
+        findings = 'SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=changes_requested\nsummary=Two defects.\nfinding=A\nfinding=B'
+        for assignment in ('', ' ', [], None):
             with self.assertRaises(ValueError):
-                build('repair', dict(reviewer_result=findings, repair_assignment=dict(finding_indices=indices)))
+                build('repair', dict(reviewer_result=findings, repair_assignment=assignment))
         with self.assertRaises(ValueError):
-            build('repair', dict(reviewer_result=dict(status='pass', summary='Good', findings=[]),
-                                 repair_assignment=dict(finding_indices=[0])))
+            build('repair', dict(reviewer_result='SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=pass\nsummary=Good',
+                                 repair_assignment='Correct A'))
         with self.assertRaises(ValueError):
             build('executor', {'unknown': True})
+
+    def test_builder_preserves_cosmetic_result_variants_without_repair(self):
+        context = {'work_item': {'unit': 'W-001', 'source_text': 'Assigned work',
+                                'context_text': 'Assigned work'}}
+        for role, field, status in [('reviewer', 'executor_result', 'completed'),
+                                    ('repair', 'reviewer_result', 'changes_requested')]:
+            raw = '```text\nSCOVILLE_RESULT_V1\nsummary=Observed result.\n status = ' + status + '  \n```'
+            data = {field: raw}
+            if role == 'repair':
+                data['repair_assignment'] = 'Fix the reported source defect.'
+            prompt = prompt_builder.build_prompt(role, PACKAGE, 'manager', 'test', context, data)
+            self.assertIn(raw, prompt)
+            data[field] = raw + '\nstatus=blocked'
+            with self.assertRaises(ValueError):
+                prompt_builder.build_prompt(role, PACKAGE, 'manager', 'test', context, data)
 
 
 if __name__ == '__main__':

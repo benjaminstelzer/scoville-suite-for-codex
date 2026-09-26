@@ -10,6 +10,7 @@ incomplete and request continuation; do not silently truncate.
 After confirmed delivery, your own final response contains only a delivery
 receipt and asks whether the user wants this adviser task archived. Do not
 repeat the answer or archive automatically. Only an explicit yes in this task
-authorizes self-archival; verify the exact task ID and `archived:true`. A
-follow-up keeps this conversation and delivery destination, with a new reference.
+authorizes self-archival: call set_thread_archived once for your own exact task ID
+as your last action, without a confirmation or archival check. A follow-up keeps
+this conversation and delivery destination, with a new reference.
 Failed delivery is reported here as failed, without an automatic retry.

@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Resolve advisers and prepare native payloads; execute only explicit Claude requests."""
+"""Resolve advisers locally; prepare and execute only explicit Claude CLI requests."""
 from __future__ import annotations
 
 import argparse
-import copy
 import json
 import math
 from pathlib import Path
@@ -12,8 +11,6 @@ import subprocess
 import sys
 
 import ask_claude
-from list_models import list_models
-import task_lifecycle
 from ask_settings import resolve_settings
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -32,28 +29,11 @@ def text(value, name):
 def resolve(request):
     config = resolve_settings(ROOT / 'config.default.json', request)
     advisers = config['advisers']
-    catalog = None
-    if any(a['route'] == 'native' for a in advisers):
-        catalog = request.get('catalog')
-        if catalog is None:
-            catalog = list_models()
-        require(isinstance(catalog, dict) and catalog.get('source') == 'model/list', 'fresh model/list catalog required')
-        rows = catalog.get('models')
-        require(isinstance(rows, list), 'invalid model catalog')
-        allowed = {}
-        for row in rows:
-            require(isinstance(row, dict) and isinstance(row.get('efforts'), list), 'invalid catalog entry')
-            model = text(row.get('model'), 'catalog model')
-            require(model not in allowed, 'duplicate catalog model')
-            allowed[model] = row['efforts']
     for adviser in advisers:
-        if adviser['route'] == 'native':
-            require(adviser['model'] in allowed, f'model unavailable: {adviser["model"]}')
-            require(adviser['effort'] in allowed[adviser['model']], f'effort unavailable for {adviser["model"]}')
-        else:
+        if adviser['route'] == 'claude-cli':
             require(ask_claude.MODEL_PATTERN.fullmatch(adviser['model']), 'invalid Claude model')
             require(adviser['effort'] in ask_claude.EFFORT_LEVELS, 'unsupported Claude CLI effort')
-    return {'config': config, 'catalog': catalog}
+    return {'config': config}
 
 
 def prepare(request):
@@ -70,15 +50,7 @@ def prepare(request):
         ref = reference + ':' + adviser['id']
         entry = {'adviser': adviser, 'reference': ref, 'scope': scope, 'context_mode': 'fresh'}
         if adviser['route'] == 'native':
-            result = task_lifecycle.create({
-                'creation_authorized': request.get('creation_authorized'), 'prior_state': request.get('prior_state'),
-                'family': 'ask', 'role': 'adviser', 'prompt': prompt + '\n\n' + (ROOT / 'references/native-delivery.md').read_text(encoding='utf-8'),
-                'projectId': request.get('projectId'), 'caller_title': request.get('caller_title'),
-                'return_to_thread_id': request.get('caller_id'), 'reference': ref,
-                'prior_task_ids': request.get('prior_task_ids', []),
-                'model': adviser['model'], 'thinking': adviser['effort']})
-            result['handle'].update(adviser=adviser, scope=scope, return_to_thread_id=request['caller_id'])
-            entry.update(result)
+            raise ValueError('Native advisers use create_thread directly; prepare is only for Claude CLI')
         else:
             entry['request'] = {'operation': 'claude', 'adviser': adviser, 'claude': settings['claude'],
                 'prompt': prompt, 'reference': ref, 'scope': scope, 'cwd': request.get('cwd'), 'authorized': request.get('creation_authorized')}
@@ -124,35 +96,37 @@ def claude(request):
         'permission_denials': payload.get('permission_denials') or []}
 
 
-def followup(request):
-    handle = copy.deepcopy(request['handle'])
-    require(request.get('archived') is False, 'follow-up needs an unarchived task')
-    require(handle.get('family') == 'ask', 'Ask handle required')
-    reference = text(request.get('reference'), 'new reference')
-    require(reference != handle.get('reference'), 'follow-up needs a new reference')
-    adviser = copy.deepcopy(handle['adviser'])
-    overrides = request.get('overrides', {})
-    require(isinstance(overrides, dict) and set(overrides) <= {'model', 'effort', 'name'}, 'follow-up may only override model, effort or display name')
-    adviser.update(overrides)
-    require(adviser.get('route') == 'native', 'native continuation cannot change route')
-    resolve({'overrides': {'advisers': [adviser]}, **({'catalog': request['catalog']} if 'catalog' in request else {})})
-    scope = text(request.get('scope'), 'scope')
-    prompt = 'ask_role=adviser\nconsultation_reference=' + reference + '\nreturn_to_thread_id=' + text(handle.get('return_to_thread_id'), 'return destination')
-    prompt += '\n' + (ROOT / 'references/adviser.md').read_text(encoding='utf-8')
-    prompt += '\n' + (ROOT / 'references/native-delivery.md').read_text(encoding='utf-8')
-    prompt += '\n' + json.dumps({'scope': scope, 'question': text(request.get('question'), 'question')}, ensure_ascii=False)
-    result = task_lifecycle.message({'handle': handle, 'delivery_state': request.get('delivery_state'), 'prompt': prompt,
-        'model': adviser['model'], 'thinking': adviser['effort']})
-    handle.update(reference=reference, scope=scope, adviser=adviser)
-    return {**result, 'handle': handle, 'context_mode': 'continued'}
+OPERATIONS = {'resolve': resolve, 'prepare': prepare, 'claude': claude}
 
 
-OPERATIONS = {'resolve': resolve, 'prepare': prepare, 'claude': claude, 'followup': followup}
-
-
-def main():
+def main(argv=()):
+    request = {}
     try:
-        request = json.load(sys.stdin)
+        parser = argparse.ArgumentParser(description=__doc__)
+        parser.add_argument('--input-file', type=Path)
+        parser.add_argument('--project-root', type=Path)
+        parser.add_argument('--adviser', action='append')
+        parser.add_argument('--model')
+        parser.add_argument('--effort')
+        args = parser.parse_args(argv)
+        require(not (args.input_file and (args.project_root or args.adviser or args.model or args.effort)), 'input-file cannot be combined with resolve flags')
+        if args.input_file:
+            request = json.loads(args.input_file.read_text(encoding='utf-8'))
+        elif args.project_root:
+            request = {'operation': 'resolve', 'project_root': str(args.project_root)}
+            if args.adviser:
+                request['overrides'] = {'advisers': args.adviser}
+            if args.model or args.effort:
+                require(args.adviser and len(args.adviser) == 1, 'model/effort overrides require exactly one adviser')
+                adviser = {'id': args.adviser[0]}
+                if args.model:
+                    adviser['model'] = args.model
+                if args.effort:
+                    adviser['effort'] = args.effort
+                request['overrides'] = {'advisers': [adviser]}
+        else:
+            require(not (args.adviser or args.model or args.effort), 'resolve flags require project-root')
+            request = json.load(sys.stdin)
         require(isinstance(request, dict) and request.get('operation') in OPERATIONS, 'unknown operation')
         result = OPERATIONS[request['operation']](request)
         print(json.dumps({'ok': True, **result}, ensure_ascii=False))
@@ -167,4 +141,4 @@ def main():
 
 if __name__ == '__main__':
     ask_claude.configure_standard_streams()
-    raise SystemExit(main())
+    raise SystemExit(main(sys.argv[1:]))

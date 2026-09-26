@@ -27,23 +27,19 @@ class AskBuildProfileTests(unittest.TestCase):
             member = receipt["members"][0]
             package = output / member["package_path"] / NAME
             self.assertTrue((package / "SKILL.md").is_file())
-            for script in ("ask.py", "list_models.py", "ask_claude.py", "task_lifecycle.py"):
+            for script in ("ask.py", "list_models.py", "ask_claude.py", "ask_settings.py"):
                 self.assertTrue((package / "scripts" / script).is_file(), script)
             self.assertEqual([package / "SKILL.md"], list(output.rglob("SKILL.md")))
-            request = {"operation": "prepare", "mode": "consultation",
-                "question": "Wie lösen wir das?", "scope": "isolated package",
-                "reference": "standalone-proof", "caller_id": "caller-1",
-                "caller_title": "Isolated task", "projectId": "project-1",
-                "creation_authorized": True, "prior_state": "not_started",
-                "catalog": {"source": "model/list", "models": [
-                    {"model": "gpt-6-astra", "efforts": ["high"]}]}}
+            self.assertFalse((package / 'scripts/task_lifecycle.py').exists())
+            request = {"operation": "resolve", "project_root": temporary,
+                       "overrides": {"advisers": ["astra"]}}
             result = subprocess.run([sys.executable, str(package / "scripts" / "ask.py")],
                 input=json.dumps(request), text=True, encoding="utf-8",
                 capture_output=True, check=False, cwd=temporary)
             self.assertEqual(result.returncode, 0, result.stderr)
             payload = json.loads(result.stdout)
             self.assertTrue(payload["ok"])
-            self.assertEqual(payload["entries"][0]["arguments"]["title"], "Ask gpt-6-astra · Isolated task")
+            self.assertEqual(payload["config"]["advisers"][0]["model"], "gpt-6-astra")
 
     def test_actual_codex_suite_contains_ask_as_member(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -53,7 +49,7 @@ class AskBuildProfileTests(unittest.TestCase):
             self.assertIn(NAME, members)
             package = output / members[NAME]["package_path"] / NAME
             self.assertTrue((package / "scripts" / "ask.py").is_file())
-            self.assertTrue((package / "scripts" / "task_lifecycle.py").is_file())
+            self.assertFalse((package / "scripts" / "task_lifecycle.py").exists())
             self.assertEqual(1, len(list(output.rglob("scoville-ask-for-codex/SKILL.md"))))
 
     def test_actual_general_suite_catalogs_ask_without_runtime_payload(self):

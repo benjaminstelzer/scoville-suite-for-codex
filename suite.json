@@ -452,14 +452,6 @@
       },
       "shared_helpers": [
         {
-          "source": "runtime/task_lifecycle.py",
-          "target": "scoville-workflow-for-codex/scripts/task_lifecycle.py"
-        },
-        {
-          "source": "runtime/task_lifecycle.md",
-          "target": "scoville-workflow-for-codex/scripts/task_lifecycle.md"
-        },
-        {
           "source": "runtime/scoville_config.py",
           "target": "scoville-workflow-for-codex/scripts/scoville_config.py"
         }
@@ -557,6 +549,10 @@
         {
           "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/workflow_settings.py",
           "target": "scoville-workflow-for-codex/scripts/workflow_settings.py"
+        },
+        {
+          "source": "members/scoville-plan/scoville-plan/scripts/select_context.py",
+          "target": "scoville-workflow-for-codex/scripts/select_context.py"
         }
       ],
       "family": {
@@ -682,14 +678,6 @@
         }
       ],
       "shared_helpers": [
-        {
-          "source": "runtime/task_lifecycle.py",
-          "target": "scoville-ask-for-codex/scripts/task_lifecycle.py"
-        },
-        {
-          "source": "runtime/task_lifecycle.md",
-          "target": "scoville-ask-for-codex/scripts/task_lifecycle.md"
-        },
         {
           "source": "runtime/scoville_config.py",
           "target": "scoville-ask-for-codex/scripts/scoville_config.py"

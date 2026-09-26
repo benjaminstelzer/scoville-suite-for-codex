@@ -17,7 +17,8 @@ their individual host requirements and test evidence.
 
 ## How it works
 
-- The calling task coordinates directly and selects one Plan Step, or a Work Item without Steps, and routes its model and reasoning effort by risk. Workers implement in the existing checkout.
+- The calling task coordinates directly and selects a Step, a consecutive Step group or a whole Work Item. Small related Steps share setup and produce one checkable result; authored order stays intact. Risk determines model and reasoning effort. Workers implement in the existing checkout.
+- After dispatch, the coordinator becomes idle. One native message carries the result and resumes it. Ordinary progress does not trigger supervision or repeated messages.
 - Fresh reviewers check code and critical documentation changes. Routine changes can skip review after a bounded consistency check.
 - The coordinator corrects Plan findings. Repair workers correct project findings, with further review when changes are material or unclear.
 - With existing commit authority, accepted work and Plan updates enter one commit. Failed checks and open decisions do not count as acceptance.
@@ -41,25 +42,25 @@ flowchart TD
     N -->|No| D["Finish"]
     N -->|Yes| T{"Context threshold reached?"}
     T -->|No| C
-    T -->|Yes| H["Save the run and start a successor coordinator<br/>Continue after the predecessor ends"]
+    T -->|Yes| H["Save the run and stop project writes<br/>Successor takes over and requests predecessor archival"]
     H --> C
 ```
 
 ## What it enforces
 
 Scoville Workflow requires a frontier LLM from the Fable, Astra, SOL or Opus
-families, version 5.0 or newer. Earlier policy qualification used GPT-6 SOL Medium. The simplified workflow
-is undergoing fresh validation; those earlier results do not qualify this revision.
+families, version 5.0 or newer. The simplified native workflow was tested with
+GPT-6 SOL Medium, including grouped work, review, repair and context rollover.
 
 - **Explicit activation.** Asking for implementation or delegation alone does not start Workflow.
 - **Separate responsibilities.** The coordinator owns Plan updates, dispatch and accepted commits. Workers implement. Reviewers stay read-only.
 - **One live checkout.** Tasks use the existing working state. Workflow does not create an isolated worktree without an explicit choice.
 - **Single-run operation.** One worker handles one unit at a time. The run record retains the active task and next action. Change configuration between runs and avoid parallel project edits.
-- **Complete but bounded context.** Dispatch includes the selected Plan unit and its Decisions without truncation. Workers do not reconstruct it from a summary or reopen the Plan.
+- **Only the assigned scope.** Dispatch contains the full Work Item once and names the assigned Step range. The coordinator adds only relevant Goals, Non-goals, current Decisions and dependency facts. Workers do not reopen the Plan or predecessor chats.
 - **Configured routing.** Risk selects the model and effort. Unsupported required pairs block rather than silently falling back.
 - **Independent review where needed.** Code and critical documentation changes require a fresh reviewer. Unresolved worker findings allow at most three repair workers before user input is required.
 - **Measured rollover.** By default, the coordinator hands over at or above 25 percent after an accepted unit. Child roles hand over strictly above 75 percent at a natural boundary. Missing or stale measurements are not guessed. Both thresholds are configurable.
-- **Retained results before cleanup.** Results are retained before children are archived. A rollover successor takes ownership before archiving its predecessor, whose turn must have ended. Archive by exact task ID and check the reply once. Report errors without blocking accepted work. Tasks awaiting a user decision and the final coordinator remain open.
+- **Retained results before cleanup.** Archive once by exact task ID after retaining the result. If the child's turn end is unknown, request self-archival without waiting. Rollover retains the successor's takeover first; a successor coordinator requests its predecessor's self-archival. No archival confirmation or check follows. Report tool errors. Tasks awaiting a user decision and the final coordinator remain open.
 - **Accepted work before commit.** When committing is already authorized, a unit commit includes its accepted changes and complete accumulated Plan state. Failed hooks and outstanding backup requirements are not bypassed.
 - **A binding scope.** Without a narrower boundary, continue through the active Plan. Preserve explicit stops and decisions. Archiving a task is not cancelling it.
 
@@ -84,7 +85,7 @@ is undergoing fresh validation; those earlier results do not qualify this revisi
 
 ## Compatibility
 
-Requires Codex desktop, a saved local project, native task creation, waiting,
+Requires Codex desktop, a saved local project, native task creation,
 messaging and archival controls, access to the task's own `CODEX_THREAD_ID`,
 and Scoville Plan v1.8.0 or a compatible source_text selector. Python 3.11+ runs the deterministic helpers.
 There is no CLI or Claude Code execution path.
@@ -94,11 +95,12 @@ Workflow asks for a decision instead of silently creating another workspace.
 Measured rollover uses native `token_count` data when available. Missing or
 contradictory measurements do not by themselves block valid bounded work.
 
-Native approval can hold a cross-task message pending. Keep that task handle
-and wait without duplicate sends. The coordinator collects results from the
-exact completed task with `read_thread`, preserving the original line breaks.
-The compact `wait_threads` snapshot is not the input to the result parser.
-No separate result-delivery message is required.
+Native approval can hold a result message pending. Keep the exact task ID
+without duplicate sends. The coordinator takes the complete result directly
+from the native message; no parser or routine result read is needed.
+Use `read_thread` only for targeted recovery of a known missing result or state.
+The host must support authorized child messages that resume the coordinator.
+If unavailable, Workflow reports the limitation before dispatch.
 
 This package requires every Skill included in this suite to be installed and
 enabled. Partial installation is not supported. Skills keep their own task
@@ -142,15 +144,17 @@ Task titles identify the work and role:
 
 ```text
 S-MNGR-#2-PLAN-0011
-S-WORK-#3-W-010/STEP-2
-S-REVW-#2-W-010/STEP-2
-S-FIXR-#1-W-010/STEP-2
+S-WORK-#3-W-010/STEPS-1-3
+S-REVW-#2-W-010/STEPS-1-3
+S-FIXR-#1-W-010/STEPS-1-3
 ```
 
 The number counts tasks separately for each role within the workflow run. A new
 successor gets the next number; continuing the same task keeps its number.
 The manager shows the Plan ID. Workers, reviewers and repair workers show their
-assigned unit without its title. A whole Work Item has no Step suffix. Uppercase
+assigned range without its title: STEP-2 for one Step or STEPS-1-3 for a group.
+A whole Work Item with Steps shows their full range; only an item without Steps
+has no Step suffix. Uppercase
 affects display only. Rollover keeps the same logical workflow run even
 though the successor's displayed number increases.
 
