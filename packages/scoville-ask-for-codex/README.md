@@ -49,8 +49,6 @@ this minimum.
 
 The native task host checks the requested model and effort when it creates the adviser chat. A rejected request is reported without substituting another model. Native third-party models require a suitable provider connection, such as EasyCLIProxy where configured. The Claude CLI route requires installed, authenticated Claude Code. Opus 5.5 requires version 2.1.280 or newer. See “How to Ask with Claude Code” for setup.
 
-The Python helpers are required. A missing interpreter or helper failure has no manual replacement route. Tasks use the host’s normal sidebar sorting.
-
 Ask is also available as a standalone Skill from
 [scoville-ask-for-codex](https://github.com/benjaminstelzer/scoville-ask-for-codex).
 Its standalone package works independently. Installing the complete suite uses
