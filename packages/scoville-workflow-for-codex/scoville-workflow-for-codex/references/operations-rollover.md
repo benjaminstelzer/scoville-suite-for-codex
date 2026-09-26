@@ -39,15 +39,18 @@ At an accepted-unit boundary with work remaining:
    model/effort and next coordinator title. Its short prompt gives the exact
    installed Skill path, run-record path, predecessor task/host ID and next unit.
    Tell it to resume that record and request the predecessor's self-archival
-   after takeover. Do not repeat Plan history or carry the predecessor chat.
+   after takeover. Carry the user's existing internal-message authorization
+   with the continuation, preserving its scope. Do not repeat Plan history or
+   carry the predecessor chat.
 3. After create_thread, the predecessor makes no project writes and dispatches
-   no work. Keep the returned identity in the native tool result and end the
-   turn. An uncertain creation is reconciled on recovery, never recreated.
+   no work. Keep the returned identity in the native tool result, satisfy any
+   host-required wait for progress and end the turn. An uncertain creation is
+   reconciled on recovery, never recreated.
 4. The successor checks the saved run, workspace and predecessor against its
    assignment, records its own actual task/host ID and continues the saved run.
    Send one short takeover message to that predecessor: identify this run and
-   request self-archival. No wait_threads, status check, predecessor read or
-   end-of-turn handshake is needed: the predecessor stopped project writes
+   request self-archival. No additional archival wait, status check, predecessor
+   read or end-of-turn handshake is needed: the predecessor stopped project writes
    before creation. Never repeat completed work.
 5. The predecessor accepts the request only from the actual created successor
    for this run. Call set_thread_archived once on its own exact task/host ID as

@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.6.1 - 2026-09-26
+
+- Preserve existing user authorization for internal messages across worker dispatches and coordinator rollovers.
+- Identify undelivered results explicitly and respect host-required progress waits without adding polling or archival checks.
+
 ## v0.6.0 - 2026-09-25
 
 - Use the calling task as coordinator and dispatch one Step, consecutive Step group or whole Work Item at a time, preserving authored order.

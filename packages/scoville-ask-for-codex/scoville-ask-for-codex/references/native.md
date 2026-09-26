@@ -19,20 +19,30 @@ history. Native parameters are model=<resolved model>, thinking=<resolved effort
 and target={type:project,projectId:<saved-id>,environment:{type:local}}.
 The host validates availability; report failure without changing the model.
 
+Before dispatch, use the user's existing authorization for messages within
+this consultation and carry its actual wording and scope in the assignment.
+Do not ask again when it already covers the adviser and caller. An agent's
+dispatch alone grants no permission. If a required authorization is missing,
+resolve it before creating the adviser rather than leaving an undeliverable answer.
+
 Retain intended adviser/question before creation, then the returned task/host ID.
 clientThreadId is pending, not a usable threadId. Resolve pending creation with
 host-provided correlation; never retry an unknown creation or match only by title.
 No lifecycle helper or intermediate payload is required.
 
-After dispatch, end the caller turn. Adviser messages resume it. Match the actual
+After dispatch, satisfy any host-required wait for progress before ending the
+caller turn. Otherwise use adviser messages to resume it. Match the actual
 sender ID and consultation_reference to the current question. Retain complete
 answers or individual failures before reporting the round. Multiple advisers may
 reply in any order, including while the caller is already active; retain each
-once and end the turn again if another answer remains pending. Do not poll.
+once and end the turn again if another answer remains pending and the host
+permits it. Add no polling loop.
 
-On resume or a reported missing delivery, make one targeted native status query
+On a host completion event, resume or reported missing delivery, make one targeted native status query
 or read_thread call for the known task and only the missing answer/state. An
 unresolved task remains pending; do not create a replacement or loop.
+`RESULT NOT DELIVERED` is a diagnostic in the adviser chat, not a wake-up event.
+Do not claim automatic recovery without an observed host event or message.
 
 ## Follow-ups and archival
 

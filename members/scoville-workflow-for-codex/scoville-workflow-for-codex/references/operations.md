@@ -27,9 +27,10 @@ sender to the retained successor. A notice never accepts work or advances the Pl
 2. Apply [dispatch](operations-dispatch.md). Record the intended dispatch, create
    the worker with its complete assignment, and retain the returned task ID.
    Pending IDs remain pending. An uncertain creation is reconciled, not retried.
-3. After retaining the returned task ID, end this coordinator turn. The worker
+3. Retain the returned task ID and obey any host-required wait for progress
+   before ending this coordinator turn. Otherwise use the message-driven flow: the worker
    sends its result after all work and checks stop; that message resumes the
-   coordinator. Do not poll, relay progress, send reminders or inspect changing
+   coordinator. Add no polling loop, progress relay, reminders or inspection of changing
    files. This idle interval is not Plan completion. Do not insert narration
    between successful deterministic calls; required host updates stay brief.
 4. Match the message's actual sender task ID to the pending unit and role.
@@ -41,8 +42,8 @@ sender to the retained successor. A notice never accepts work or advances the Pl
    acceptance or archival. Only missing or ambiguous required facts warrant one clarification in the
    same task, without further source changes; unresolved facts stay blocked.
    A message already retained for this pending assignment is not accepted twice.
-   Missing delivery is handled only on an actual resume or user intervention
-   through the recovery rule below, never with a periodic check.
+   Missing delivery is recovered from the known task on a host completion event,
+   actual resume or user intervention, never through a periodic check.
 5. Handle `context_handoff` through [rollover](operations-rollover.md) before
    review or acceptance. `needs_user_decision` remains open for the answer.
    For `blocked` or a native failure, preserve the changes and actual diagnostic.
@@ -130,6 +131,9 @@ visible. Replaced coordinators self-archive on their successor’s takeover mess
 the rollover reference.
 
 ## Stop and resume
+
+`RESULT NOT DELIVERED` diagnoses missing delivery; it does not wake this task.
+Do not claim automatic recovery without an observed host event or message.
 
 On a user stop, dispatch no new work. Forward the stop to the exact active child
 and observe its state. If sending does not interrupt the child, report that

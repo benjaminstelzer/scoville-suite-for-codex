@@ -53,8 +53,9 @@ specific missing authorization before dispatch. Do not silently change routes.
 3. For native advisers, call create_thread directly with the question and
    adviser role under [native operation](references/native.md). For Claude,
    use the existing prepare/claude route. Invoke each selected adviser once.
-4. Retain each native task ID, adviser settings and current question. End the
-   caller turn while native answers are pending; authorized adviser messages
+4. Retain each native task ID, adviser settings and current question. Follow
+   native operation's host requirements before ending the caller turn;
+   authorized adviser messages
    resume it. Accept each complete answer once, by actual sender and question.
    Keep partial answers and failures visible and collect remaining answers
    without polling or automatic replacement. A receipt alone is not an answer.

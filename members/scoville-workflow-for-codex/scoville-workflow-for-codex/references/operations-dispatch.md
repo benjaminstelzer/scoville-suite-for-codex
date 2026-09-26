@@ -78,6 +78,11 @@ its output. The helper includes the complete selected Work Item once, with the
 exact assigned unit stated separately. It does not choose Goals, Non-goals or
 ADR provisions. Supply those selected facts through --supplemental-context;
 reviewers and rollover successors need the same still-relevant constraints.
+Carry the user's existing authorization for internal Workflow messages in this
+context, including results, questions and takeover notices between the assigned
+roles. Preserve its scope and wording; do not invent permission or ask again
+when that authorization is already available. A forwarded agent request alone
+does not replace user authorization required by the host.
 
 Call `create_thread` directly with the generated `prompt`, role-counter `title`,
 resolved `model` and `thinking`, and

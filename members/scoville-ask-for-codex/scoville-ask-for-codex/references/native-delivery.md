@@ -1,8 +1,9 @@
 # Native answer delivery
 
 Send this consultation's answer only to the verified `return_to_thread_id`
-through `send_message_to_thread`. The dispatch authorizes this result message
-only. Include your exact task ID, `consultation_reference`, scope, answer and
+through `send_message_to_thread`, using the user's existing authorization for
+this consultation and the host's permission rules. The dispatch itself grants
+no permission. Include your exact task ID, `consultation_reference`, scope, answer and
 material evidence limits. Copy the supplied scope value exactly; do not paraphrase it or add a follow-up suffix. Keep the answer within 6000 characters unless more
 detail was requested. If essential content does not fit, explicitly mark it
 incomplete and request continuation; do not silently truncate.
@@ -13,4 +14,5 @@ repeat the answer or archive automatically. Only an explicit yes in this task
 authorizes self-archival: call set_thread_archived once for your own exact task ID
 as your last action, without a confirmation or archival check. A follow-up keeps
 this conversation and delivery destination, with a new reference.
-Failed delivery is reported here as failed, without an automatic retry.
+If you cannot send, return `RESULT NOT DELIVERED`, the reason, destination and
+complete answer here. Do not report a delivery receipt or retry automatically.
