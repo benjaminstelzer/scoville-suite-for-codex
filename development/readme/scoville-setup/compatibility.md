@@ -1,3 +1,6 @@
 ## Compatibility
 
-Codex with Python 3.11+ and a frontier LLM from the Fable, Astra, SOL or Opus families, version 5.0 or newer.
+Requires Codex with Python 3.11+.
+
+A current Fable, Astra, SOL or Opus model is recommended. Luna was also used
+in testing.

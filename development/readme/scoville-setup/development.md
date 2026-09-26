@@ -1,3 +1,3 @@
 ## How it was developed
 
-- Tests exercise settings display, authorized changes, invalid inputs and consumption by Ask and Workflow.
+- Tests cover displaying and saving settings, rejecting invalid inputs, and using the saved values in Ask and Workflow.

@@ -1,3 +1,3 @@
 ## What it costs
 
-- You choose which settings to save. The helper reads and validates them locally without model calls.
+- Inspecting and changing settings takes an additional interaction with your agent.

@@ -1,11 +1,11 @@
 # Scoville Ask for Codex
 
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
-Here, the heat is the useful findings that remain clear when independent opinions are brought together.
-
 Scoville Ask sends your question and relevant evidence to independently
 configured advisers, then returns their assessments to the original task.
 Use it for a second opinion, a patch review or a comparison of approaches.
+
+The name comes from the Scoville scale, which originally measured chili heat through dilution.
+Here, the heat is the useful advice that remains clear when independent opinions are brought together.
 
 ## How it works
 
@@ -16,7 +16,7 @@ Use it for a second opinion, a patch review or a comparison of approaches.
 ## What it enforces
 
 - **Independent advice.** Advisers inspect and answer. The calling task owns changes.
-- **Traceable answers.** Task IDs, consultation references and scope identify each response. Native chat titles show the model and original task.
+- **Traceable answers.** Each response identifies the adviser and question. Codex chat titles show the model and original task.
 - **Visible failures.** Invalid settings, unavailable models and failed consultations are reported without silently replacing the model or route.
 
 Native advisers are instructed to stay read-only. The host provides no separate
@@ -35,16 +35,17 @@ WebFetch require `claude.web_tools`. Model communication always needs network ac
 ## How it was developed
 
 - Native Codex chats and Claude CLI adapters were checked through functional tests, Luna comprehension cases and independent reviews.
-- Development records distinguish requested settings from observed model telemetry, and simulated consultations from live execution.
 
 ## Compatibility
 
-**Codex online.** Native advisers require Codex desktop task controls, a
-verified calling task and a saved project. All routes require network access
-and Python 3.11 or newer. Use a frontier LLM from the Fable, Astra, SOL or Opus
-families, version 5.0 or newer.
+Adviser chats require Codex desktop and a saved project. Ask must be able to
+identify the calling chat to return answers. All advisers require network access
+and Python 3.11 or newer.
 
-The native task host checks the requested model and effort when it creates the adviser chat. A rejected request is reported without substituting another model. Native third-party models require a suitable provider connection, such as EasyCLIProxy where configured. The Claude CLI route requires installed, authenticated Claude Code. Opus 5.5 requires version 2.1.280 or newer. See “How to Ask with Claude Code” for setup.
+A current Fable, Astra, SOL or Opus model is recommended. Luna was also used
+in testing.
+
+Codex checks whether the requested model and reasoning level are available when it creates the adviser chat. A rejected request is reported without substituting another model. Third-party models need a provider connection configured in Codex. The Claude CLI route requires installed, authenticated Claude Code. Opus 5.5 requires version 2.1.280 or newer. See “How to Ask with Claude Code” for setup.
 
 Install and enable every Skill in the suite. Each applies to its own task scope.
 Start Workflow by asking for it explicitly.
@@ -83,7 +84,7 @@ Ask Fable and Claude independently how they would approach this problem, then re
 
 ### Configure defaults
 
-`config.default.json` beside the installed `SKILL.md` owns the shipped defaults.
+`config.default.json` beside the installed `SKILL.md` contains the defaults.
 Save project choices under `ask` in `.scoville/config.json` at the project root.
 Missing values use the shipped defaults. Reading settings creates no file.
 Explicit requests override these values for that call without saving them.
@@ -124,20 +125,19 @@ changes only SOL's effort:
 }
 ```
 
-Objects merge by field. The adviser list replaces earlier selections. Shipped
-defaults are overridden by project settings, then by request overrides. The
-installed configuration reference explains inline-field precedence. An
-explicit per-call model or effort wins without changing the saved defaults.
+Project settings override the bundled defaults field by field. An adviser list
+replaces the default list in full. A model or reasoning level named in your
+request applies to that call without changing saved settings.
 Follow-ups retain their original settings unless explicitly changed. For a
 custom adviser, supply an ID, route, exact model and effort in `advisers`.
 See the installed configuration reference for helper inputs and migration.
 
 ### How to Ask with Claude Code
 
-1. Install [Claude Code](https://code.claude.com/docs/en/setup) if needed. Open a new terminal or PowerShell window. The folder does not matter.
+1. Install [Claude Code](https://code.claude.com/docs/en/setup) if needed. Open a terminal or PowerShell window.
 2. Run `claude --version`. Opus 5.5 needs **2.1.280 or newer**. For an older version, run `claude update`, then check again. Keep running Claude sessions open.
 3. Run `claude auth login` and complete sign-in in your browser. Run `claude auth status` to check that you are signed in.
-4. In Codex with this Skill installed, ask: **“Ask Claude to review this change.”** The imported defaults above determine the model and effort. Change the `ask` settings in `.scoville/config.json` or name another model or effort in the request.
+4. In Codex with this Skill installed, ask: **“Ask Claude to review this change.”** The defaults above determine the model and reasoning level. Change the `ask` settings in `.scoville/config.json` or name another model or effort in the request.
 
 If Ask reports an expired OAuth session, repeat step 3 and retry. An old CLI can reject the correct model ID. Repeat step 2 instead of substituting a model.
 

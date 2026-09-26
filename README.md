@@ -1,11 +1,11 @@
 # Scoville Suite for Codex
 
-Scoville takes its name from the scale used to measure the heat of chili peppers.
-
 Scoville helps Codex plan, implement and review work across conversations.
 Workflow coordinates the work in ordered steps, Ask brings in independent
 advice, and Handoff carries unfinished tasks forward. Setup manages the
 project's model and workflow settings.
+
+Scoville takes its name from the scale used to measure the heat of chili peppers.
 
 ## Suite requirements
 
@@ -17,9 +17,6 @@ starts when you ask for it. Codex needs Python 3.11 or newer for the included
 tools.
 
 ## Scoville Workflow for Codex
-
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
-Here, the heat is the goal and accepted results kept intact across workers, reviews and context handoffs.
 
 Long software tasks need consistent direction, independent review and a way to
 continue when a conversation fills up. Scoville Workflow coordinates those
@@ -33,15 +30,18 @@ maintenance, including larger codebases.
 Install it through the complete Codex Suite. It requires Codex desktop's native
 task controls.
 
+The name comes from the Scoville scale, which originally measured chili heat through dilution.
+Here, the heat is the goal and accepted results kept intact across workers, reviews and context handoffs.
+
 ### How it works
 
 - The coordinator selects a Step, related consecutive Steps or a whole Work Item. Grouping shares setup and produces a checkable result while preserving the Plan's order.
 - Risk determines the worker's model and effort. The worker implements in the existing checkout and returns its result by message.
 - Fresh reviewers inspect code and critical documentation. Routine changes may skip review after a consistency check.
-- The coordinator fixes Plan findings; repair workers fix project findings. Material or unclear changes receive another review.
+- The coordinator corrects issues in the Plan. Repair workers correct issues in the project. Material or unclear changes receive another review.
 - Accepted changes and Plan updates enter one commit when committing is authorized.
-- At a configured context threshold, a successor continues the same assignment and checkout. The coordinator hands over after acceptance; child roles use a natural stopping point. Rollover does not consume a repair attempt.
-- Results and successor takeover are retained before retiring tasks. Archive errors are reported without blocking accepted work.
+- At a configured context threshold, a successor continues the same assignment and checkout. The coordinator hands over after acceptance. Workers and reviewers use a natural stopping point. Rollover does not consume a repair attempt.
+- Save results before archiving chats. At a handoff, archive the predecessor after the successor confirms takeover. Archive errors are reported without blocking accepted work.
 
 ```mermaid
 flowchart TD
@@ -70,10 +70,10 @@ flowchart TD
 - **One active assignment.** Tasks share the existing checkout. The run record retains progress and the next action. Change settings between runs and avoid parallel project edits.
 - **Bounded context.** Workers receive the Work Item, assigned Step range and relevant goals, decisions and dependencies. They need not reopen the Plan or earlier chats.
 - **Configured models.** Risk determines model and effort. Unavailable required pairs are reported without substitution.
-- **Independent review.** Code and critical documentation require a fresh reviewer. Unresolved findings allow up to three repairs before user input.
-- **Context handoffs.** Default triggers are at or above 25% for the coordinator after accepted work and strictly above 75% for child roles at natural boundaries. Thresholds are configurable. Missing measurements are not guessed.
+- **Independent review.** Code and critical documentation require a fresh reviewer. After three unsuccessful repair attempts, the workflow asks you how to proceed.
+- **Context handoffs.** Default triggers are at or above 25% for the coordinator after accepted work and strictly above 75% for workers, reviewers and fixers at natural stopping points. Thresholds are configurable. Missing measurements are not guessed.
 - **Retained results.** Save results before archiving a task. Confirm successor takeover before retiring a predecessor. Report archive errors without confirmation loops. Decision requests and the final coordinator remain open.
-- **Accepted commits.** Existing commit authority covers accepted changes and accumulated Plan state. Hooks and required backups remain binding.
+- **Accepted commits.** When committing is authorized, include accepted changes and Plan updates. Run required hooks and backups.
 - **Defined scope.** Follow the active Plan or the user's narrower boundary, preserving stops and open decisions.
 
 See [Native Codex operations](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-workflow-for-codex/scoville-workflow-for-codex/references/operations.md)
@@ -82,7 +82,7 @@ for delivery, permissions and recovery.
 ### What it costs
 
 - Worker and reviewer chats, handoffs and Plan updates consume tokens and time.
-- Separate chats add sidebar entries and cleanup. Some Codex clients lack
+- Separate chats add sidebar entries and cleanup. Codex lacks
   [`close_agent`](https://github.com/openai/codex/issues/36211), and closed
   threads can [remain visible](https://github.com/openai/codex/issues/30903).
 - Desktop-created threads may be [missing from Codex Mobile](https://github.com/openai/codex/issues/24464), limiting mobile monitoring and follow-up.
@@ -90,9 +90,6 @@ for delivery, permissions and recovery.
 [How to use Scoville Workflow for Codex](members/scoville-workflow-for-codex/README.md#how-to-use).
 
 ## Scoville Code
-
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
-Here, the heat is the requested behavior and the evidence that it works, kept clear through implementation and testing.
 
 A coding agent can produce passing tests while missing the behavior you asked
 for. Scoville Code connects the requested result, the existing implementation
@@ -102,20 +99,23 @@ Use it to develop, diagnose, review or remove code. It directs the agent to find
 the cause, respect the project's architecture and check the affected behavior
 with effort proportionate to the task.
 
+The name comes from the Scoville scale, which originally measured chili heat through dilution.
+Here, the heat is the requested behavior and the evidence that it works, kept clear through implementation and testing.
+
 ### How it works
 
 - Identify the outcome, responsible code, risks and decisive check before editing.
 - Read relevant code, callers and tests. Expand the investigation when evidence requires it.
 - Fix the cause within the existing architecture and requested scope.
 - Check the changed behavior and report what the evidence actually proves.
-- Investigate failures without weakening guarantees. Revise obsolete assertions only for an authorized contract change. Reassess after two failed corrections of the same cause.
+- Investigate failures without weakening guarantees. Revise obsolete assertions only for an approved change to the expected behavior. Reassess after two failed corrections of the same cause.
 - Inspect the complete change, report remaining gaps and stop checking when further evidence would not change the decision.
 
 ### What it enforces
 
-- **The requested result.** Plans, tests and refactors support the outcome;
-  completion requires the behavior itself.
-- **Existing ownership.** Changes follow the project's architecture, records,
+- **The requested result.** Plans, tests and refactors support the outcome.
+  Completion requires the behavior itself.
+- **Project conventions.** Changes follow the project's architecture, records,
   terminology and workflow.
 - **Proportionate checks.** Verification addresses concrete failure risks.
   Broader security, migration or release checks follow the task and project rules.
@@ -124,7 +124,7 @@ with effort proportionate to the task.
 - **Root-cause correction.** Repeated failure triggers a reassessment of the approach.
 - **Navigable code.** Existing conventions and module boundaries guide changes.
   New projects start with a small layout organized by responsibility. The
-  2,000-line default ceiling permits justified exceptions.
+  default limit of 2,000 lines per source file permits justified exceptions.
 - **Necessary questions.** Ask when a choice changes behavior, authority, cost,
   reversibility or scope. Resolve ordinary details from the project.
 - **Your conventions.** Project instructions take priority. Defaults apply only
@@ -134,7 +134,7 @@ with effort proportionate to the task.
 - **Useful completion reports.** State changed behavior, validation, unresolved
   failures and relevant repository state.
 
-The complete contract is in [SKILL.md](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-code/scoville-code/SKILL.md).
+The full instructions are in [SKILL.md](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-code/scoville-code/SKILL.md).
 
 ### What it costs
 
@@ -144,37 +144,37 @@ The complete contract is in [SKILL.md](https://github.com/benjaminstelzer/scovil
 
 ## Scoville Plan
 
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
-Here, the heat is the direction another agent can recover: the goal, decisions, current state and next action.
-
 Work spread across conversations needs a durable record of the goal, decisions
 and next action. Scoville Plan keeps those facts in the repository, with Work
 Items that describe resumable outcomes and evidence required for completion.
 
 Use it for dependent work and long-running projects. It follows the project's
-existing planning owner and keeps small tasks proportionate.
+existing planning system and keeps small tasks proportionate.
+
+The name comes from the Scoville scale, which originally measured chili heat through dilution.
+Here, the heat is the direction another agent can recover: the goal, decisions, current state and next action.
 
 ### How it works
 
-- Use the repository's planning owner and relevant Plan, Work Items and Decisions.
+- Use the repository's existing planning system and relevant Plan, Work Items and Decisions.
 - Check current sources before starting the next item.
 - Edit Markdown and YAML records with an explicit next action.
 - Record evidence before completion, preserve accepted history and validate the records.
 
 ### What it enforces
 
-- **One planning owner.** Repository instructions and canonical records remain authoritative.
+- **Existing project records.** Follow the repository's planning rules and update its established records.
 - **Clear work units.** Goals name the target, Work Items define resumable outcomes, and ordered Steps describe the work.
 - **Current assumptions.** Check the next item against sources and completed work before execution.
 - **One active item.** Record current work and its first unfinished action.
-- **Durable direction.** Preserve additions, stops, priorities and requested returns after a redirect.
+- **Changes of direction.** Record new priorities, pauses and work the user wants to return to.
 - **Evidence before completion.** Record observed results that establish acceptance.
-- **Explicit decisions.** Save human choices; keep inferred choices proposed until accepted.
+- **Explicit decisions.** Record the user's decisions. Keep unconfirmed choices marked as proposals.
 - **Direct maintenance.** Update Plan records without creating extra work items for routine edits.
 
-Edit the records from one session at a time; concurrent changes require reconciliation.
+Edit the records from one session at a time. Concurrent changes must be reconciled.
 
-See [SKILL.md](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-plan/scoville-plan/SKILL.md) for the complete contract and editing limits.
+See [SKILL.md](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-plan/scoville-plan/SKILL.md) for the full instructions and editing limits.
 
 ### What it costs
 
@@ -184,15 +184,15 @@ See [SKILL.md](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/
 
 ## Scoville UI
 
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
-Here, the heat is the task a person can still understand and complete across layouts, interactions and error states.
-
 A page must work across screen sizes, input methods and error states.
 Scoville UI implements and audits those behaviors through the project's
 framework and design system, using rendered evidence to check the result.
 
 For supported WordPress admin pages, it applies Core components, spacing,
 version requirements and translation conventions.
+
+The name comes from the Scoville scale, which originally measured chili heat through dilution.
+Here, the heat is the task a person can still understand and complete across layouts, interactions and error states.
 
 ### How it works
 
@@ -207,12 +207,12 @@ version requirements and translation conventions.
 - **Design consistency.** Follow the existing design system and approved product decisions.
 - **Clear hierarchy.** Distinguish primary decisions, supporting information and secondary actions.
 - **Complete states.** Cover relevant loading, empty, error, disabled, success and input states.
-- **Responsive behavior.** Preserve the task across narrow, wide, zoomed and content-heavy layouts.
+- **Responsive behavior.** Keep the interface usable on narrow and wide screens, with zoom and long content.
 - **Accessibility.** Check reading order, names, relationships, contrast, focus and keyboard or touch behavior.
-- **Matching evidence.** Support visual and interaction claims with rendered and interactive checks.
-- **WordPress conventions.** Respect Classic, Core Components, bundled WPDS and hybrid regions. Using tokens does not require a React migration.
+- **Visual checks.** Inspect the rendered interface and test its interactions before reporting them as working.
+- **WordPress conventions.** Use the appropriate WordPress components and design tokens for each part of the page. Existing PHP-rendered pages can remain in PHP.
 
-The complete contract is in [SKILL.md](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-ui/scoville-ui/SKILL.md).
+The full instructions are in [SKILL.md](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-ui/scoville-ui/SKILL.md).
 
 ### What it costs
 
@@ -224,13 +224,13 @@ The complete contract is in [SKILL.md](https://github.com/benjaminstelzer/scovil
 
 ## Scoville Handoff
 
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
-Here, the heat is the working context another session needs after a long conversation is condensed.
-
 Continuing a task requires its current blocker, unfinished changes and relevant
 decisions. Scoville Handoff gathers those facts into one compact, copy-ready
 prompt with the objective, permissions and next action, so another session can
 resume the work.
+
+The name comes from the Scoville scale, which originally measured chili heat through dilution.
+Here, the heat is the working context another session needs after a long conversation is condensed.
 
 ### How it works
 
@@ -247,12 +247,12 @@ resume the work.
 - **Preserved authority.** Permissions, file ownership, user changes and
   boundaries on commits, publication or destructive actions remain explicit.
 - **Honest state.** Unobserved results remain unknown. Secrets stay out.
-- **Actionable continuation.** The first Resume Step gives the next safe action;
-  the last defines observable completion.
+- **Actionable continuation.** The first Resume Step gives the next safe action.
+  The last defines how to confirm completion.
 - **A faithful snapshot.** Creating the handoff reads and describes the task
   without editing, testing or advancing it.
 
-The complete contract is in [SKILL.md](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-handoff/scoville-handoff/SKILL.md).
+The full instructions are in [SKILL.md](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-handoff/scoville-handoff/SKILL.md).
 
 ### What it costs
 
@@ -262,12 +262,12 @@ The complete contract is in [SKILL.md](https://github.com/benjaminstelzer/scovil
 
 ## Scoville Ask for Codex
 
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
-Here, the heat is the useful findings that remain clear when independent opinions are brought together.
-
 Scoville Ask sends your question and relevant evidence to independently
 configured advisers, then returns their assessments to the original task.
 Use it for a second opinion, a patch review or a comparison of approaches.
+
+The name comes from the Scoville scale, which originally measured chili heat through dilution.
+Here, the heat is the useful advice that remains clear when independent opinions are brought together.
 
 ### How it works
 
@@ -278,7 +278,7 @@ Use it for a second opinion, a patch review or a comparison of approaches.
 ### What it enforces
 
 - **Independent advice.** Advisers inspect and answer. The calling task owns changes.
-- **Traceable answers.** Task IDs, consultation references and scope identify each response. Native chat titles show the model and original task.
+- **Traceable answers.** Each response identifies the adviser and question. Codex chat titles show the model and original task.
 - **Visible failures.** Invalid settings, unavailable models and failed consultations are reported without silently replacing the model or route.
 
 Native advisers are instructed to stay read-only. The host provides no separate
@@ -298,10 +298,10 @@ WebFetch require `claude.web_tools`. Model communication always needs network ac
 
 ## Scoville Setup
 
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
-Here, the heat is the settings that actually govern a project, made explicit among defaults and individual choices.
-
 Save the Scoville settings for your project in one file. Setup shows the effective values and changes only what you ask it to save.
+
+The name comes from the Scoville scale, which originally measured chili heat through dilution.
+Here, the heat is control over the settings your project actually uses, including defaults and saved choices.
 
 ### How it works
 
@@ -316,7 +316,7 @@ Save the Scoville settings for your project in one file. Setup shows the effecti
 
 ### What it costs
 
-- You choose which settings to save. The helper reads and validates them locally without model calls.
+- Inspecting and changing settings takes an additional interaction with your agent.
 
 [How to use Scoville Setup](members/scoville-setup/README.md#how-to-use).
 
@@ -383,8 +383,8 @@ packages are bundled under the suite's `packages/` directory. An isolated build
 needs no sibling source checkout or individual Skill repository.
 
 The complete private authoring source also supports `--profile general|codex`
-and `--layout standalone|suite`. Standalone projections retain family guidance.
-suite projections require the full member set. Export always produces a complete
+and `--layout standalone|suite`. Standalone builds include the family links.
+Suite builds include every member. Export always produces a complete
 suite with its selected profile and layout. An exported single-profile source
 does not offer the other profile.
 

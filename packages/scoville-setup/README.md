@@ -1,9 +1,9 @@
 # Scoville Setup
 
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
-Here, the heat is the settings that actually govern a project, made explicit among defaults and individual choices.
-
 Save the Scoville settings for your project in one file. Setup shows the effective values and changes only what you ask it to save.
+
+The name comes from the Scoville scale, which originally measured chili heat through dilution.
+Here, the heat is control over the settings your project actually uses, including defaults and saved choices.
 
 ## How it works
 
@@ -18,15 +18,18 @@ Save the Scoville settings for your project in one file. Setup shows the effecti
 
 ## What it costs
 
-- You choose which settings to save. The helper reads and validates them locally without model calls.
+- Inspecting and changing settings takes an additional interaction with your agent.
 
 ## How it was developed
 
-- Tests exercise settings display, authorized changes, invalid inputs and consumption by Ask and Workflow.
+- Tests cover displaying and saving settings, rejecting invalid inputs, and using the saved values in Ask and Workflow.
 
 ## Compatibility
 
-Codex with Python 3.11+ and a frontier LLM from the Fable, Astra, SOL or Opus families, version 5.0 or newer.
+Requires Codex with Python 3.11+.
+
+A current Fable, Astra, SOL or Opus model is recommended. Luna was also used
+in testing.
 
 ## Install
 
@@ -37,16 +40,16 @@ and enabled.
 
 ## How to use
 
-Ask Scoville Setup to show the settings for this project, or tell it which values to save. You can configure Ask advisers, model and effort, Claude budget, timeout, persistence, customizations and web tools. Workflow supports model/reasoning pairs for each route and the coordinator/worker context rollover percentages.
+Ask Scoville Setup to show the settings for this project, or tell it which values to save. You can configure Ask advisers, model and effort, Claude spending limits, timeouts, session storage, custom instructions and web access. Workflow supports model/reasoning pairs for each route and the coordinator/worker context rollover percentages.
 
-The helper returns the effective values. A one-time choice remains in the request or Plan Step unless you ask to save it.
+Setup shows the values that apply to the project, including defaults. A one-time choice remains in the request or Plan Step unless you ask to save it.
 Setup saves the regular reasoning levels `low`, `medium`, `high` and `xhigh`.
 Other supported levels require manual configuration and remain unchanged when
 Setup saves unrelated settings.
 
 ## Sources
 
-- Imported Ask and Workflow defaults and their configuration validators are the settings contract.
+- Ask and Workflow configuration files define the defaults and supported values.
 - [Scoville Suite source](https://github.com/benjaminstelzer/scoville-suite-for-codex).
 
 ## License

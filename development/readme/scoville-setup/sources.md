@@ -1,4 +1,4 @@
 ## Sources
 
-- Imported Ask and Workflow defaults and their configuration validators are the settings contract.
+- Ask and Workflow configuration files define the defaults and supported values.
 - [Scoville Suite source](https://github.com/benjaminstelzer/scoville-suite-for-codex).
