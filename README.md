@@ -18,6 +18,9 @@ tools.
 
 ## Scoville Workflow for Codex
 
+The name comes from the Scoville scale, which originally measured chili heat through dilution.
+Here, the heat is the goal and accepted results kept intact across workers, reviews and context handoffs.
+
 Long software tasks need consistent direction, independent review and a way to
 continue when a conversation fills up. Scoville Workflow coordinates those
 responsibilities across Codex chats using a repository Plan.
@@ -88,6 +91,9 @@ for delivery, permissions and recovery.
 
 ## Scoville Code
 
+The name comes from the Scoville scale, which originally measured chili heat through dilution.
+Here, the heat is the requested behavior and the evidence that it works, kept clear through implementation and testing.
+
 A coding agent can produce passing tests while missing the behavior you asked
 for. Scoville Code connects the requested result, the existing implementation
 and the evidence that a change works.
@@ -138,6 +144,9 @@ The complete contract is in [SKILL.md](https://github.com/benjaminstelzer/scovil
 
 ## Scoville Plan
 
+The name comes from the Scoville scale, which originally measured chili heat through dilution.
+Here, the heat is the direction another agent can recover: the goal, decisions, current state and next action.
+
 Work spread across conversations needs a durable record of the goal, decisions
 and next action. Scoville Plan keeps those facts in the repository, with Work
 Items that describe resumable outcomes and evidence required for completion.
@@ -174,6 +183,9 @@ See [SKILL.md](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/
 [How to use Scoville Plan](members/scoville-plan/README.md#how-to-use).
 
 ## Scoville UI
+
+The name comes from the Scoville scale, which originally measured chili heat through dilution.
+Here, the heat is the task a person can still understand and complete across layouts, interactions and error states.
 
 A page must work across screen sizes, input methods and error states.
 Scoville UI implements and audits those behaviors through the project's
@@ -212,6 +224,9 @@ The complete contract is in [SKILL.md](https://github.com/benjaminstelzer/scovil
 
 ## Scoville Handoff
 
+The name comes from the Scoville scale, which originally measured chili heat through dilution.
+Here, the heat is the working context another session needs after a long conversation is condensed.
+
 Continuing a task requires its current blocker, unfinished changes and relevant
 decisions. Scoville Handoff gathers those facts into one compact, copy-ready
 prompt with the objective, permissions and next action, so another session can
@@ -247,6 +262,9 @@ The complete contract is in [SKILL.md](https://github.com/benjaminstelzer/scovil
 
 ## Scoville Ask for Codex
 
+The name comes from the Scoville scale, which originally measured chili heat through dilution.
+Here, the heat is the useful findings that remain clear when independent opinions are brought together.
+
 Scoville Ask sends your question and relevant evidence to independently
 configured advisers, then returns their assessments to the original task.
 Use it for a second opinion, a patch review or a comparison of approaches.
@@ -279,6 +297,9 @@ WebFetch require `claude.web_tools`. Model communication always needs network ac
 [How to use Scoville Ask for Codex](members/scoville-ask-for-codex/README.md#how-to-use).
 
 ## Scoville Setup
+
+The name comes from the Scoville scale, which originally measured chili heat through dilution.
+Here, the heat is the settings that actually govern a project, made explicit among defaults and individual choices.
 
 Save the Scoville settings for your project in one file. Setup shows the effective values and changes only what you ask it to save.
 
