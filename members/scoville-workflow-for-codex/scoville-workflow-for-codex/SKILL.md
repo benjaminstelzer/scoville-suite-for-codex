@@ -7,7 +7,7 @@ compatibility: "Codex desktop online with native task controls, own task identit
 # Scoville Workflow Codex
 
 The calling task coordinates one ordered work unit at a time. It owns Plan transitions,
-review decisions and authorized commits. Each worker implements one Step, consecutive Step group or complete Work Item. Reviewers
+review decisions and authorized commits. Each worker implements one Step, consecutive Step group or complete Work Item and may continue related work. Follow the project's review cadence; otherwise review at Work Item completion. Reviewers
 stay read-only. Automatic context rollover creates actual successor tasks.
 
 {{ include: family.contract }}

@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.6.5 - 2026-09-27
+
+- Review completed Work Items by default and honor explicit project review boundaries. Checked Step groups can continue until that boundary.
+- Reuse available workers for corrections and keep transient infrastructure attempts in local run records.
+
 ## v0.6.4 - 2026-09-27
 
 - Set Codex Workflow rollover defaults to 40% for coordinators and 60% for workers, reviewers and fixers.

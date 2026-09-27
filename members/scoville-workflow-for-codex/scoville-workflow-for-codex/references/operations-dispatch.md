@@ -12,7 +12,11 @@ result its final checks can prove. If either is unclear, revise the grouping.
 Use the planner's grouping when supplied. Otherwise group small, related
 consecutive Steps that can be implemented and checked together. Keep a large
 independent section separate. Preserve authored order within and across groups;
-finish and accept one group before starting the next. No overlapping groups.
+finish and check one group before starting the next. Apply the review cadence
+in operations.md; no overlapping groups. Reuse the available worker for related
+groups with the same model/effort when context permits. Build and send its complete
+next assignment once, updating its title to the assigned range. Otherwise create
+a worker. An inherited context_handoff always uses a successor.
 Helper --unit values are W-001/step-5, W-001/steps-1-4, or W-001 for the
 whole item. Keep step/steps lowercase in parameters; uppercase STEP/STEPS
 belongs only in the displayed task title.
@@ -71,7 +75,9 @@ The bundled selector and Plan root are derived. CODEX_THREAD_ID supplies the
 coordinator ID; use `--return-to-thread-id <id>` only when the host does not set it.
 Optional arguments name existing UTF-8 plain-text files:
 
-- Review: `--executor-result <result.txt>` with the original accepted worker result.
+- Review: `--executor-result <result.txt>` with a completed worker result; for a
+  whole-item review, add concise references to earlier group results and the
+  full relevant diff through supplemental context. Do not omit unreviewed groups.
 - Repair: `--reviewer-result <result.txt> --repair-assignment <findings.txt>`.
 - Continuation: `--context-handoff <handoff.md>`.
 - Necessary facts: `--supplemental-context <facts.md>`.
@@ -87,7 +93,7 @@ Supplemental context supplies project facts, not copies of the builder's role,
 checkpoint or delivery rules. Reuse an existing selection for scope decisions;
 the builder's internal selection needs no separate preview call.
 
-Call `create_thread` directly with the generated `prompt`, role-counter `title`,
+For a new worker, call `create_thread` directly with the generated `prompt`, role-counter `title`,
 resolved `model` and `thinking`, and
 `target:{type:"project",projectId:<saved-id>,environment:{type:"local"}}`.
 Record the intended unit before the call, then retain the

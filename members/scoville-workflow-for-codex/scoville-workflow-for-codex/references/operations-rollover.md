@@ -43,9 +43,9 @@ no further project work after handing off.
 
 ## Coordinator
 
-At an accepted-unit boundary with work remaining:
+At a checked-group or accepted-Work-Item boundary with work remaining:
 
-1. Save accepted Plan state and the continuation in `.scoville/workflow.md`:
+1. Save observed Plan state, any pending final review and the continuation in `.scoville/workflow.md`:
    same run, Plan, scope, project, role counters, predecessor task/host ID,
    retained results, next unit/action and unresolved handles. Assign the next
    coordinator counter and mark successor creation pending. Finish all project

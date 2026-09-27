@@ -31,11 +31,21 @@ child; leave no executing role in the finished cursor.
 
 ## One unit through acceptance
 
+Follow the user's or project's review cadence. Otherwise review the complete
+Work Item at its completion boundary. A Step group is an execution boundary,
+not automatically a review boundary. Keep checks with each group; retain its
+result and continue in order while final review remains pending. Review newly
+unreviewed changes, their interaction and outstanding Acceptance. Reuse accepted
+evidence for unchanged parts. An explicitly required intermediate review still
+applies. Do not mark the Work Item done or commit unreviewed source changes.
+
 1. Select the next unfinished Step or consecutive Step group under dispatch.
    Check prerequisites and preserve authored order. A whole Work Item may be
-   one group. Do not start a later group before accepting the preceding one.
-2. Apply [dispatch](operations-dispatch.md). Record the intended dispatch, create
-   the worker with its complete assignment, and retain the returned task ID.
+   one group. Do not start a later group before its prerequisites and the
+   preceding group's checks pass. This permits continuation, not final acceptance.
+2. Apply [dispatch](operations-dispatch.md). Record the intended dispatch, send
+   the complete assignment to the eligible existing worker or create one, and
+   retain its exact task ID. Keep a reusable source-worker handle while review runs.
    Pending IDs remain pending. An uncertain creation is reconciled, not retried.
 3. After dispatch, use the message-driven flow: the worker
    sends its result after all work and checks stop; that message resumes the
@@ -56,24 +66,30 @@ child; leave no executing role in the finished cursor.
 5. Handle `context_handoff` through [rollover](operations-rollover.md) before
    review or acceptance. `needs_user_decision` remains open for the answer.
    For `blocked` or a native failure, preserve the changes and actual diagnostic.
+   Keep transient diagnostics in the local run record; Plan Evidence needs only
+   their unresolved blocker or effect on Acceptance. Retry a known failed start
+   only when its cause permits it; never retry an uncertain creation or delivery.
    When replacing that child, archive it through the rule below as part of the
    replacement. Keep it open if the same child will continue after clarification.
    Continue independent eligible work only if it cannot mix unaccepted changes,
    invalidate required backups or advance a dependent Plan item.
 6. Inspect the actual scoped diff, changed paths and named checks only as needed
    for scope, review and Acceptance decisions. Do not routinely repeat the
-   worker's diagnosis, tests or the reviewer's review. Review is
-   required for code, executable/configuration changes, critical documentation,
+   worker's diagnosis, tests or the reviewer's review. At the applicable review
+   boundary, review is required for code, executable/configuration changes, critical documentation,
    an explicit requirement or unresolved materiality. The worker's yes/no
    fields help identify the boundary but never override the observed diff.
    Routine documentation with two consistent no values may skip review.
    The coordinator never edits product files, including mechanical formatting
    fixes. Send source defects through the existing review/repair path; do not
    accept or commit them as corrected until that role returns the correction.
-7. When needed, directly create one fresh read-only reviewer for the same unit,
-   using its configured pair and the worker result. For `changes_requested`,
+7. When review is due, create one fresh read-only reviewer for its complete
+   scope, using its configured pair and the retained worker results. For `changes_requested`,
    handle Plan-owned corrections in the coordinator and send only source-owned
-   findings to a fresh repair worker. Repair 1 uses the original executor pair;
+   findings back to the available worker when its configured pair matches the
+   required repair pair and context permits. Send the complete repair assignment
+   to that exact chat, retain its handle under the repair role, and leave no
+   other source writer active. Otherwise create a repair worker. Repair 1 uses the original executor pair;
    repairs 2 and 3 resolve upward from that original pair in the current route
    table. Rollover never consumes a repair. Create no fourth repair.
 8. Check corrections against every retained finding. Code, critical-documentation
@@ -81,14 +97,18 @@ child; leave no executing role in the finished cursor.
    another review. A clearly non-material correction may be accepted after a
    bounded comparison, with the reason recorded. Unresolved findings after
    repair 3 require the user's disposition before further work on that unit.
-9. Only after observed Acceptance and required review, update the canonical
-   Plan through Scoville Plan, including concise evidence and the next action.
+9. Record checked intermediate results and the next action through Scoville Plan
+   without claiming final Acceptance. Only after observed Acceptance and required
+   review accept the complete Work Item. Keep evidence concise with a report link,
+   not task IDs or attempt histories.
    Run its structural validator. With existing commit authority, inspect the
    staged diff and commit only accepted source changes together with the
    complete affected Plan records. Honor backups and hooks. Do not commit
    merely because Git is present, publish, or hide a failed check.
-10. If requested work remains, run the coordinator checkpoint immediately after
-    the accepted unit and before selecting or writing the next unit:
+10. If requested work remains, run the coordinator checkpoint after a checked
+    group or accepted Work Item and before selecting or writing the next unit.
+    The existing --accepted-unit argument identifies that boundary; it does not
+    declare final acceptance. Retain pending review in the cursor:
 
 ```text
 python "<workflow-skill-directory>/scripts/check_context_checkpoint.py" --project-root "<workspace_root>" --role coordinator --accepted-unit <unit>
@@ -101,8 +121,8 @@ eligible unit without estimating occupancy or searching manually for telemetry.
 Invalid configuration blocks continuation until corrected. A failed helper is
 a failure, not an unavailable-signal result.
 
-Accepting a Step group does not complete the Work Item. Continue with its next
-unaccepted Step; complete the item only after all its work and Acceptance. Continue the requested scope
+Finishing a Step group does not complete the Work Item. Continue with its next
+unfinished Step; complete the item only after all its work, review and Acceptance. Continue the requested scope
 without another routine permission request. Only after all of its real work
 and acceptance checks finish, complete the Plan/index through their owner and
 mark the run record finished. Report a narrower boundary as that boundary.
@@ -128,6 +148,10 @@ complete; do not inspect helper source or load a parser to accept a message.
 ## Archive once, after retaining the result
 
 Retain the child's result or failure before archival. If native evidence already
+shows that a source worker can perform the next related group or pending repair,
+keep it available and reuse it with the complete new assignment. Archive it when
+it is replaced or no longer needed; pending final review may still need it.
+For a child that is no longer needed, if native evidence already
 shows it ended, call `set_thread_archived` directly once with its exact task/host
 ID. No archival verification or confirmation is required.
 
