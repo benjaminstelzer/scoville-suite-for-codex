@@ -13,8 +13,8 @@ import time
 
 
 def list_models(command=None, timeout=30):
-    if not math.isfinite(timeout) or timeout <= 0:
-        raise ValueError('timeout must be positive')
+    if type(timeout) not in (int, float) or not math.isfinite(timeout) or timeout <= 0:
+        raise ValueError(f'--timeout={type(timeout).__name__} must be a positive finite number of seconds; use a value such as 30')
     process = subprocess.Popen(command or ['codex', 'app-server'], stdin=subprocess.PIPE,
         stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, encoding='utf-8',
         creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0)
@@ -43,8 +43,12 @@ def list_models(command=None, timeout=30):
                 value = messages.get(timeout=remaining)
             except queue.Empty as error:
                 raise TimeoutError('model/list deadline exceeded') from error
-            if value is None or isinstance(value, Exception):
-                raise ValueError('app-server closed or returned invalid JSON before model/list completed')
+            if value is None:
+                raise ValueError(f'app-server closed before {method} completed; start the command supplied with --command or use the Codex app-server')
+            if isinstance(value, Exception):
+                raise ValueError(f'app-server returned invalid JSON before {method} completed: {value}; correct the app-server response')
+            if not isinstance(value, dict):
+                raise ValueError(f'app-server {method} response must be a JSON object with id and result fields')
             if value.get('id') != identifier:
                 continue
             if 'error' in value:
@@ -61,13 +65,13 @@ def list_models(command=None, timeout=30):
             result = rpc(identifier, 'model/list', {'limit': 100, 'includeHidden': False, 'cursor': cursor})
             data = result.get('data')
             if not isinstance(data, list):
-                raise ValueError('model/list data must be a list')
+                raise ValueError(f'model/list result.data={type(data).__name__} must be an array of model objects; check the app-server response')
             rows.extend(data)
             cursor = result.get('nextCursor')
             if cursor is None:
                 break
             if not isinstance(cursor, str) or not cursor or cursor in cursors:
-                raise ValueError('invalid or repeated model/list cursor')
+                raise ValueError(f'model/list result.nextCursor={type(cursor).__name__} must be a new nonempty string or null; correct the pagination cursor')
             cursors.add(cursor)
             identifier += 1
         return normalize_models(rows)
@@ -87,20 +91,24 @@ def list_models(command=None, timeout=30):
 def normalize_models(rows):
     models = []
     seen = set()
-    for row in rows:
+    for index, row in enumerate(rows):
         if not isinstance(row, dict):
-            raise ValueError('invalid model entry')
+            raise ValueError(f'model/list data[{index}] must be an object; correct the app-server model entry')
         model = row.get('model')
         efforts = row.get('supportedReasoningEfforts')
-        if not isinstance(model, str) or not model or model in seen or not isinstance(efforts, list):
-            raise ValueError('missing or duplicate model or reasoning options')
+        if not isinstance(model, str) or not model:
+            raise ValueError(f'model/list data[{index}].model must be nonempty text; correct the app-server entry')
+        if model in seen:
+            raise ValueError(f'model/list data[{index}].model={type(model).__name__} is duplicated; return each model once')
+        if not isinstance(efforts, list):
+            raise ValueError(f'model/list data[{index}].supportedReasoningEfforts must be an array; correct the app-server entry')
         values = [item.get('reasoningEffort') if isinstance(item, dict) else None for item in efforts]
         if not values or any(not isinstance(item, str) or not item for item in values):
-            raise ValueError('model has invalid reasoning options')
+            raise ValueError(f'model/list data[{index}].supportedReasoningEfforts must be a nonempty array of objects with nonempty reasoningEffort strings')
         seen.add(model)
         models.append({'model': model, 'efforts': values, 'default_effort': row.get('defaultReasoningEffort')})
     if not models:
-        raise ValueError('model/list returned no selectable models')
+        raise ValueError('model/list result.data returned no selectable models; configure at least one visible model with supported reasoning efforts')
     return {'source': 'model/list', 'models': models}
 
 

@@ -13,10 +13,9 @@ Use the planner's grouping when supplied. Otherwise group small, related
 consecutive Steps that can be implemented and checked together. Keep a large
 independent section separate. Preserve authored order within and across groups;
 finish and check one group before starting the next. Apply the review cadence
-in operations.md; no overlapping groups. Reuse the available worker for related
-groups with the same model/effort when context permits. Build and send its complete
-next assignment once, updating its title to the assigned range. Otherwise create
-a worker. An inherited context_handoff always uses a successor.
+in operations.md; no overlapping groups. Create one worker per assigned group.
+After completion the coordinator requests its archival. An inherited
+context_handoff uses a successor for the unfinished assignment.
 Helper --unit values are W-001/step-5, W-001/steps-1-4, or W-001 for the
 whole item. Keep step/steps lowercase in parameters; uppercase STEP/STEPS
 belongs only in the displayed task title.
@@ -44,10 +43,9 @@ python "<workflow-skill-directory>/scripts/resolve_model_pair.py" --project-root
 Use `--role reviewer` for review. Apply compatible explicit model/effort choices
 to the assigned scope. Keep Steps with conflicting explicit model choices in
 separate ordered groups rather than discarding those choices.
-For repair use `--role repair --original-model <model> --original-reasoning
-<effort> --repair-number <1|2|3>`. Record the actually launched original pair.
-An absent pair in the current route table blocks escalation with its diagnostic;
-do not invent the cause or build an immutable repair schedule.
+For a correction assignment, use a new executor with the original worker pair
+unless the cause warrants another configured route. Resolve that route normally;
+there is no separate repair role or automatic escalation by attempt count.
 Reasoning syntax accepts `none`, `minimal`, `low`, `medium`, `high`, `xhigh`,
 `max` and `ultra`. Shipped pairs and Setup use `low` through `xhigh`; additional
 levels may be entered manually in the project configuration.
@@ -67,7 +65,7 @@ repeat selection to reconstruct its output or print the generated prompt as a
 second tool result before sending it:
 
 ```text
-python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-root "<workspace_root>" --unit <unit> --role <executor|reviewer|repair>
+python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-root "<workspace_root>" --unit <unit> --role <executor|reviewer>
 ```
 
 The helper returns the complete assignment as plain text, ready for create_thread.
@@ -78,8 +76,9 @@ Optional arguments name existing UTF-8 plain-text files:
 - Review: `--executor-result <result.txt>` with a completed worker result; for a
   whole-item review, add concise references to earlier group results and the
   full relevant diff through supplemental context. Do not omit unreviewed groups.
-- Repair: `--reviewer-result <result.txt> --repair-assignment <findings.txt>`.
-- Continuation: `--context-handoff <handoff.md>`.
+- Correction worker: `--role executor --reviewer-result <result.txt>`. Put the
+  assigned source findings and needed context in supplemental context.
+- Continuation: `--context-handoff <handoff.md> --predecessor-thread-id <id>`.
 - Necessary facts: `--supplemental-context <facts.md>`.
 
 Pass original text without JSON, escaping or another result schema. The
@@ -96,9 +95,8 @@ the builder's internal selection needs no separate preview call.
 For a new worker, call `create_thread` directly with the generated `prompt`, role-counter `title`,
 resolved `model` and `thinking`, and
 `target:{type:"project",projectId:<saved-id>,environment:{type:"local"}}`.
-Record the intended unit before the call, then retain the
-returned task/host ID in the same run record. No lifecycle-helper wrapper,
-parking task, fork or shared-history subagent is needed.
+Use the returned task/host ID directly for coordination. No additional start
+record or lifecycle wrapper is needed.
 
 A ready task needs its actual `threadId` and `hostId`; `clientThreadId` alone is
 not ready. Use host-provided correlation to resolve pending creation. Titles alone do not identify a
@@ -129,9 +127,8 @@ Then use result messages, without a polling loop. Do not reconstruct the native
 response as a lifecycle-helper payload.
 
 The receiver owns only the assigned project changes. It cannot edit canonical
-Plan records, stage/commit, create successors or change configuration. Its final
-answer uses the existing `SCOVILLE_RESULT_V1` contract supplied by the builder.
-The child sends one completion notification and then its final result, as
-specified by the builder. Require this message capability and the user's
+Plan records, stage/commit, create successors or change Workflow or model settings.
+Product and test configuration may change only within the assigned scope and
+project constraints; reviewers remain read-only. It sends its result as a normal message under the builder instructions. Require this message capability and the user's
 ongoing coordination authorization before dispatch. If unavailable, report
 that limitation rather than silently starting a polling workflow.

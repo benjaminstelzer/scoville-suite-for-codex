@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7.0 - 2026-09-27
+
+- Use direct handoffs with receipt messages, without a separate run cursor.
+- Handle review findings as new worker assignments. Number workers consecutively and give reviewers the number of the reviewed worker.
+- Accept ordinary result messages and explicit reviewer model choices. Completed workers and reviewers archive on the coordinator's message.
+
 ## v0.6.5 - 2026-09-27
 
 - Review completed Work Items by default and honor explicit project review boundaries. Checked Step groups can continue until that boundary.

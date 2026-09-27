@@ -28,24 +28,37 @@ def validate(project_root: Path) -> dict:
     return values
 
 
-def validate_setup_choices(value: dict) -> None:
+def validate_setup_choices(value: dict, path: str = "patch") -> None:
     for key, item in value.items():
+        field = f"{path}.{key}"
         if key in {"effort", "reasoning"} and item not in ("low", "medium", "high", "xhigh"):
-            raise ValueError("Setup supports low/medium/high/xhigh; add other levels manually to .scoville/config.json")
+            raise ValueError(
+                f"{field}={type(item).__name__} is unsupported by Setup; choose low, medium, high or xhigh, "
+                "or edit .scoville/config.json manually when another level is required"
+            )
         if isinstance(item, dict):
-            validate_setup_choices(item)
+            validate_setup_choices(item, field)
         elif isinstance(item, list):
-            for entry in item:
+            for index, entry in enumerate(item):
                 if isinstance(entry, dict):
-                    validate_setup_choices(entry)
+                    validate_setup_choices(entry, f"{field}[{index}]")
 
 
 def apply(project_root: Path, patch: dict) -> dict:
-    if not isinstance(patch, dict) or not patch or set(patch) - {"ask", "workflow"}:
-        raise ValueError("supply a nonempty object with ask and/or workflow changes")
-    if "workflow" in patch and (not isinstance(patch["workflow"], dict)
-            or set(patch["workflow"]) - {"execute", "review", "context"}):
-        raise ValueError("Setup changes workflow execute, review and context only")
+    if not isinstance(patch, dict):
+        raise ValueError("patch must be a JSON object; for example {\"ask\": {\"claude\": {\"timeout_seconds\": 2400}}}")
+    if not patch:
+        raise ValueError("patch must contain an ask and/or workflow change; provide a nonempty object")
+    unknown = sorted(set(patch) - {"ask", "workflow"})
+    if unknown:
+        raise ValueError(f"patch has unsupported top-level fields {unknown}; use ask and/or workflow")
+    for key in ("ask", "workflow"):
+        if key in patch and not isinstance(patch[key], dict):
+            raise ValueError(f"patch.{key} must be an object; provide nested settings as a JSON object")
+    if "workflow" in patch:
+        unknown = sorted(set(patch["workflow"]) - {"execute", "review", "context"})
+        if unknown:
+            raise ValueError(f"patch.workflow has unsupported fields {unknown}; Setup accepts execute, review and context")
     validate_setup_choices(patch)
     current = read_config(project_root)
     proposed = merge(current, patch)

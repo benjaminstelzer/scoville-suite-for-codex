@@ -20,10 +20,11 @@ Here, the heat is the goal and accepted results kept intact across workers, revi
 - The coordinator selects a Step, related consecutive Steps or a whole Work Item. Grouping shares setup and produces a checkable result while preserving the Plan's order.
 - Risk determines the worker's model and effort. The worker implements in the existing checkout and returns its result by message.
 - Fresh reviewers inspect code and critical documentation at the project's review boundary, normally the completed Work Item. Step groups keep their focused checks.
-- The coordinator corrects the Plan. An available worker handles related follow-up work and repairs when model and context fit. Material or unclear corrections receive another review.
+- The coordinator corrects Plan findings and assigns project findings to a new worker. Material or unclear corrections receive another review.
 - Accepted changes and Plan updates enter one commit when committing is authorized.
-- At a configured context threshold, a successor continues the same assignment and checkout. The coordinator hands over after a checked group or accepted Work Item, retaining pending review. Rollover does not consume a repair attempt.
-- Save results before archiving chats. At a handoff, archive the predecessor after the successor confirms takeover. Archive errors are reported without blocking accepted work.
+- At a configured context threshold, a successor continues the same assignment and checkout. The coordinator hands over after a checked group or accepted Work Item, retaining pending review.
+- Handoffs use direct messages. The successor confirms receipt and asks the predecessor to archive itself, then continues. Archive errors are reported without blocking accepted work.
+- After receiving a worker or reviewer result, the coordinator asks that chat to archive itself. Reviewers report their findings and anything they could not verify in one complete response.
 
 ```mermaid
 flowchart TD
@@ -35,7 +36,7 @@ flowchart TD
     G -->|Yes| R["Fresh reviewer checks the result"]
     G -->|No| A["Coordinator records acceptance,<br/>updates the Plan and commits when authorized"]
     R -->|Pass| A
-    R -->|Findings| F["Coordinator fixes Plan findings<br/>Available worker or repair successor fixes project findings"]
+    R -->|Findings| F["Coordinator fixes Plan findings<br/>New worker corrects project findings"]
     F --> Q{"Follow-up review required?"}
     Q -->|Yes| R
     Q -->|No| A
@@ -43,7 +44,7 @@ flowchart TD
     N -->|No| D["Finish"]
     N -->|Yes| T{"Context threshold reached?"}
     T -->|No| C
-    T -->|Yes| H["Save the run and stop project writes<br/>Successor takes over and requests predecessor archival"]
+    T -->|Yes| H["Send the handoff and stop project writes<br/>Successor confirms receipt; predecessor self-archives"]
     H --> C
 ```
 
@@ -51,11 +52,11 @@ flowchart TD
 
 - **Explicit activation.** Start Workflow by asking for it by name.
 - **Separate responsibilities.** The coordinator owns Plan updates, assignments and authorized commits. Workers implement. Reviewers inspect without editing.
-- **One active assignment.** Tasks share the existing checkout. The run record retains progress and the next action. Change settings between runs and avoid parallel project edits.
+- **One writing worker.** Tasks share the existing checkout. The Plan records progress and messages carry the next action.
 - **Bounded context.** Workers receive the Work Item, assigned Step range and relevant goals, decisions and dependencies. They need not reopen the Plan or earlier chats.
 - **Configured models.** Risk determines model and effort. Unavailable required pairs are reported without substitution.
-- **Independent review.** Project review cadence takes priority. By default, a fresh reviewer checks code and critical documentation at Work Item completion. After three unsuccessful repair attempts, the workflow asks you how to proceed.
-- **Context handoffs.** Default triggers are at or above 40% for the coordinator after a checked group or accepted Work Item and strictly above 60% for workers, reviewers and fixers at natural stopping points. Thresholds are configurable. Missing measurements are not guessed.
+- **Independent review.** Project review cadence takes priority. By default, a fresh reviewer checks code and critical documentation at Work Item completion. If the same failure survives two corrections, the coordinator reassesses its cause before another attempt.
+- **Context handoffs.** Default triggers are at or above 40% for the coordinator after a checked group or accepted Work Item and strictly above 60% for workers and reviewers at natural stopping points. Thresholds are configurable. Missing measurements are not guessed.
 - **Retained results.** Save results before archiving a task. Confirm successor takeover before retiring a predecessor. Report archive errors without confirmation loops. Decision requests and the final coordinator remain open.
 - **Accepted commits.** When committing is authorized, include accepted changes and Plan updates. Run required hooks and backups.
 - **Defined scope.** Follow the active Plan or the user's narrower boundary, preserving stops and open decisions.
@@ -132,14 +133,13 @@ Task titles identify the work and role:
 ```text
 S-MNGR-#2-PLAN-0011
 S-WORK-#3-W-010/STEPS-1-3
-S-REVW-#2-W-010/STEPS-1-3
-S-FIXR-#1-W-010/STEPS-1-3
+S-REVW-#3-W-010/STEPS-1-3
 ```
 
-Manager numbers count coordinators within a run. Worker, reviewer and fixer
-numbers each start at 1 for the assigned Work Item and exact Step range.
-A successor for that same role and assignment gets the next number. Continuing
-the same chat keeps its number. Rollover preserves the unit and repair attempt.
+Manager numbers count coordinators within a run. Every new worker gets the next
+worker number, including rollover and correction assignments. Reviewers use the
+number of the worker whose final result triggers their review. A reviewer rollover
+keeps that number. A grouped review's title shows the full reviewed Step range.
 
 Titles show the Plan or Work Item and assigned range: `STEP-2` or `STEPS-1-3`.
 A whole Work Item shows its full Step range, or no suffix when it has no Steps.
@@ -153,11 +153,11 @@ select model/reasoning pairs, and `context` sets rollover thresholds. Missing
 values use the bundled defaults. Starting a run creates no configuration file.
 
 Default rollover triggers are at or above 40% context usage for the coordinator
-and strictly above 60% for workers, reviewers and fixers. Progress is saved in `.scoville/workflow.md`. Change settings
-between runs and avoid parallel edits to the shared project checkout.
+and strictly above 60% for workers and reviewers. The Plan records progress;
+direct messages carry handoffs. At most one worker writes in the shared checkout.
 
 See the [dispatch rules](scoville-workflow-for-codex/references/operations-dispatch.md)
-for task classification, Step overrides and repair escalation.
+for task classification and explicit model choices.
 
 ## Sources
 

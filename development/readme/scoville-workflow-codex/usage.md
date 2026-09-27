@@ -18,14 +18,13 @@ Task titles identify the work and role:
 ```text
 S-MNGR-#2-PLAN-0011
 S-WORK-#3-W-010/STEPS-1-3
-S-REVW-#2-W-010/STEPS-1-3
-S-FIXR-#1-W-010/STEPS-1-3
+S-REVW-#3-W-010/STEPS-1-3
 ```
 
-Manager numbers count coordinators within a run. Worker, reviewer and fixer
-numbers each start at 1 for the assigned Work Item and exact Step range.
-A successor for that same role and assignment gets the next number. Continuing
-the same chat keeps its number. Rollover preserves the unit and repair attempt.
+Manager numbers count coordinators within a run. Every new worker gets the next
+worker number, including rollover and correction assignments. Reviewers use the
+number of the worker whose final result triggers their review. A reviewer rollover
+keeps that number. A grouped review's title shows the full reviewed Step range.
 
 Titles show the Plan or Work Item and assigned range: `STEP-2` or `STEPS-1-3`.
 A whole Work Item shows its full Step range, or no suffix when it has no Steps.
@@ -39,8 +38,8 @@ select model/reasoning pairs, and `context` sets rollover thresholds. Missing
 values use the bundled defaults. Starting a run creates no configuration file.
 
 Default rollover triggers are at or above 40% context usage for the coordinator
-and strictly above 60% for workers, reviewers and fixers. Progress is saved in `.scoville/workflow.md`. Change settings
-between runs and avoid parallel edits to the shared project checkout.
+and strictly above 60% for workers and reviewers. The Plan records progress;
+direct messages carry handoffs. At most one worker writes in the shared checkout.
 
 See the [dispatch rules](scoville-workflow-for-codex/references/operations-dispatch.md)
-for task classification, Step overrides and repair escalation.
+for task classification and explicit model choices.

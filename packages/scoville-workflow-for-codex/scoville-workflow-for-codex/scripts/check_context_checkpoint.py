@@ -16,7 +16,7 @@ from workflow_settings import read_thresholds
 
 
 def decide(events: list[dict], thread_id: str, role: str, thresholds: dict) -> dict:
-    if role not in {"coordinator", "executor", "reviewer", "repair"}:
+    if role not in {"coordinator", "executor", "reviewer"}:
         raise InspectionError("unknown checkpoint role")
     meta = [e for e in events if e.get("type") == "session_meta"]
     if len(meta) != 1 or event_payload(meta[0]).get("session_id") != thread_id:
@@ -64,14 +64,14 @@ def decide(events: list[dict], thread_id: str, role: str, thresholds: dict) -> d
 def main() -> int:
     configure_utf8()
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--role", choices=("coordinator", "executor", "reviewer", "repair"), required=True)
+    parser.add_argument("--role", choices=("coordinator", "executor", "reviewer"), required=True)
     parser.add_argument("--accepted-unit")
     parser.add_argument("--project-root", type=Path, default=Path.cwd())
     args = parser.parse_args()
     if args.role == "coordinator" and not args.accepted_unit:
-        parser.error("coordinator checkpoint requires --accepted-unit")
+        parser.error("coordinator checkpoint requires --accepted-unit <checked-unit>; add e.g. --accepted-unit W-001/steps-1-3 for the actual completed check boundary")
     if args.role != "coordinator" and args.accepted_unit is not None:
-        parser.error("--accepted-unit is coordinator-only")
+        parser.error("--accepted-unit is coordinator-only; remove it for an executor or reviewer checkpoint")
     thread_id = os.environ.get("CODEX_THREAD_ID")
     try:
         thresholds = read_thresholds(Path(__file__).resolve().parents[1] / "assets" / "workflow.toml", args.project_root)

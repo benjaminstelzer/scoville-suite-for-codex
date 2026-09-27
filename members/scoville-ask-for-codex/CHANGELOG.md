@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.3 - 2026-09-27
+
+- Explain invalid adviser settings and project configuration with concrete correction guidance.
+
 ## v1.0.2 - 2026-09-26
 
 - Carry complete adviser instructions and existing reply authorization in mixed consultations, with task IDs separate from host identifiers.

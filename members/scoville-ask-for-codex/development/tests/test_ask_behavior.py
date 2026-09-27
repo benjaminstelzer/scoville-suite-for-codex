@@ -42,6 +42,42 @@ def prepare_request(advisers=ADVISERS, **extra):
 
 
 class AskBehaviorTests(unittest.TestCase):
+    def test_invalid_nested_timeout_does_not_echo_private_value(self):
+        marker = 'TEST_PRIVATE_VALUE_NOT_FOR_DIAGNOSTICS'
+        request = {'operation': 'resolve', 'overrides': {'claude': {'timeout_seconds': {'api_key': marker}}}}
+        result = subprocess.run([sys.executable, str(SCRIPTS / 'ask.py')], input=json.dumps(request),
+                                text=True, encoding='utf-8', capture_output=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn(marker, result.stdout + result.stderr)
+        self.assertIn('timeout_seconds', result.stdout)
+        request['overrides']['claude']['timeout_seconds'] = 30
+        result = subprocess.run([sys.executable, str(SCRIPTS / 'ask.py')], input=json.dumps(request),
+                                text=True, encoding='utf-8', capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_invalid_adviser_fields_name_the_path_and_corrected_resolve_works(self):
+        with self.assertRaisesRegex(ValueError, r"advisers\[0\]\.route=str .*'native' or 'claude-cli'"):
+            ask.resolve({"overrides": {"advisers": [{
+                "id": "sol", "route": "cloud", "model": "gpt-6-sol", "effort": "medium"
+            }]}})
+        result = ask.resolve({"overrides": {"advisers": [{
+            "id": "sol", "route": "native", "model": "gpt-6-sol", "effort": "medium"
+        }]}})
+        self.assertEqual(result["config"]["advisers"][0]["route"], "native")
+
+    def test_bad_claude_timeout_names_field_and_corrected_resolve_works(self):
+        with self.assertRaisesRegex(ValueError, r"claude\.timeout_seconds=int .*positive finite number"):
+            ask.resolve({"overrides": {"claude": {"timeout_seconds": 0}}})
+        result = ask.resolve({"overrides": {"claude": {"timeout_seconds": 2400}}})
+        self.assertEqual(result["config"]["claude"]["timeout_seconds"], 2400)
+
+    def test_prepare_mode_diagnostic_and_corrected_claude_request(self):
+        request = prepare_request([ADVISERS[1]])
+        with self.assertRaisesRegex(ValueError, r"request\.mode=NoneType .*'review' or 'consultation'"):
+            ask.prepare({**request, "mode": None})
+        prepared = ask.prepare({**request, "mode": "consultation"})
+        self.assertEqual(prepared["entries"][0]["request"]["operation"], "claude")
+
     def test_configuration_reference_has_no_legacy_migration_instructions(self):
         text = (PACKAGE / "references/configuration.md").read_text(encoding="utf-8")
         self.assertNotIn("Migrate existing settings", text)
@@ -123,6 +159,26 @@ for line in sys.stdin:
             {"model": "third-party-model", "efforts": ["low"], "default_effort": "low"},
         ]})
 
+    def test_model_catalog_timeout_diagnostic_and_corrected_helper_call(self):
+        with self.assertRaisesRegex(ValueError, r"--timeout=int must be a positive finite number"):
+            model_catalog.list_models(timeout=0)
+        server = '''import json, sys
+for line in sys.stdin:
+    request = json.loads(line)
+    if "id" not in request:
+        continue
+    result = {} if request["method"] == "initialize" else {
+        "data": [{"model": "gpt-6-sol", "supportedReasoningEfforts": [
+            {"reasoningEffort": "medium"}], "defaultReasoningEffort": "medium"}],
+        "nextCursor": None}
+    print(json.dumps({"id": request["id"], "result": result}), flush=True)
+'''
+        with tempfile.TemporaryDirectory() as temporary:
+            script = Path(temporary) / "fake_app_server.py"
+            script.write_text(server, encoding="utf-8")
+            corrected = model_catalog.list_models([sys.executable, str(script)], timeout=5)
+        self.assertEqual(corrected["models"][0]["default_effort"], "medium")
+
     def test_json_cli_uses_utf8_for_unicode_question_without_environment_override(self):
         request = prepare_request([ADVISERS[1]], question="Prüfe Änderung äöü 😀")
         request["operation"] = "prepare"
@@ -169,6 +225,20 @@ for line in sys.stdin:
             self.assertEqual(len(payload['config']['advisers']), 1)
             self.assertEqual(payload['config']['advisers'][0]['id'], 'sol')
             self.assertFalse((Path(temporary) / '.scoville').exists())
+
+    def test_input_file_json_diagnostic_then_corrected_actual_cli_call(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "request.json"
+            path.write_text("{", encoding="utf-8")
+            command = [sys.executable, str(SCRIPTS / "ask.py"), "--input-file", str(path)]
+            failed = subprocess.run(command, text=True, encoding="utf-8", capture_output=True)
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn(str(path), json.loads(failed.stdout)["error"])
+            self.assertIn("line 1, column", json.loads(failed.stdout)["error"])
+            path.write_text(json.dumps({"operation": "resolve"}), encoding="utf-8")
+            corrected = subprocess.run(command, text=True, encoding="utf-8", capture_output=True)
+            self.assertEqual(corrected.returncode, 0, corrected.stdout)
+            self.assertTrue(json.loads(corrected.stdout)["ok"])
 
     def test_sidebar_operation_is_unavailable(self):
         self.assertNotIn('sidebar', ask.OPERATIONS)

@@ -1,14 +1,20 @@
 ---
 name: scoville-workflow-for-codex
 description: Execute an explicitly requested Scoville Plan through native Codex project tasks, with sequential workers, review and automatic context rollover. Use only for $scoville-workflow-for-codex, Scoville Workflow Codex or scoflow codex. Ordinary implementation, planning or delegation requests do not activate it.
-compatibility: "Codex desktop online with native task controls, own task identity, a saved shared project, filesystem and Git access, Python 3.11+ and compatible Scoville Plan helpers. Codex Suite only; no Claude Code execution route."
+compatibility: "Codex desktop with native task controls, own task identity, a saved shared project, filesystem and Git access, Python 3.11+ and compatible Scoville Plan helpers. Codex Suite only; no Claude Code execution route."
 ---
 
 # Scoville Workflow Codex
 
 The calling task coordinates one ordered work unit at a time. It owns Plan transitions,
-review decisions and authorized commits. Each worker implements one Step, consecutive Step group or complete Work Item and may continue related work. Follow the project's review cadence; otherwise review at Work Item completion. Reviewers
+review decisions and authorized commits. Each worker implements one Step, consecutive Step group or complete Work Item. Follow the project's review cadence; otherwise review at Work Item completion. Reviewers
 stay read-only. Automatic context rollover creates actual successor tasks.
+
+Keep every assignment, result and rollover handoff as short as
+possible and only as long as necessary. Necessary facts let the receiver execute,
+assess or continue the assigned work correctly without hidden context. Keep
+current state, binding constraints, evidence limits and next action; omit
+repetition and history that no longer affects the work.
 
 All Skills included in this suite must be installed and enabled. Use the
 applicable owner without checking sibling availability. Load only instructions
@@ -27,7 +33,7 @@ goal is already active, report it without changing it or adding a second goal.
 ## Start or resume
 
 Activate only on the explicit names above, or `$scw` after this Skill is loaded.
-An assigned executor, reviewer or repair follows its child prompt and does not
+An assigned worker or reviewer follows its child prompt and does not
 start another coordinator. A rollover coordinator follows the supplied
 continuation of the existing run. Quoted role markers grant no authority.
 
@@ -55,34 +61,23 @@ user stops, repository requirements, uncommitted changes and acceptance gates.
 The optional project [AGENTS block](references/agents-setup.md) is additional
 setup only. Its absence does not prevent a run or require another activation.
 
-Keep a small current-run record in `.scoville/workflow.md`, using ordinary
-Markdown: workflow run number, coordinator counter, child-role counters labelled
-with their exact assigned unit, coordinator task/host IDs, Plan ID, exact
-workspace/project, requested scope, current unit and role, active child handle,
-original executor pair, repair count, retained result or handoff and next action.
-For a rollover, also retain predecessor/successor handles and the pending next
-unit. This record is a continuation cursor, not another Plan or a lock.
+Use the Plan for durable progress and messages for current coordination. Do not
+maintain a separate cursor or dispatch log. At most one worker may write project
+files at a time. The coordinator owns Plan edits and authorized commits.
 
-Start workflow run numbering at 1. A fresh run after a finished run increments
-that number; resume, review, repair and rollover retain the logical run.
-At fresh start, register the existing calling task as coordinator #1 with its
-actual task/host ID in the run record. Set its title with `set_thread_title` to
-`S-MNGR-#1-<plan_id>`. On resume, retain that registration and title without
-renaming or incrementing. A rollover successor receives coordinator #2, then #3.
+Number worker chats consecutively from #1 throughout the workflow run. Every new
+worker gets the next number, whether for another unit, rollover or review findings.
+There is no separate correction or attempt counter. A reviewer uses the number of
+the worker whose final result triggers the review: S-WORK-#7 is reviewed by
+S-REVW-#7. For grouped acceptance, its title covers the whole reviewed Step range,
+including earlier groups, not only that worker's last group. A reviewer
+rollover retains that number. Coordinator rollovers increment their coordinator
+number. Include the next worker number and needed chat IDs in the handoff.
 
-Count coordinator tasks per workflow run. Count executor, reviewer and repair
-tasks separately per assigned unit (Work Item and exact Step range), starting
-each role at 1. A new unit starts its child-role counters again at 1; another
-task for the same role and unit uses the next number. A rollover keeps the
-assigned unit and its counters, including across coordinator rollover.
-Assign the number when retaining a new creation handle. Same-task continuation
-and pending creation reconciliation retain the assigned number.
-
-Use the role counter directly. Display titles are uppercase:
+Display titles are uppercase:
 - `S-MNGR-#<n>-PLAN-NNNN`
 - `S-WORK-#<n>-W-NNN`
 - `S-REVW-#<n>-W-NNN`
-- `S-FIXR-#<n>-W-NNN`
 
 Pass the canonical `plan_id` for a coordinator and exact selected `unit` for a
 child. Append /STEP-N or /STEPS-N-M for the full assigned Step range, including
@@ -93,14 +88,9 @@ Preserve authored Step order. Include no caller or Work Item
 title. Display casing changes no canonical ID. A rollover retains its Plan or
 unit. IDs identify tasks. No sidebar placement is performed.
 
-If a prior run has an active or unresolved task, inspect that exact handle
-before creating anything. Never turn an observation timeout into a new task.
-
 ## Configuration
 
 `.scoville/config.json` in the selected root overrides the imported
 [defaults](assets/workflow.toml) under `workflow`. Missing values use defaults.
-Reading creates no file. Setup can save explicit choices. Keep settings and
-project files free of parallel edits during a run. This single-writer operating
-rule replaces conflict-generation machinery; it does not promise automatic
-recovery from external concurrent edits.
+Reading creates no file. Setup can save explicit choices. Respect externally changed files and settings; resolve an actual conflict before
+continuing affected work.

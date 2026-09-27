@@ -509,10 +509,6 @@
           "target": "scoville-workflow-for-codex/scripts/inspect_native_context.py"
         },
         {
-          "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/parse_role_result.py",
-          "target": "scoville-workflow-for-codex/scripts/parse_role_result.py"
-        },
-        {
           "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/resolve_model_pair.py",
           "target": "scoville-workflow-for-codex/scripts/resolve_model_pair.py"
         },

@@ -35,7 +35,7 @@ class CoordinatorContextTests(unittest.TestCase):
                                     ('executor', 60000, 'continue'),
                                     ('executor', 61000, 'context_handoff'),
                                     ('reviewer', 61000, 'context_handoff'),
-                                    ('repair', 61000, 'context_handoff')]:
+                                    ('executor', 61000, 'context_handoff')]:
             self.assertEqual(expected, decide_configured(events(used), 'coordinator', role, thresholds)['action'])
         sample = events(80000)
         sample.append({'ordinal': 3, 'type': 'compacted', 'payload': {}})
@@ -59,7 +59,7 @@ class CoordinatorContextTests(unittest.TestCase):
                 read_thresholds(path)
 
     def test_worker_threshold_is_strict_and_shared_by_roles(self):
-        for role in ("executor", "repair", "reviewer"):
+        for role in ("executor", "reviewer"):
             for used, expected in [(33000, "continue"), (65999, "continue"), (66000, "continue"), (66001, "context_handoff")]:
                 with self.subTest(role=role, used=used):
                     self.assertEqual(expected, decide(events(used), "coordinator", role)["action"])

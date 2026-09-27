@@ -52,6 +52,38 @@ class ProjectConfigTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     read_thresholds(defaults, root)
 
+    def test_threshold_diagnostic_identifies_and_repairs_field(self):
+        defaults = PACKAGE / 'assets/workflow.toml'
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / '.scoville').mkdir()
+            path = root / '.scoville/config.json'
+            path.write_text(json.dumps({'workflow': {'context': {'worker_percent': '60'}}}), encoding='utf-8')
+            with self.assertRaises(ValueError) as failure:
+                read_thresholds(defaults, root)
+            self.assertIn('worker_percent', str(failure.exception))
+            self.assertIn('without percent signs or quotes', str(failure.exception))
+            path.write_text(json.dumps({'workflow': {'context': {'worker_percent': 60}}}), encoding='utf-8')
+            self.assertEqual(read_thresholds(defaults, root)['worker_percent'], 60)
+
+    def test_invalid_pair_does_not_echo_private_value(self):
+        import subprocess
+        marker = 'TEST_PRIVATE_VALUE_NOT_FOR_DIAGNOSTICS'
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / '.scoville').mkdir()
+            path = root / '.scoville/config.json'
+            path.write_text(json.dumps({'workflow': {'execute': {'low': {'api_key': marker}}}}), encoding='utf-8')
+            cmd = [sys.executable, str(PACKAGE / 'scripts/resolve_model_pair.py'), '--role', 'executor',
+                   '--route', 'low', '--project-root', str(root)]
+            failed = subprocess.run(cmd, text=True, encoding='utf-8', capture_output=True)
+            self.assertEqual(failed.returncode, 1)
+            self.assertNotIn(marker, failed.stdout + failed.stderr)
+            self.assertIn('execute.low', failed.stdout)
+            path.write_text('{}', encoding='utf-8')
+            corrected = subprocess.run(cmd, text=True, encoding='utf-8', capture_output=True)
+            self.assertEqual(corrected.returncode, 0, corrected.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

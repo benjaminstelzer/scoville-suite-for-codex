@@ -79,6 +79,14 @@ class SetupTests(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertFalse(failed["ok"])
                 self.assertEqual(path.read_bytes(), before)
+            result, failed = run("set", {"ask": {"presets": {"astra": {"effort": "ultra"}}}})
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("patch.ask.presets.astra.effort", failed["diagnostic"])
+            self.assertIn("choose low, medium, high or xhigh", failed["diagnostic"])
+            self.assertEqual(path.read_bytes(), before)
+            result, corrected = run("set", {"ask": {"presets": {"astra": {"effort": "high"}}}})
+            self.assertEqual(result.returncode, 0, result.stdout)
+            self.assertEqual(corrected["effective"]["ask"]["presets"]["astra"]["effort"], "high")
             ask = base / "scoville-ask-for-codex/scoville-ask-for-codex/scripts/ask.py"
             request = {"operation": "resolve", "project_root": str(project),
                        "overrides": {"advisers": ["fable"]}}

@@ -25,111 +25,13 @@ for _name, _data in _builder.payload(SUITE_ROOT, _member, _config).items():
     _target = Path(_test_package.name) / _name
     _target.parent.mkdir(parents=True, exist_ok=True)
     _target.write_bytes(_data)
-ROLE_RESULT_PARSER = PACKAGE / "scripts/parse_role_result.py"
 MODEL_RESOLVER = PACKAGE / "scripts/resolve_model_pair.py"
 SELECTOR = SUITE_ROOT / "members/scoville-plan/scoville-plan/scripts/select_context.py"
 sys.path.insert(0, str(PACKAGE / "scripts"))
 import resolve_model_pair as model_resolver
-import parse_role_result as role_result_parser
 import build_dispatch_prompt as prompt_builder
 
 class NativeWorkflowContractTests(unittest.TestCase):
-    @staticmethod
-    def run_result_parser(raw, role="executor"):
-        return subprocess.run(
-            [sys.executable, "-B", str(ROLE_RESULT_PARSER), "--role", role],
-            input=raw,
-            text=True,
-            encoding="utf-8",
-            capture_output=True,
-            check=False,
-        )
-
-    @staticmethod
-    def run_result_parser_bytes(raw, role="executor"):
-        return subprocess.run(
-            [sys.executable, "-B", str(ROLE_RESULT_PARSER), "--role", role],
-            input=raw,
-            capture_output=True,
-            check=False,
-        )
-
-    def test_role_result_helper_accepts_only_ordered_line_protocol(self):
-        valid = {
-            "executor": (
-                "SCOVILLE_RESULT_V1\nrole=executor\nstatus=completed\n"
-                "code_changed=yes\ncritical_docs_changed=no\nsummary=Implemented.\n"
-                "finding=One issue remains."
-            ),
-            "repair": (
-                "SCOVILLE_RESULT_V1\nrole=repair\nstatus=completed\n"
-                "code_changed=no\ncritical_docs_changed=yes\nsummary=Documentation corrected."
-            ),
-            "reviewer": "SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=pass\nsummary=Review passed.",
-        }
-        for role, raw in valid.items():
-            with self.subTest(role=role):
-                completed = self.run_result_parser(raw, role)
-                self.assertEqual(0, completed.returncode, completed.stdout)
-                payload = json.loads(completed.stdout)
-                self.assertTrue(payload["valid"])
-                self.assertEqual(role_result_parser.parse_role_result(raw, role), payload["result"])
-        self.assertEqual(
-            "pass",
-            role_result_parser.parse_role_result(
-                "SCOVILLE_RESULT_V1\r\nrole=reviewer\r\nstatus=pass\r\nsummary=Review passed.\r\n",
-                "reviewer",
-            )["status"],
-        )
-        eight_findings = (
-            "SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=changes_requested\nsummary=One\n"
-            + "\n".join("finding=x" for _ in range(8))
-        )
-        self.assertEqual(0, self.run_result_parser(eight_findings, "reviewer").returncode)
-
-        invalid = {
-            "json": '{"status":"pass","summary":"Review passed.","findings":[]}',
-            "fence": "```text\nSCOVILLE_RESULT_V1\nrole=reviewer\nstatus=pass\nsummary=Review passed.\n```",
-            "missing": "SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=pass",
-            "duplicate": "SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=pass\nsummary=One\nsummary=Two",
-            "unknown": "SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=pass\nsummary=One\nnote=Two",
-            "unordered": "SCOVILLE_RESULT_V1\nstatus=pass\nrole=reviewer\nsummary=One",
-            "wrong_role": "SCOVILLE_RESULT_V1\nrole=executor\nstatus=pass\nsummary=One",
-            "bad_status": "SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=completed\nsummary=One",
-            "pass_finding": "SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=pass\nsummary=One\nfinding=Two",
-            "empty": "SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=blocked\nsummary=",
-            "multiline": "SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=blocked\nsummary=First\nsecond line",
-            "trailing_blank": "SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=pass\nsummary=One\n\n",
-            "nine_findings": "SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=changes_requested\nsummary=One\n" + "\n".join("finding=x" for _ in range(9)),
-            "long_summary": "SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=blocked\nsummary=" + "x" * 801,
-            "long_finding": "SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=changes_requested\nsummary=One\nfinding=" + "x" * 401,
-            "completion_fields_missing": "SCOVILLE_RESULT_V1\nrole=executor\nstatus=completed\nsummary=One",
-            "completion_fields_on_block": "SCOVILLE_RESULT_V1\nrole=executor\nstatus=blocked\ncode_changed=no\ncritical_docs_changed=no\nsummary=One",
-        }
-        for name, raw in invalid.items():
-            with self.subTest(name=name):
-                completed = self.run_result_parser(raw, "reviewer" if name not in {"completion_fields_missing", "completion_fields_on_block"} else "executor")
-                self.assertEqual(1, completed.returncode, completed.stdout)
-                self.assertFalse(json.loads(completed.stdout)["valid"])
-        with self.assertRaises(role_result_parser.RoleResultError):
-            role_result_parser.parse_role_result(
-                "SCOVILLE_RESULT_V1\rrole=reviewer\nstatus=pass\nsummary=One", "reviewer"
-            )
-        bare_cr = self.run_result_parser_bytes(
-            b"SCOVILLE_RESULT_V1\rrole=reviewer\nstatus=pass\nsummary=One", "reviewer"
-        )
-        self.assertEqual(1, bare_cr.returncode, bare_cr.stdout)
-        self.assertEqual("LINE_ENDING_INVALID", json.loads(bare_cr.stdout)["diagnostics"][0]["code"])
-
-    def test_original_result_is_valid_but_flattened_snapshot_is_not(self):
-        raw = "SCOVILLE_RESULT_V1\nrole=executor\nstatus=completed\ncode_changed=yes\ncritical_docs_changed=no\nsummary=Work and checks finished."
-        self.assertEqual(role_result_parser.parse_role_result(raw, 'executor')['status'], 'completed')
-        with self.assertRaises(ValueError):
-            role_result_parser.parse_role_result(raw.replace('\n', ' '), 'executor')
-        operations = (PACKAGE / 'references/operations.md').read_text(encoding='utf-8')
-        self.assertIn('Read SCOVILLE_RESULT_V1 directly from that message', operations)
-        self.assertIn('without a status call', operations)
-
     def test_model_resolver_rejects_malformed_user_config(self):
         source = (PACKAGE / "assets" / "workflow.toml").read_text(encoding="utf-8")
         for altered, diagnostic in (
@@ -155,8 +57,8 @@ class NativeWorkflowContractTests(unittest.TestCase):
                 self.assertEqual(pair['thinking'], config[table][route]['reasoning'])
         pair = model_resolver.resolve(config, 'executor', 'low', 'custom', 'high')
         self.assertEqual(pair, dict(model='custom', thinking='high', route='low'))
-        with self.assertRaises(ValueError):
-            model_resolver.resolve(config, 'reviewer', 'low', 'custom')
+        self.assertEqual(model_resolver.resolve(config, 'reviewer', 'low', 'custom', 'medium'),
+                         dict(model='custom', thinking='medium', route='low'))
 
     def test_explicit_plan_reasoning_reaches_dispatch_and_resolver(self):
         fixture_spec = importlib.util.spec_from_file_location('reasoning_fixture',
@@ -181,23 +83,28 @@ class NativeWorkflowContractTests(unittest.TestCase):
                 pair = model_resolver.resolve(config, 'executor', 'low', override_reasoning=level)
                 self.assertEqual(pair['thinking'], level)
 
-    def test_repairs_use_original_pair_and_stop_after_three(self):
+    def test_correction_uses_executor_route_without_attempt_state(self):
         config = model_resolver.load_config(PACKAGE / 'assets/workflow.toml', PACKAGE)
-        expected = [('gpt-5.6-sol', 'medium'), ('gpt-6-astra', 'medium'), ('gpt-6-astra', 'high')]
-        for attempt, pair in enumerate(expected, 1):
-            result = model_resolver.resolve(config, 'repair', original_model='gpt-5.6-sol',
-                                            original_reasoning='medium', repair_number=attempt)
-            self.assertEqual((result['model'], result['thinking']), pair)
-        for attempt in (0, 4):
-            with self.assertRaises(ValueError):
-                model_resolver.resolve(config, 'repair', original_model='gpt-5.6-sol',
-                                       original_reasoning='medium', repair_number=attempt)
-        self.assertEqual(model_resolver.resolve(config, 'repair', original_model='custom',
-                          original_reasoning='medium', repair_number=1),
-                         dict(model='custom', thinking='medium'))
-        with self.assertRaisesRegex(ValueError, 'not in the current execute route table'):
-            model_resolver.resolve(config, 'repair', original_model='custom',
-                                   original_reasoning='medium', repair_number=2)
+        original = {'model': 'gpt-6-luna', 'thinking': 'high'}
+        correction = model_resolver.resolve(config, 'executor', 'medium',
+                                            original['model'], original['thinking'])
+        self.assertEqual(correction['model'], original['model'])
+        self.assertEqual(correction['thinking'], original['thinking'])
+        with self.assertRaises(ValueError):
+            model_resolver.resolve(config, 'repair', 'medium')
+
+    def test_missing_route_diagnostic_and_corrected_cli(self):
+        with tempfile.TemporaryDirectory() as directory:
+            command = [sys.executable, str(MODEL_RESOLVER), '--project-root', directory,
+                       '--role', 'reviewer']
+            failed = subprocess.run(command, text=True, encoding='utf-8', capture_output=True)
+            self.assertEqual(failed.returncode, 1)
+            self.assertIn('--route', json.loads(failed.stdout)['diagnostic'])
+            corrected = subprocess.run(command + ['--route', 'medium', '--override-model',
+                                       'gpt-6-astra', '--override-reasoning', 'medium'],
+                                       text=True, encoding='utf-8', capture_output=True)
+            self.assertEqual(corrected.returncode, 0, corrected.stdout)
+            self.assertEqual(json.loads(corrected.stdout)['thinking'], 'medium')
 
     def test_actual_selector_source_and_crlf_survive_dispatch(self):
         fixture_spec = importlib.util.spec_from_file_location('plan_fixture',
@@ -242,53 +149,31 @@ class NativeWorkflowContractTests(unittest.TestCase):
                         prompt_builder.select_unit(SELECTOR, root, unit)
                 self.assertEqual(before, {p: p.read_bytes() for p in root.rglob('*') if p.is_file()})
 
-    def test_role_inputs_preserve_handoff_and_reject_premature_review(self):
-        context = {'work_item': {'unit': 'W-001', 'source_text': 'Exact assignment ✓', 'context_text': 'Exact assignment ✓'}}
-        completed = ('SCOVILLE_RESULT_V1\nrole=executor\nstatus=completed\n'
-                     'code_changed=yes\ncritical_docs_changed=no\nsummary=Fixed and checked.')
-        def build(role, data):
-            return prompt_builder.build_prompt(role, PACKAGE, 'manager', 'dispatch', context, data)
-        handoff = {'context_handoff': 'Finished first change; remaining check in module A.',
-                   'supplemental_context': 'Preserve unrelated work.'}
-        for role in ('executor', 'reviewer', 'repair'):
-            data = dict(handoff)
-            if role == 'reviewer':
-                data['executor_result'] = completed
-            if role == 'repair':
-                data.update(reviewer_result='SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=changes_requested\nsummary=Two defects.\nfinding=A: wrong output.\nfinding=B: Plan correction.',
-                            repair_assignment='Correct A: wrong output only.')
-            prompt = build(role, data)
-            self.assertIn("The coordinator's later review and acceptance are not your unfinished work", prompt)
-            self.assertIn(str(Path(sys.executable)), prompt)
-            for key, value in data.items():
-                self.assertIn('## ' + key + '\n' + value, prompt)
-        for status in ('blocked', 'needs_user_decision', 'context_handoff'):
-            with self.assertRaisesRegex(ValueError, 'review requires a completed'):
-                build('reviewer', {'executor_result': 'SCOVILLE_RESULT_V1\nrole=executor\nstatus=' + status + '\nsummary=Pending'})
-        findings = 'SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=changes_requested\nsummary=Two defects.\nfinding=A\nfinding=B'
-        for assignment in ('', ' ', [], None):
-            with self.assertRaises(ValueError):
-                build('repair', dict(reviewer_result=findings, repair_assignment=assignment))
-        with self.assertRaises(ValueError):
-            build('repair', dict(reviewer_result='SCOVILLE_RESULT_V1\nrole=reviewer\nstatus=pass\nsummary=Good',
-                                 repair_assignment='Correct A'))
-        with self.assertRaises(ValueError):
-            build('executor', {'unknown': True})
+    def test_normal_messages_pass_unchanged_to_review_and_correction(self):
+        context = {'work_item': {'unit': 'W-001', 'source_text': 'Work', 'context_text': 'Work'}}
+        for role, field, text in [
+            ('reviewer', 'executor_result', 'Completed. Import checks passed. No rollback proof yet.'),
+            ('executor', 'reviewer_result', 'Changes requested. src/import.py: rollback leaves partial writes. Fix the transaction.')]:
+            prompt = prompt_builder.build_prompt(role, PACKAGE, 'manager', '', context, {field: text})
+            self.assertIn(text, prompt)
+            self.assertNotIn('SCOVILLE_RESULT_V1', prompt)
+            self.assertNotIn('code_changed=', prompt)
+        with self.assertRaisesRegex(ValueError, '--executor-result'):
+            prompt_builder.build_prompt('reviewer', PACKAGE, 'manager', '', context, {})
 
-    def test_builder_preserves_cosmetic_result_variants_without_repair(self):
-        context = {'work_item': {'unit': 'W-001', 'source_text': 'Assigned work',
-                                'context_text': 'Assigned work'}}
-        for role, field, status in [('reviewer', 'executor_result', 'completed'),
-                                    ('repair', 'reviewer_result', 'changes_requested')]:
-            raw = '```text\nSCOVILLE_RESULT_V1\nsummary=Observed result.\n status = ' + status + '  \n```'
-            data = {field: raw}
-            if role == 'repair':
-                data['repair_assignment'] = 'Fix the reported source defect.'
-            prompt = prompt_builder.build_prompt(role, PACKAGE, 'manager', 'test', context, data)
-            self.assertIn(raw, prompt)
-            data[field] = raw + '\nstatus=blocked'
-            with self.assertRaises(ValueError):
-                prompt_builder.build_prompt(role, PACKAGE, 'manager', 'test', context, data)
+    def test_rollover_supplies_direct_receipt_recipient(self):
+        context = {'work_item': {'unit': 'W-001', 'source_text': 'Work', 'context_text': 'Work'}}
+        data = {'context_handoff': 'Checks A passed; B remains.', 'predecessor_thread_id': 'worker-a'}
+        for role in ('executor', 'reviewer'):
+            inputs = dict(data)
+            if role == 'reviewer': inputs['executor_result'] = 'Completed. See actual diff.'
+            prompt = prompt_builder.build_prompt(role, PACKAGE, 'manager', '', context, inputs)
+            self.assertIn('## predecessor_thread_id\nworker-a', prompt)
+            self.assertIn('send predecessor_thread_id', prompt)
+            self.assertIn(data['context_handoff'], prompt)
+        del data['predecessor_thread_id']
+        with self.assertRaisesRegex(ValueError, '--predecessor-thread-id'):
+            prompt_builder.build_prompt('executor', PACKAGE, 'manager', '', context, data)
 
 
 if __name__ == '__main__':
