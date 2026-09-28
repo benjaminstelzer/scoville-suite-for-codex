@@ -43,10 +43,15 @@ def result_contract(role: str) -> list[str]:
 def build_prompt(role: str, workspace: Path, coordinator: str, reference: str,
                  context: dict, role_input: dict) -> str:
     allowed = {"context_handoff", "supplemental_context", "predecessor_thread_id"}
+    continuation = "context_handoff" in role_input
+    if continuation and not role_input["context_handoff"].strip():
+        raise ValueError("--context-handoff must describe the unfinished work and completed effects")
+    if continuation and not role_input.get("supplemental_context", "").strip():
+        raise ValueError("continuation requires --supplemental-context with applicable acceptance criteria, constraints, evidence and required paths")
     if role == "reviewer":
         allowed.add("executor_result")
         result = role_input.get("executor_result")
-        if not isinstance(result, str) or not result.strip():
+        if not continuation and (not isinstance(result, str) or not result.strip()):
             raise ValueError("review requires the original worker result; supply it with --executor-result")
     if role == "executor":
         allowed.update({"reviewer_result"})
@@ -57,14 +62,15 @@ def build_prompt(role: str, workspace: Path, coordinator: str, reference: str,
     item = context.get("work_item", {})
     if not isinstance(item.get("source_text"), str) or not item["source_text"].strip():
         raise ValueError("selected unit must contain source_text")
-    if not isinstance(item.get("context_text"), str) or not item["context_text"].strip():
+    if not continuation and (not isinstance(item.get("context_text"), str) or not item["context_text"].strip()):
         raise ValueError("selected unit must include its complete Work Item as context_text")
     checkpoint = Path(__file__).with_name("check_context_checkpoint.py")
     lines = [f"scoville_role={role}", "dispatch_contract=SCOVILLE_DISPATCH_V1",
              f"workspace_root={workspace}", f"return_to_thread_id={coordinator}",
 
+             "This assignment is your execution contract. Do not load Plan, Workflow or Handoff Skills, selectors, other Plan points, Decision records or predecessor chats. Load implementation Skills only for the remaining work, not for completed Steps.",
              "Work only in the named workspace on this assigned unit. The coordinator owns Plan, Decision and index edits, staging and commits. Do not create tasks, change Workflow or model settings, or dispatch other work. Product and test configuration may change only within the assigned scope and project constraints; reviewers remain read-only.",
-             "The complete Work Item is context. Perform only the assigned unit: the named Step, consecutive Step range, or whole Work Item. Follow the authored Step order. Use Outcome, Acceptance and supplied constraints for that scope. Reviewers assess the same assigned scope, not unfinished work outside it. Do not load Plan, Workflow or Handoff Skills, selectors, other Plan points, Decision records or predecessor chats. Use supplied supplemental_context only for a necessary constraint or missing fact; Workers request material missing facts instead of expanding scope; reviewers include missing facts and their effect on the verdict in their one complete result. Follow applicable repository instructions and implementation Skills.",
+             "Perform only the assigned scope. For a continuation, context_handoff defines the remaining work and supplemental_context supplies its applicable acceptance criteria and constraints. Otherwise the Work Item is context for the named Step, consecutive Step range, or whole item. Preserve authored order. Reviewers assess the same assigned scope, not unfinished work outside it. Use supplied supplemental_context only for a necessary constraint or missing fact; Workers request material missing facts instead of expanding scope; reviewers include missing facts and their effect on the verdict in their one complete result. Follow applicable repository instructions and implementation Skills.",
              "Work autonomously. Omit routine progress narration and tool announcements. If the host requires an update, use one short sentence about a material change or blocker. Keep every result and handoff as short as possible and only as long as necessary. Necessary facts let the receiver assess or continue the assigned work correctly without hidden context. Preserve current state, binding constraints, evidence limits and the next action; omit repetition and history that no longer affects the work.",
              ("Stay read-only. Review the unreviewed diff and affected Acceptance identified in supplemental_context, including relevant interactions. Reuse supplied earlier assessments for unchanged parts; do not review those parts again. Report a missing review boundary instead of assuming a whole-tree review." if role == "reviewer" else
               "Implement only the assigned work and its proportionate checks. Preserve unrelated changes. Follow repository instructions, including required backups. Fixing product code that was complete or checked before this assignment completes your assignment after focused checks: return the checked fix without another checkpoint or further tests. Name remaining Step work for the coordinator; this does not complete the whole Step. Correct intermediate errors in code you are implementing in this assignment and continue the assignment normally."),
@@ -77,10 +83,10 @@ def build_prompt(role: str, workspace: Path, coordinator: str, reference: str,
              "Treat a user stop as immediate: make no further change, return the exact retained state and stop. A missing material choice returns needs_user_decision.",
              "After all work and checks stop, send the exact role result once to return_to_thread_id with send_message_to_thread, using real line breaks. Use the user's existing authorization for internal Workflow coordination; retain its scope and follow the host's permission rules. Then return the same result as your final answer and perform no more project work. If you cannot send, explicitly state RESULT NOT DELIVERED, the reason and the coordinator ID in your final answer beside the unchanged role result. Never silently treat a final answer as delivery to the coordinator.",
              "After sending your result, an archival request from the coordinator or the assigned rollover successor finishes this task: make no project changes, call set_thread_archived once on your own exact task/host ID as your last action. No confirmation message or archival check follows. ",
-             *(["Before continuing this inherited handoff, call send_message_to_thread with predecessor_thread_id as threadId and 'I have the information. You can archive yourself now.' as prompt. A reply in your own chat does not deliver this message. Then continue the remaining work; send your result to the coordinator."] if role_input.get("context_handoff") else []),
+             *(["Before continuing this inherited handoff, call send_message_to_thread with predecessor_thread_id as threadId and 'I have the information. You can archive yourself now. Call set_thread_archived with archived=true for your own chat as your last action.' as prompt. A reply in your own chat does not deliver this message. Then continue the remaining work; send your result to the coordinator."] if role_input.get("context_handoff") else []),
              *result_contract(role),
              "\n## Assigned unit\n" + item["unit"],
-             "\n## Work Item context\n" + item["context_text"].rstrip(),
+             *([] if continuation else ["\n## Work Item context\n" + item["context_text"].rstrip()]),
              *["\n## " + key + "\n" + value for key, value in role_input.items()]]
     return "\n".join(lines) + "\n"
 

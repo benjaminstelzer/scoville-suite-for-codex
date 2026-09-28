@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.3 - 2026-09-28
+
+- Keep continuation assignments focused on remaining work and its acceptance criteria, constraints and evidence. Completed implementation instructions are no longer inserted automatically.
+
 ## v0.7.2 - 2026-09-28
 
 - Send rollover confirmations, archival requests and other coordination messages to the intended chat instead of displaying them locally.

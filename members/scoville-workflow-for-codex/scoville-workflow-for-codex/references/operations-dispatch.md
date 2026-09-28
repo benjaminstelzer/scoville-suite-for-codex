@@ -79,14 +79,22 @@ Optional arguments name existing UTF-8 plain-text files:
   parts. Include every still-unreviewed change and relevant interaction.
 - Correction worker: `--role executor --reviewer-result <result.txt>`. Put the
   assigned source findings and needed context in supplemental context.
-- Continuation: `--context-handoff <handoff.md> --predecessor-thread-id <id>`.
+- Continuation: `--context-handoff <handoff.md> --predecessor-thread-id <id>`
+  plus `--supplemental-context <facts.md>`. The handoff names remaining work,
+  completed effects and next action. The facts contain only applicable acceptance
+  criteria, constraints, permissions, evidence limits and required paths.
+  Review continuations need no repeated full executor result. Carry relevant
+  findings and the remaining review boundary in this compact context.
 - Necessary facts: `--supplemental-context <facts.md>`.
 
 Pass original text without JSON, escaping or another result schema. The
 coordinator validates results before building the next assignment. The helper
 reads no stdin. A nonzero exit reports ERROR and stops dispatch; do not repair
-its output. The helper includes the complete selected Work Item once, with the
-exact assigned unit stated separately. It does not choose Goals, Non-goals or
+its output. For a new assignment the helper includes the complete selected Work
+Item once. For a continuation it validates the selected unit but omits the Work
+Item body and uses the compact handoff and required supplemental facts instead.
+The unit remains an identity, not an instruction to repeat completed Steps.
+The helper does not choose applicable acceptance criteria, Goals, Non-goals or
 ADR provisions. Supply those selected facts through --supplemental-context;
 reviewers and rollover successors need the same still-relevant constraints.
 Supplemental context supplies project facts, not copies of the builder's role,

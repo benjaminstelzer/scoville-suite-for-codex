@@ -1,6 +1,12 @@
 # Changelog
 
 
+## v2.1.7 - 2026-09-28
+
+- Continue unfinished Workflow tasks with only the remaining work, relevant constraints and retained evidence, instead of resending the complete Work Item.
+
+
+
 ## v2.1.6 - 2026-09-28
 
 - Rename the Workflow coordinator before its first worker starts and use clear chat titles such as SC · MNGR · 1 · PLAN-0001.

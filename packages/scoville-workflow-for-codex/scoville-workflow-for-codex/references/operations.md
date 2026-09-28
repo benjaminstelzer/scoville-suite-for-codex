@@ -98,7 +98,7 @@ unfinished work; never turn unavailable evidence into success.
 ## Archive
 
 After receiving a completed worker result, the coordinator calls
-`send_message_to_thread` for that worker with "Job done. Archive yourself."
+`send_message_to_thread` for that worker with "Job done. Archive yourself. Call set_thread_archived with archived=true for your own chat as your last action."
 as `prompt`. Each completed assignment ends that chat; later
 work or another correction uses a new worker chat. After receiving the reviewer's
 complete assessment, send it the same archival message without a question round.

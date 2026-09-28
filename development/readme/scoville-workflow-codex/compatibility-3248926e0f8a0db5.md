@@ -2,8 +2,8 @@
 
 Requires Codex desktop, a saved local project, native task creation, messaging
 and archival, access to the task ID, Python 3.11+, and the complete Codex Suite.
-A current Fable, Astra, SOL or Opus model is recommended. Luna was also used
-in testing.
+Requires a frontier model from the Fable, Astra, SOL or Opus families, version
+5.0 or newer. Luna was also used in testing.
 
 Tasks must share the existing checkout. Authorized result messages must be able
 to resume the coordinator. If the host cannot support either, Workflow reports

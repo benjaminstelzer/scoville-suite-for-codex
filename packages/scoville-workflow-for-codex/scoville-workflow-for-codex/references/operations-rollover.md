@@ -26,10 +26,14 @@ A context_handoff alone does not trigger review, but a checked product fix in
 that handoff still follows the review cadence before dependent work continues.
 
 The coordinator creates the successor with the same role, remaining scope, workspace and
-launched model/effort, the complete Work Item and its still-relevant constraints,
-the handoff, and predecessor/coordinator chat IDs. Before continuing, the successor
+launched model/effort, the compact handoff, and predecessor/coordinator chat IDs.
+Supply only the remaining task, applicable acceptance criteria and constraints,
+completed effects with evidence limits, required paths and next action. Preserve
+user permissions and stops. Do not resend the complete Work Item, completed
+implementation instructions or superseded requests. The coordinator checks this
+selection against the canonical item before dispatch. Before continuing, the successor
 calls `send_message_to_thread` with the predecessor's chat ID as `threadId` and
-"I have the information. You can archive yourself now." as `prompt`.
+"I have the information. You can archive yourself now. Call set_thread_archived with archived=true for your own chat as your last action." as `prompt`.
 Then it continues the unfinished work and sends its result to the coordinator.
 The predecessor self-archives after that message. No coordinator relay or extra
 confirmation is needed. The predecessor does no further project work.
@@ -46,7 +50,7 @@ Keep this handoff as short as possible and only as long as needed to continue.
 
 Include this first action in the successor's assignment: call
 `send_message_to_thread` with the predecessor's chat ID as `threadId` and
-"I have the information. You can archive yourself now." as `prompt`.
+"I have the information. You can archive yourself now. Call set_thread_archived with archived=true for your own chat as your last action." as `prompt`.
 A reply in the successor's own chat does not deliver this message.
 The predecessor calls
 set_thread_archived on itself as its last action. The successor continues without
