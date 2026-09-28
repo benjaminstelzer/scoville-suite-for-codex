@@ -1,6 +1,12 @@
 # Changelog
 
 
+## v2.1.8 - 2026-09-28
+
+- Explicitly end Workflow when its requested scope is complete. Later requests return to normal assistance until Workflow is explicitly activated again.
+
+
+
 ## v2.1.7 - 2026-09-28
 
 - Continue unfinished Workflow tasks with only the remaining work, relevant constraints and retained evidence, instead of resending the complete Work Item.

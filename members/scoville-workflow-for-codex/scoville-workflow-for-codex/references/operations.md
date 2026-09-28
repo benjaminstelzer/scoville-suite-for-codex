@@ -108,6 +108,21 @@ reply, status check or archival audit is needed. Report a returned tool error;
 an open sidebar entry alone does not block accepted work. The final coordinator
 stays visible.
 
+## Complete and exit
+
+When the requested scope has passed acceptance and required closure is done,
+explicitly tell the user which scope is complete and that this Workflow run has
+ended. A bounded run can end while other Plan items remain open. Blockers,
+pauses and context handoffs are not completion.
+
+After completion, stop applying this Skill to later requests in the chat.
+Return to normal assistance without carrying over Workflow roles, dispatch,
+model routing, title conventions, review cadence or rollover. Independent user
+and project requirements still apply. New problems do not reactivate the run;
+use the Skill's explicit activation rule for another run. While a run remains
+active, handle user steering within its procedure unless the user ends or
+changes that procedure.
+
 ## Stop and resume
 
 On a user stop, dispatch no new work. Forward the stop to the active child and
