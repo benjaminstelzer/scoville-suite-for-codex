@@ -3,4 +3,4 @@ interface:
   short_description: "Coordinate the active Plan in this chat"
   default_prompt: "Use $scoville-workflow-for-codex to execute the active Scoville Plan in this saved project. Coordinate the run in this chat."
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

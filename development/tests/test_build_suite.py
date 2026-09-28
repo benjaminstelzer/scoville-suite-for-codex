@@ -163,7 +163,7 @@ class BuildTests(unittest.TestCase):
                         self.assertIn('without checking sibling availability', core)
                         self.assertNotIn('Other Scoville Skills are optional', core)
             if 'scoville-workflow-for-codex' in cores:
-                self.assertIn('Ordinary implementation, planning or delegation requests do not activate it.',
+                self.assertIn('Generic plan execution, implementation, delegation, mentions and questions do not activate it.',
                               cores['scoville-workflow-for-codex'])
             if 'scoville-ask-for-codex' in cores:
                 self.assertIn('Ordinary questions to the current assistant do not trigger a consultation.',

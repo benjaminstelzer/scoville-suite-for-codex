@@ -1,6 +1,13 @@
 # Changelog
 
 
+## v2.1.9 - 2026-09-28
+
+- Recognize explicit requests to run Scoville Workflow without requiring the dollar-prefixed Skill name. Generic plan execution, mentions and questions still do not start it.
+- Keep coordination in the calling chat from the first dispatch, with its manager title set before a worker starts.
+
+
+
 ## v2.1.8 - 2026-09-28
 
 - Explicitly end Workflow when its requested scope is complete. Later requests return to normal assistance until Workflow is explicitly activated again.

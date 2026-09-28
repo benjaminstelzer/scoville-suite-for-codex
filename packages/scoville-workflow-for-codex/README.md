@@ -156,9 +156,16 @@ No additional project installation or `AGENTS.md` entry is needed.
 Name a Work Item or end boundary to limit the run. Without one, the coordinator
 continues through the active Plan.
 
-The calling chat coordinates the run. Use the full Skill name to start it
-reliably. `$scw` also works once the Skill is loaded. Ordinary requests such as
-“implement the plan” do not activate Workflow.
+The calling chat coordinates the run and creates workers for implementation.
+You can also explicitly name Workflow in your request:
+
+```text
+Führe ausschließlich PLAN-0001 mit dem Scoville Workflow aus.
+```
+
+“Starte den Scoville-Workflow” also starts it. “Führe den Plan aus” alone does
+not. Mentions, questions and quoted examples do not start a run. `$scw` works
+once the Skill is loaded.
 
 Task titles identify the work and role:
 
