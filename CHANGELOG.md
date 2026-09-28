@@ -1,5 +1,11 @@
 # Changelog
 
+
+## v2.1.5 - 2026-09-28
+
+- Start Workflow from its Skill entry prompt in the current chat, without a setup gate or a separate launcher coordinator. Setup remains optional for inspecting or changing settings.
+
+
 ## v2.1.4 - 2026-09-28
 
 - Add an edition guide and Skill overview, and collapse upgrade and development details.

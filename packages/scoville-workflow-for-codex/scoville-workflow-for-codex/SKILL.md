@@ -60,7 +60,8 @@ Absent a narrower requested boundary, execute the whole active Plan. Preserve
 user stops, repository requirements, uncommitted changes and acceptance gates.
 Once the suite is installed, start directly in the saved project. No project
 installation or Workflow block in AGENTS.md is required. Do not request a
-setup confirmation or a second activation.
+setup confirmation or a second activation. Scoville Setup is optional for
+inspecting or changing settings. Missing project settings use the bundled defaults.
 
 Use the Plan for durable progress and messages for current coordination. Do not
 maintain a separate cursor or dispatch log. At most one worker may write project
