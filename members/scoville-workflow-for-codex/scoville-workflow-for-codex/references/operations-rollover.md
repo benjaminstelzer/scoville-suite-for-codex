@@ -27,8 +27,9 @@ that handoff still follows the review cadence before dependent work continues.
 
 The coordinator creates the successor with the same role, remaining scope, workspace and
 launched model/effort, the complete Work Item and its still-relevant constraints,
-the handoff, and predecessor/coordinator chat IDs. The successor sends directly
-to the predecessor: "I have the information. You can archive yourself now."
+the handoff, and predecessor/coordinator chat IDs. Before continuing, the successor
+calls `send_message_to_thread` with the predecessor's chat ID as `threadId` and
+"I have the information. You can archive yourself now." as `prompt`.
 Then it continues the unfinished work and sends its result to the coordinator.
 The predecessor self-archives after that message. No coordinator relay or extra
 confirmation is needed. The predecessor does no further project work.
@@ -43,8 +44,11 @@ handoffs relevant to a pending Step split, relevant
 constraints and next action. Carry the user's existing coordination authority.
 Keep this handoff as short as possible and only as long as needed to continue.
 
-The successor reads the handoff and replies directly to the predecessor:
-"I have the information. You can archive yourself now." The predecessor calls
+Include this first action in the successor's assignment: call
+`send_message_to_thread` with the predecessor's chat ID as `threadId` and
+"I have the information. You can archive yourself now." as `prompt`.
+A reply in the successor's own chat does not deliver this message.
+The predecessor calls
 set_thread_archived on itself as its last action. The successor continues without
 waiting for archival. No cursor file or additional acknowledgement is required.
 

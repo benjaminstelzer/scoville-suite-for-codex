@@ -169,7 +169,7 @@ class NativeWorkflowContractTests(unittest.TestCase):
             if role == 'reviewer': inputs['executor_result'] = 'Completed. See actual diff.'
             prompt = prompt_builder.build_prompt(role, PACKAGE, 'manager', '', context, inputs)
             self.assertIn('## predecessor_thread_id\nworker-a', prompt)
-            self.assertIn('send predecessor_thread_id', prompt)
+            self.assertIn('call send_message_to_thread with predecessor_thread_id as threadId', prompt)
             self.assertIn(data['context_handoff'], prompt)
         del data['predecessor_thread_id']
         with self.assertRaisesRegex(ValueError, '--predecessor-thread-id'):

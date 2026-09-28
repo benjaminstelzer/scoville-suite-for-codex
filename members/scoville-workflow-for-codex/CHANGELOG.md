@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.2 - 2026-09-28
+
+- Send rollover confirmations, archival requests and other coordination messages to the intended chat instead of displaying them locally.
+
 ## v0.7.1 - 2026-09-28
 
 - Start Workflow directly in a saved project after installing the suite, without a project setup step or an AGENTS.md block.

@@ -6,6 +6,10 @@ selected consecutive Step groups and why they belong together in one or two
 sentences before first dispatch. Later announce only a dispatch, accepted result
 or blocker, once and briefly. Do not relay worker progress or inspect changing files.
 
+For messages to another chat, call `send_message_to_thread` with that chat's ID
+as `threadId` and the message as `prompt`. This includes questions, results,
+stop instructions and archival requests. Text in your own chat is not delivery.
+
 ## One unit through acceptance
 
 1. Select the next unfinished Step, consecutive Step group or whole Work Item
@@ -93,8 +97,9 @@ unfinished work; never turn unavailable evidence into success.
 
 ## Archive
 
-After receiving a completed worker result, the coordinator sends:
-"Job done. Archive yourself." Each completed assignment ends that chat; later
+After receiving a completed worker result, the coordinator calls
+`send_message_to_thread` for that worker with "Job done. Archive yourself."
+as `prompt`. Each completed assignment ends that chat; later
 work or another correction uses a new worker chat. After receiving the reviewer's
 complete assessment, send it the same archival message without a question round.
 For rollover, the successor instead confirms receipt and releases the predecessor.

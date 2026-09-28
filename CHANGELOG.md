@@ -1,5 +1,11 @@
 # Changelog
 
+
+## v2.1.2 - 2026-09-28
+
+- Deliver rollover confirmations and coordination requests to their intended chats through native messages.
+
+
 ## v2.1.1 - 2026-09-28
 
 
