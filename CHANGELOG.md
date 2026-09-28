@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.1.1 - 2026-09-28
+
+
+- Start Workflow directly in a saved project after installing the suite, without a project setup step or an AGENTS.md block.
+- Check coordinator context at worker handoffs and split oversized unfinished Steps without changing their acceptance criteria.
+- Review completed product fixes before dependent work and reuse earlier reviews for unchanged code.
+
+- Split unfinished Plan Steps without changing scope, acceptance criteria or completed evidence.
+- Keep pure visual concepts outside the WordPress implementation adapter.
+
 ## v2.1.0 - 2026-09-27
 
 - Run Workflow through direct handoffs and ordinary worker results. Review findings start a new worker, and chat numbers identify the reviewed work.

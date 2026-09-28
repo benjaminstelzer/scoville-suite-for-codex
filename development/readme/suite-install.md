@@ -1,5 +1,8 @@
 ## Install the suite
 
+Install the suite once in your agent host for use across projects.
+Workflow starts directly in a saved Codex project, without a project installation or an `AGENTS.md` entry.
+
 ### New installation
 
 Use this request in your agent host:

@@ -39,10 +39,10 @@ Here, the heat is the goal and accepted results kept intact across workers, revi
 
 - The coordinator selects a Step, related consecutive Steps or a whole Work Item. Grouping shares setup and produces a checkable result while preserving the Plan's order.
 - Risk determines the worker's model and effort. The worker implements in the existing checkout and returns its result by message.
-- Fresh reviewers inspect code and critical documentation at the project's review boundary, normally the completed Work Item. Step groups keep their focused checks.
+- Reviews follow the project's cadence, otherwise product-code changes receive an earlier review after a defect fix or before dependent work or extensive testing, and the final review reuses earlier assessments of unchanged parts.
 - The coordinator corrects Plan findings and assigns project findings to a new worker. Material or unclear corrections receive another review.
 - Accepted changes and Plan updates enter one commit when committing is authorized.
-- At a configured context threshold, a successor continues the same assignment and checkout. The coordinator hands over after a checked group or accepted Work Item, retaining pending review.
+- At a configured context threshold, a successor continues the unfinished work in the same checkout. The coordinator checks after completed groups and worker handoffs, retaining pending work and review.
 - Handoffs use direct messages. The successor confirms receipt and asks the predecessor to archive itself, then continues. Archive errors are reported without blocking accepted work.
 - After receiving a worker or reviewer result, the coordinator asks that chat to archive itself. Reviewers report their findings and anything they could not verify in one complete response.
 
@@ -50,21 +50,23 @@ Here, the heat is the goal and accepted results kept intact across workers, revi
 flowchart TD
     P["Repository Plan"] --> C["Coordinator selects a bounded unit<br/>and routes model and effort"]
     C --> W["Worker implements and validates"]
-    W --> B{"Review boundary reached?"}
-    B -->|No| C
+    W -->|Checked result| B{"Review boundary reached?"}
+    W -->|Context handoff| T
+    B -->|No| A
     B -->|Yes| G{"Review required?"}
     G -->|Yes| R["Fresh reviewer checks the result"]
-    G -->|No| A["Coordinator records acceptance,<br/>updates the Plan and commits when authorized"]
+    G -->|No| A["Coordinator records checked result<br/>and updates the Plan"]
     R -->|Pass| A
     R -->|Findings| F["Coordinator fixes Plan findings<br/>New worker corrects project findings"]
     F --> Q{"Follow-up review required?"}
     Q -->|Yes| R
     Q -->|No| A
-    A --> N{"Requested work remains?"}
+    A --> E["Accept only when due Acceptance and review pass<br/>Commit accepted changes when authorized"]
+    E --> N{"Requested work remains?"}
     N -->|No| D["Finish"]
     N -->|Yes| T{"Context threshold reached?"}
     T -->|No| C
-    T -->|Yes| H["Send the handoff and stop project writes<br/>Successor confirms receipt; predecessor self-archives"]
+    T -->|Yes| H["Hand over the coordinator with pending work<br/>Successor confirms receipt; predecessor self-archives"]
     H --> C
 ```
 
@@ -87,6 +89,7 @@ for delivery, permissions and recovery.
 ### What it costs
 
 - Worker and reviewer chats, handoffs and Plan updates consume tokens and time.
+- Expect roughly 5–10% of input tokens to go toward coordination, based on experience with a complex real-world project. Much of the repeated context can be cached, reducing its cost.
 - Native subagents would be the cleaner option, but Codex lacks
   [`close_agent`](https://github.com/openai/codex/issues/36211).
   Workflow and Ask therefore use separate chats, which add sidebar entries and
@@ -333,6 +336,9 @@ Here, the heat is control over the settings your project actually uses, includin
 
 
 ## Install the suite
+
+Install the suite once in your agent host for use across projects.
+Workflow starts directly in a saved Codex project, without a project installation or an `AGENTS.md` entry.
 
 ### New installation
 

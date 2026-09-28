@@ -12,7 +12,11 @@ or blocker, once and briefly. Do not relay worker progress or inspect changing f
    under [dispatch](operations-dispatch.md). Preserve order and prerequisites.
    Create a worker with the complete assignment. Use the
    returned exact task/host ID for subsequent messages.
-2. The worker stops its project work and sends its result. Continue from that
+2. The worker stops its project work and sends its result. Fixing product code
+   that was complete or checked before this assignment ends the assignment after
+   focused checks, even inside a larger test Step; retain remaining tests as
+   unfinished work. Correcting intermediate errors in this assignment's new code
+   stays within the assignment. Continue from that
    message; do not poll, remind or request the same result again. Follow any
    host-required progress wait once after creation.
 3. Assess the result from the assigned chat by meaning, not formatting. Ask in
@@ -24,13 +28,17 @@ or blocker, once and briefly. Do not relay worker progress or inspect changing f
    the actual limitation and continue only independent eligible work.
 4. Inspect the scoped diff and named evidence only as needed for scope and
    acceptance. Do not repeat the worker's diagnosis or tests. Follow the user's
-   or project's review cadence; otherwise review at Work Item completion.
-   Intermediate groups retain focused checks, not additional automatic reviews.
+   or project's review cadence. Otherwise review earlier, at the next checked
+   boundary, when unreviewed product-code changes exist and either the next unit
+   builds on or extensively verifies them, or they fix product code that was
+   complete or checked before the fixing assignment. Otherwise review at Work Item completion. Pure tests, docs and
+   evidence without product-code changes do not trigger an earlier review.
    Review is required for code, executable/configuration changes, critical
    documentation, an explicit requirement or unclear materiality.
-5. At that boundary, create a fresh read-only reviewer covering all unreviewed
-   changes, their interaction and outstanding Acceptance. Reuse accepted evidence
-   for unchanged parts. The coordinator handles Plan findings; send source
+5. At that boundary, create a fresh read-only reviewer with the diff since the
+   last review and affected Acceptance, including relevant interactions. For the
+   final review, supply short references to earlier assessments and reuse them
+   for unchanged parts rather than reviewing those parts again. The coordinator handles Plan findings; send source
    findings to a new worker with the review findings. The coordinator
    does not edit product files. Keep the worker's model unless the cause warrants
    another configured route and explicit model choices permit it.
@@ -46,18 +54,29 @@ or blocker, once and briefly. Do not relay worker progress or inspect changing f
    Run the Plan validator and follow its concrete diagnostics. When committing
    is authorized, inspect the staged diff and commit accepted changes with their
    Plan records, respecting backups and hooks.
-8. With work remaining, run the coordinator checkpoint after a checked group or
-   accepted Work Item, before starting the next unit:
+8. With work remaining, run the coordinator checkpoint after a checked group,
+   accepted Work Item or retained worker context_handoff, before creating the
+   next worker. At a worker handoff nobody is writing, even if the unit is unfinished:
 
 ```text
-python "<workflow-skill-directory>/scripts/check_context_checkpoint.py" --project-root "<workspace_root>" --role coordinator --accepted-unit <unit>
+python "<workflow-skill-directory>/scripts/check_context_checkpoint.py" --project-root "<workspace_root>" --role coordinator --boundary <unit-or-handoff>
 ```
 
-`--accepted-unit` identifies the checked boundary, not final acceptance.
+`--boundary` identifies the checked unit or retained handoff, not final acceptance.
 `rollover` follows the rollover reference; `continue` allows the next unit.
 Missing or stale telemetry continues without guesses or manual telemetry searches.
 Invalid configuration or a helper failure blocks the affected operation with its
 diagnostic. Complete the Plan/index only after the whole requested scope passes.
+
+On the third context_handoff of the same Step or group, use Scoville Plan to split
+the handoff's remaining work into consecutive Steps in that Work Item, preserving
+Goal, Acceptance, authored order and Evidence of finished parts. Use the worker
+handoffs in the coordinator chat, not a counter file, then resume normal grouping
+and review.
+
+An unrelated user instruction may go to the active worker to preserve the sole
+writer, but identify it separately in the Plan update and commit description or
+commit it separately.
 
 ## Results
 

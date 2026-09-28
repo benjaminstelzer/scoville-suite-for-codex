@@ -2,6 +2,9 @@ import copy
 import sys
 import unittest
 import tempfile
+import subprocess
+import json
+import os
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scoville-workflow-for-codex" / "scripts"))
@@ -26,6 +29,34 @@ def events(used=33000):
 
 
 class CoordinatorContextTests(unittest.TestCase):
+    def test_boundary_cli_diagnostic_then_corrected_handoff_and_legacy_alias(self):
+        from test_contract import PACKAGE
+        with tempfile.TemporaryDirectory() as folder:
+            command = [sys.executable, str(PACKAGE / 'scripts/check_context_checkpoint.py'),
+                       '--project-root', folder, '--role', 'coordinator']
+            env = {**os.environ, 'CODEX_THREAD_ID': 'missing-test-task'}
+            def run(extra):
+                return subprocess.run(command + extra, capture_output=True, text=True,
+                                      encoding='utf-8', env=env)
+            for extra in ([], ['--boundary', ' ']):
+                bad = run(extra)
+                self.assertEqual(bad.returncode, 2)
+                self.assertIn('--boundary W-001/step-3/handoff', bad.stderr)
+            for option in ('--boundary', '--accepted-unit'):
+                good = run([option, 'W-001/step-3/handoff'])
+                self.assertEqual(good.returncode, 0, good.stderr)
+                data = json.loads(good.stdout)
+                self.assertEqual(data['boundary'], 'W-001/step-3/handoff')
+                self.assertEqual(data['action'], 'continue')
+                self.assertEqual(data['telemetry'], 'unavailable')
+            command[-1] = 'executor'
+            bad = run(['--boundary', 'W-001/step-3'])
+            self.assertEqual(bad.returncode, 2)
+            self.assertIn('remove it', bad.stderr)
+            good = run([])
+            self.assertEqual(good.returncode, 0, good.stderr)
+            self.assertNotIn('boundary', json.loads(good.stdout))
+
     def test_imported_defaults_and_fresh_post_compaction_sample(self):
         from test_contract import PACKAGE
         thresholds = read_thresholds(PACKAGE / 'assets/workflow.toml', PACKAGE)

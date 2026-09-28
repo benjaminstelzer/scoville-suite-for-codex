@@ -1,10 +1,12 @@
 ## How to use
 
-Activate the workflow explicitly:
+With the suite installed in Codex, start Workflow in your saved project:
 
 ```text
 Use $scoville-workflow-for-codex to execute the active Scoville Plan in this saved project.
 ```
+
+No additional project installation or `AGENTS.md` entry is needed.
 
 Name a Work Item or end boundary to limit the run. Without one, the coordinator
 continues through the active Plan.
@@ -32,7 +34,7 @@ Uppercase applies to titles only.
 
 ### Configuration
 
-Use Scoville Setup to inspect or change project settings in
+To change the defaults, use Scoville Setup to inspect or save project settings in
 `.scoville/config.json`. Under `workflow`, `execute.CLASS` and `review.CLASS`
 select model/reasoning pairs, and `context` sets rollover thresholds. Missing
 values use the bundled defaults. Starting a run creates no configuration file.

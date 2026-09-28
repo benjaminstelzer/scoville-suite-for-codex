@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.7.1 - 2026-09-28
+
+- Start Workflow directly in a saved project after installing the suite, without a project setup step or an AGENTS.md block.
+- Check coordinator context after worker handoffs and split remaining work after the third handoff of a Step or group.
+- Review fixes to previously completed product code before continuing dependent work, while keeping ordinary implementation corrections in their assignment.
+- Review only unreviewed changes and reuse earlier assessments for unchanged parts.
+
 ## v0.7.0 - 2026-09-27
 
 - Use direct handoffs with receipt messages, without a separate run cursor.

@@ -73,9 +73,10 @@ The bundled selector and Plan root are derived. CODEX_THREAD_ID supplies the
 coordinator ID; use `--return-to-thread-id <id>` only when the host does not set it.
 Optional arguments name existing UTF-8 plain-text files:
 
-- Review: `--executor-result <result.txt>` with a completed worker result; for a
-  whole-item review, add concise references to earlier group results and the
-  full relevant diff through supplemental context. Do not omit unreviewed groups.
+- Review: `--executor-result <result.txt>` with a completed worker result. In
+  supplemental context name the diff since the last review and affected Acceptance.
+  For final review add short references to earlier assessments for unchanged
+  parts. Include every still-unreviewed change and relevant interaction.
 - Correction worker: `--role executor --reviewer-result <result.txt>`. Put the
   assigned source findings and needed context in supplemental context.
 - Continuation: `--context-handoff <handoff.md> --predecessor-thread-id <id>`.

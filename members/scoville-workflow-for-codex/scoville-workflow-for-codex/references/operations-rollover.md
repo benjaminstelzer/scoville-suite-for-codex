@@ -18,7 +18,14 @@ return their normal result without another checkpoint.
 finished parts, relevant changes and checks, unresolved facts, constraints and
 next action. Do not perform another correction or check after handing off.
 
-The coordinator creates the successor with the same role, unit, workspace and
+After retaining a worker handoff, the coordinator runs its checkpoint before
+creating the successor. If rollover is due, hand over the coordinator first,
+including the pending worker handoff and predecessor ID. The new coordinator
+then handles any due review or Step split before creating the worker successor.
+A context_handoff alone does not trigger review, but a checked product fix in
+that handoff still follows the review cadence before dependent work continues.
+
+The coordinator creates the successor with the same role, remaining scope, workspace and
 launched model/effort, the complete Work Item and its still-relevant constraints,
 the handoff, and predecessor/coordinator chat IDs. The successor sends directly
 to the predecessor: "I have the information. You can archive yourself now."
@@ -28,10 +35,11 @@ confirmation is needed. The predecessor does no further project work.
 
 ## Coordinator rollover
 
-At the checked boundary, finish due Plan updates and stop project writes.
+At a checked boundary or retained worker handoff, finish due Plan updates and stop project writes.
 Create the successor in the same project with the same launched model/effort.
 Its assignment includes the Skill path, Plan/current unit, requested scope,
-completed effects, pending review/results, needed chat IDs and counters, relevant
+completed effects, pending review/results, needed chat IDs and worker numbering,
+handoffs relevant to a pending Step split, relevant
 constraints and next action. Carry the user's existing coordination authority.
 Keep this handoff as short as possible and only as long as needed to continue.
 

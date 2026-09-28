@@ -65,13 +65,13 @@ def main() -> int:
     configure_utf8()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--role", choices=("coordinator", "executor", "reviewer"), required=True)
-    parser.add_argument("--accepted-unit")
+    parser.add_argument("--boundary", "--accepted-unit", dest="boundary", help="checked unit or retained worker handoff")
     parser.add_argument("--project-root", type=Path, default=Path.cwd())
     args = parser.parse_args()
-    if args.role == "coordinator" and not args.accepted_unit:
-        parser.error("coordinator checkpoint requires --accepted-unit <checked-unit>; add e.g. --accepted-unit W-001/steps-1-3 for the actual completed check boundary")
-    if args.role != "coordinator" and args.accepted_unit is not None:
-        parser.error("--accepted-unit is coordinator-only; remove it for an executor or reviewer checkpoint")
+    if args.role == "coordinator" and (not args.boundary or not args.boundary.strip()):
+        parser.error("coordinator checkpoint requires --boundary <unit-or-handoff>; add e.g. --boundary W-001/step-3/handoff for a retained worker handoff")
+    if args.role != "coordinator" and args.boundary is not None:
+        parser.error("--boundary/--accepted-unit is coordinator-only; remove it for an executor or reviewer checkpoint")
     thread_id = os.environ.get("CODEX_THREAD_ID")
     try:
         thresholds = read_thresholds(Path(__file__).resolve().parents[1] / "assets" / "workflow.toml", args.project_root)
@@ -88,7 +88,7 @@ def main() -> int:
     result.update(thread_id=thread_id, role=args.role)
     result["threshold_percent"] = thresholds["coordinator_percent" if args.role == "coordinator" else "worker_percent"]
     if args.role == "coordinator":
-        result["accepted_unit"] = args.accepted_unit
+        result["boundary"] = args.boundary
     print(compact(result))
     return 0
 

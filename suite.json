@@ -489,10 +489,6 @@
           "target": "scoville-workflow-for-codex/LICENSE"
         },
         {
-          "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/references/agents-setup.md",
-          "target": "scoville-workflow-for-codex/references/agents-setup.md"
-        },
-        {
           "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/references/operations.md",
           "target": "scoville-workflow-for-codex/references/operations.md"
         },
