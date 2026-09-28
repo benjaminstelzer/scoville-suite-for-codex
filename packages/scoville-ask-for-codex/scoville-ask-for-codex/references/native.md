@@ -14,8 +14,8 @@ invocation omits the required chat or message scope.
 
 Resolve the requested advisers once, then use create_thread directly for each.
 Preserve the selected saved project and its local checkout. Each adviser gets
-fresh context and exactly `S-ASK <UPPERCASE selected model ID> - <calling task title>`.
-Example: `S-ASK GPT-6-SOL - Plan überprüfen`. Uppercase only the displayed model
+fresh context and exactly `SC · ASK · <UPPERCASE selected model ID> · <calling task title>`.
+Example: `SC · ASK · GPT-6-SOL · Plan überprüfen`. Uppercase only the displayed model
 ID; preserve the caller title and technical model parameter. Keep existing
 chat titles and follow-up identities unchanged.
 Use the actual caller ID and title; titles do not identify tasks.

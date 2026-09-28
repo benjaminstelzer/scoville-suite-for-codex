@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.5 - 2026-09-28
+
+- Name adviser chats SC · ASK · MODEL · Caller title, keeping technical model IDs and follow-up identities unchanged.
+
 ## v1.0.4 - 2026-09-28
 
 - Clarify the README presentation and keep the name explanation once per package.

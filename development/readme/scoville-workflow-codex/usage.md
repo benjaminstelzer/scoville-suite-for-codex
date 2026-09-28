@@ -18,9 +18,9 @@ reliably. `$scw` also works once the Skill is loaded. Ordinary requests such as
 Task titles identify the work and role:
 
 ```text
-S-MNGR-#2-PLAN-0011
-S-WORK-#3-W-010/STEPS-1-3
-S-REVW-#3-W-010/STEPS-1-3
+SC · MNGR · 2 · PLAN-0011
+SC · WORK · 3 · W-010/STEPS-1-3
+SC · REVW · 3 · W-010/STEPS-1-3
 ```
 
 Manager numbers count coordinators within a run. Every new worker gets the next

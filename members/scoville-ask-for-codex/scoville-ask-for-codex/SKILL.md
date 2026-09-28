@@ -59,7 +59,7 @@ the missing authorization before dispatch. Do not silently change routes.
    native advisers, or [Claude operation](references/claude.md) for CLI advisers.
 3. For native advisers, call create_thread directly with the question and
    adviser role under [native operation](references/native.md). Its title is
-   exactly `S-ASK <UPPERCASE selected model ID> - <exact calling task title>`.
+   exactly `SC · ASK · <UPPERCASE selected model ID> · <exact calling task title>`.
    For Claude,
    use the existing prepare/claude route. Invoke each selected adviser once.
 4. Retain each native task ID, adviser settings and current question. Follow

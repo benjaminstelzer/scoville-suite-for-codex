@@ -54,6 +54,12 @@ These three references contain the entire runtime procedure, including review,
 checkpoint, compaction recovery and stop behavior.
 
 Use Scoville Plan to read the current unit, its Decisions and dependencies.
+Before the first worker dispatch, call `set_thread_title` for the current
+coordinator's actual task ID, using `SC · MNGR · <n> · <PLAN_ID>` with the canonical
+Plan ID in uppercase. Start a new run at 1; on resume retain its number and
+on rollover use the successor number. Confirm the rename from the tool result.
+If it fails, report the error before dispatch; do not claim the chat was renamed.
+
 Absent a narrower requested boundary, execute the whole active Plan. Preserve
 user stops, repository requirements, uncommitted changes and acceptance gates.
 Once the suite is installed, start directly in the saved project. No project
@@ -65,24 +71,24 @@ Use the Plan for durable progress and messages for current coordination. Do not
 maintain a separate cursor or dispatch log. At most one worker may write project
 files at a time. The coordinator owns Plan edits and authorized commits.
 
-Number worker chats consecutively from #1 throughout the workflow run. Every new
+Number worker chats consecutively from 1 throughout the workflow run. Every new
 worker gets the next number, whether for another unit, rollover or review findings.
 There is no separate correction or attempt counter. A reviewer uses the number of
-the worker whose final result triggers the review: S-WORK-#7 is reviewed by
-S-REVW-#7. For grouped acceptance, its title covers the whole reviewed Step range,
+the worker whose final result triggers the review: SC · WORK · 7 is reviewed by
+SC · REVW · 7. For grouped acceptance, its title covers the whole reviewed Step range,
 including earlier groups, not only that worker's last group. A reviewer
 rollover retains that number. Coordinator rollovers increment their coordinator
 number. Include the next worker number and needed chat IDs in the handoff.
 
-Display titles are uppercase:
-- `S-MNGR-#<n>-PLAN-NNNN`
-- `S-WORK-#<n>-W-NNN`
-- `S-REVW-#<n>-W-NNN`
+Display titles use uppercase roles, middle-dot separators and no hash sign:
+- `SC · MNGR · <n> · PLAN-NNNN`
+- `SC · WORK · <n> · W-NNN`
+- `SC · REVW · <n> · W-NNN`
 
 Pass the canonical `plan_id` for a coordinator and exact selected `unit` for a
 child. Append /STEP-N or /STEPS-N-M for the full assigned Step range, including
 when the assignment covers every Step in the item. For example:
-`S-WORK-#1-W-001/STEPS-1-3`. Use no suffix only for an item without Steps.
+`SC · WORK · 1 · W-001/STEPS-1-3`. Use no suffix only for an item without Steps.
 The title shows the assigned range, not just the Step currently being worked on.
 Preserve authored Step order. Include no caller or Work Item
 title. Display casing changes no canonical ID. A rollover retains its unfinished

@@ -1,6 +1,13 @@
 # Changelog
 
 
+## v2.1.6 - 2026-09-28
+
+- Rename the Workflow coordinator before its first worker starts and use clear chat titles such as SC · MNGR · 1 · PLAN-0001.
+- Use the same middle-dot separators in worker, reviewer and Ask chat titles, without hash signs before counters.
+
+
+
 ## v2.1.5 - 2026-09-28
 
 - Start Workflow from its Skill entry prompt in the current chat, without a setup gate or a separate launcher coordinator. Setup remains optional for inspecting or changing settings.
