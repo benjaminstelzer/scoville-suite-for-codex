@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.4 - 2026-09-28
+
+- Clarify the README presentation and keep the name explanation once per package.
+
 ## v1.0.3 - 2026-09-27
 
 - Explain invalid adviser settings and project configuration with concrete correction guidance.

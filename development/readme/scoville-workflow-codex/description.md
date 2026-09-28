@@ -12,5 +12,4 @@ maintenance, including larger codebases.
 Install it through the complete Codex Suite. It requires Codex desktop's native
 task controls.
 
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
 Here, the heat is the goal and accepted results kept intact across workers, reviews and context handoffs.

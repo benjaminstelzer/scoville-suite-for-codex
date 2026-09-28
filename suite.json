@@ -28,6 +28,7 @@
         "shared:scoville-install.md",
         "shared:scoville-suite-install.md",
         "development/readme/scoville-code/usage.md",
+        "development/readme/name-origin.md",
         "development/readme/scoville-code/sources.md",
         "shared:family.md",
         "shared:license.md"
@@ -119,6 +120,7 @@
         "shared:scoville-install.md",
         "shared:scoville-suite-install.md",
         "development/readme/scoville-handoff/usage.md",
+        "development/readme/name-origin.md",
         "development/readme/scoville-handoff/sources.md",
         "shared:family.md",
         "shared:license.md"
@@ -198,6 +200,7 @@
         "shared:scoville-install.md",
         "shared:scoville-suite-install.md",
         "development/readme/scoville-plan/usage.md",
+        "development/readme/name-origin.md",
         "development/readme/scoville-plan/sources.md",
         "shared:family.md",
         "shared:license.md"
@@ -316,6 +319,7 @@
         "shared:scoville-install.md",
         "shared:scoville-suite-install.md",
         "development/readme/scoville-ui/usage.md",
+        "development/readme/name-origin.md",
         "development/readme/scoville-ui/sources.md",
         "shared:family.md",
         "shared:license.md"
@@ -461,6 +465,8 @@
         "development/readme/scoville-workflow-codex/mechanism.md",
         "development/readme/scoville-workflow-codex/requirements.md",
         "development/readme/scoville-workflow-codex/costs.md",
+        "development/readme/scoville-workflow-codex/example.md",
+        "development/readme/scoville-workflow-codex/evidence.md",
         "development/readme/scoville-workflow-codex/development.md",
         {
           "source": "shared:member-development-inline.md",
@@ -471,6 +477,7 @@
         "development/readme/scoville-workflow-codex/install-94174f7bf19c6c42.md",
         "shared:scoville-suite-install.md",
         "development/readme/scoville-workflow-codex/usage.md",
+        "development/readme/name-origin.md",
         "development/readme/scoville-workflow-codex/sources.md",
         "shared:family.md",
         "shared:license.md"
@@ -590,6 +597,7 @@
         "shared:scoville-install.md",
         "shared:scoville-suite-install.md",
         "development/readme/scoville-ask-for-codex/usage.md",
+        "development/readme/name-origin.md",
         "development/readme/scoville-ask-for-codex/sources.md",
         "shared:family.md",
         "shared:license.md"
@@ -710,6 +718,7 @@
         "development/readme/scoville-setup/compatibility.md",
         "development/readme/scoville-setup/install.md",
         "development/readme/scoville-setup/usage.md",
+        "development/readme/name-origin.md",
         "development/readme/scoville-setup/sources.md",
         "shared:family.md",
         "shared:license.md"
@@ -777,6 +786,7 @@
     "shared:suite-requirements.md",
     "shared:suite-descriptions.md",
     "shared:suite-catalog.md",
+    "development/readme/codex-limitations.md",
     "development/readme/suite-install.md",
     "development/readme/suite-development.md",
     "shared:suite-development-links.md",

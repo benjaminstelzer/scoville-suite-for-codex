@@ -4,7 +4,6 @@ Scoville Ask sends your question and relevant evidence to independently
 configured advisers, then returns their assessments to the original task.
 Use it for a second opinion, a patch review or a comparison of approaches.
 
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
 Here, the heat is the useful advice that remains clear when independent opinions are brought together.
 
 ## How it works
@@ -26,12 +25,7 @@ WebFetch require `claude.web_tools`. Model communication always needs network ac
 ## What it costs
 
 - Each adviser adds a model call and waiting time through its configured Codex or Claude account.
-- Native subagents would be the cleaner option, but Codex lacks
-  [`close_agent`](https://github.com/openai/codex/issues/36211).
-  Ask therefore uses separate chats, which add sidebar entries and
-  require archiving. Archived chats can still
-  [remain visible](https://github.com/openai/codex/issues/30903).
-- Desktop-created chats may be [missing from Codex Mobile](https://github.com/openai/codex/issues/24464), limiting mobile follow-up.
+- Native chat and mobile constraints are summarized in [Codex limitations](https://github.com/benjaminstelzer/scoville-suite-for-codex#codex-limitations).
 - You choose the advisers and assess disagreements. More opinions do not guarantee a better answer.
 
 ## How it was developed
@@ -144,6 +138,8 @@ See the installed configuration reference for helper inputs and migration.
 4. In Codex with this Skill installed, ask: **“Ask Claude to review this change.”** The defaults above determine the model and reasoning level. Change the `ask` settings in `.scoville/config.json` or name another model or effort in the request.
 
 If Ask reports an expired OAuth session, repeat step 3 and retry. An old CLI can reject the correct model ID. Repeat step 2 instead of substituting a model.
+
+
 
 ## Sources
 

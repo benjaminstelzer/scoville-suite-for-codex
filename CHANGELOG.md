@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.1.4 - 2026-09-28
+
+- Add an edition guide and Skill overview, and collapse upgrade and development details.
+- Clarify examples and remove repeated name explanations.
+- Align Workflow review and handoff descriptions, add a recorded sequence and historical evidence, and consolidate Codex limitations.
+
 ## v2.1.3 - 2026-09-28
 
 - Keep Code safeguards proportionate to actual consequences and preserve useful output when a later step fails.

@@ -9,6 +9,21 @@ The Scoville scale originally measured chili heat through dilution. For this
 suite, the idea is to keep the goal, decisions and verified results clear as
 work passes between coordinators, workers, reviewers and successor chats.
 
+
+Claude Code or other Agent Skills hosts: [Scoville Suite](https://github.com/benjaminstelzer/scoville-suite).
+Codex desktop: [Scoville Suite for Codex](https://github.com/benjaminstelzer/scoville-suite-for-codex),
+which adds Workflow, Ask and Setup.
+
+| Skill | Purpose |
+| --- | --- |
+| [Workflow for Codex](#scoville-workflow-for-codex) | Runs a repository Plan through worker, reviewer and successor chats. |
+| [Code](#scoville-code) | Keeps implementation, risk and validation focused on the requested outcome. |
+| [Plan](#scoville-plan) | Keeps longer work, decisions and progress recoverable. |
+| [UI](#scoville-ui) | Implements and checks interfaces through their framework and design system. |
+| [Handoff](#scoville-handoff) | Transfers unfinished work to another session. |
+| [Ask for Codex](#scoville-ask-for-codex) | Gets independent advice from configured advisers. |
+| [Setup](#scoville-setup) | Manages the selected project’s Scoville settings. |
+
 ## Suite requirements
 
 Install and enable every Skill in the suite. For individual Skills, use their
@@ -32,7 +47,6 @@ maintenance, including larger codebases.
 Install it through the complete Codex Suite. It requires Codex desktop's native
 task controls.
 
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
 Here, the heat is the goal and accepted results kept intact across workers, reviews and context handoffs.
 
 ### How it works
@@ -77,8 +91,8 @@ flowchart TD
 - **One writing worker.** Tasks share the existing checkout. The Plan records progress and messages carry the next action.
 - **Bounded context.** Workers receive the Work Item, assigned Step range and relevant goals, decisions and dependencies. They need not reopen the Plan or earlier chats.
 - **Configured models.** Risk determines model and effort. Unavailable required pairs are reported without substitution.
-- **Independent review.** Project review cadence takes priority. By default, a fresh reviewer checks code and critical documentation at Work Item completion. If the same failure survives two corrections, the coordinator reassesses its cause before another attempt.
-- **Context handoffs.** Default triggers are at or above 40% for the coordinator after a checked group or accepted Work Item and strictly above 60% for workers and reviewers at natural stopping points. Thresholds are configurable. Missing measurements are not guessed.
+- **Independent review.** Project review cadence takes priority. Otherwise unreviewed product-code changes receive an earlier review after a fix to previously completed code or before dependent work or extensive testing. Other required reviews happen at Work Item completion, reusing earlier assessments of unchanged parts. If the same failure survives two corrections, the coordinator reassesses its cause before another attempt.
+- **Context handoffs.** Default triggers are at or above 40% for the coordinator after a checked group, accepted Work Item or worker handoff and strictly above 60% for workers and reviewers at natural stopping points. Thresholds are configurable. Missing measurements are not guessed.
 - **Retained results.** Save results before archiving a task. Confirm successor takeover before retiring a predecessor. Report archive errors without confirmation loops. Decision requests and the final coordinator remain open.
 - **Accepted commits.** When committing is authorized, include accepted changes and Plan updates. Run required hooks and backups.
 - **Defined scope.** Follow the active Plan or the user's narrower boundary, preserving stops and open decisions.
@@ -89,13 +103,9 @@ for delivery, permissions and recovery.
 ### What it costs
 
 - Worker and reviewer chats, handoffs and Plan updates consume tokens and time.
-- Expect roughly 5–10% of input tokens to go toward coordination, based on experience with a complex real-world project. Much of the repeated context can be cached, reducing its cost.
-- Native subagents would be the cleaner option, but Codex lacks
-  [`close_agent`](https://github.com/openai/codex/issues/36211).
-  Workflow and Ask therefore use separate chats, which add sidebar entries and
-  require archiving. Archived chats can still
-  [remain visible](https://github.com/openai/codex/issues/30903).
-- Desktop-created threads may be [missing from Codex Mobile](https://github.com/openai/codex/issues/24464), limiting mobile monitoring and follow-up.
+- Coordination overhead varies with assignment size, review and handoffs. The retained reports do not establish a typical percentage for the current Workflow. Cached input is included in token counts and does not by itself establish monetary cost.
+- Native chat and mobile constraints are summarized in [Codex limitations](https://github.com/benjaminstelzer/scoville-suite-for-codex#codex-limitations).
+- See a [recorded workflow sequence](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex#one-recorded-workflow-sequence) and its [historical evidence limits](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex#recorded-use-and-limits).
 
 [How to use Scoville Workflow for Codex](members/scoville-workflow-for-codex/README.md#how-to-use).
 
@@ -109,7 +119,6 @@ Use it to develop, diagnose, review or remove code. It directs the agent to find
 the cause, respect the project's architecture and check the affected behavior
 with effort proportionate to the task.
 
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
 Here, the heat is the requested behavior and the evidence that it works, kept clear through implementation and testing.
 
 ### How it works
@@ -162,7 +171,6 @@ Items that describe resumable outcomes and evidence required for completion.
 Use it for dependent work and long-running projects. It follows the project's
 existing planning system and keeps small tasks proportionate.
 
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
 Here, the heat is the direction another agent can recover: the goal, decisions, current state and next action.
 
 ### How it works
@@ -197,14 +205,14 @@ See [SKILL.md](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/
 
 A page must work across screen sizes, input methods and error states.
 Scoville UI implements and audits those behaviors through the project's
-framework and design system, using rendered evidence to check the result.
+framework and design system, including plugin-owned WordPress admin pages,
+using rendered evidence to check the result.
 It also shapes interface text so labels describe their purpose, buttons name
 their action and terminology stays consistent across views and translations.
 
 For supported WordPress admin pages, it applies Core components, spacing,
 version requirements and translation conventions.
 
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
 Here, the heat is the task a person can still understand and complete across layouts, interactions and error states.
 
 ### How it works
@@ -245,7 +253,6 @@ decisions. Scoville Handoff gathers those facts into one compact, copy-ready
 prompt with the objective, permissions and next action, so another session can
 resume the work.
 
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
 Here, the heat is the working context another session needs after a long conversation is condensed.
 
 ### How it works
@@ -282,7 +289,6 @@ Scoville Ask sends your question and relevant evidence to independently
 configured advisers, then returns their assessments to the original task.
 Use it for a second opinion, a patch review or a comparison of approaches.
 
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
 Here, the heat is the useful advice that remains clear when independent opinions are brought together.
 
 ### How it works
@@ -304,12 +310,7 @@ WebFetch require `claude.web_tools`. Model communication always needs network ac
 ### What it costs
 
 - Each adviser adds a model call and waiting time through its configured Codex or Claude account.
-- Native subagents would be the cleaner option, but Codex lacks
-  [`close_agent`](https://github.com/openai/codex/issues/36211).
-  Ask therefore uses separate chats, which add sidebar entries and
-  require archiving. Archived chats can still
-  [remain visible](https://github.com/openai/codex/issues/30903).
-- Desktop-created chats may be [missing from Codex Mobile](https://github.com/openai/codex/issues/24464), limiting mobile follow-up.
+- Native chat and mobile constraints are summarized in [Codex limitations](https://github.com/benjaminstelzer/scoville-suite-for-codex#codex-limitations).
 - You choose the advisers and assess disagreements. More opinions do not guarantee a better answer.
 
 [How to use Scoville Ask for Codex](members/scoville-ask-for-codex/README.md#how-to-use).
@@ -318,7 +319,6 @@ WebFetch require `claude.web_tools`. Model communication always needs network ac
 
 Save the Scoville settings for your project in one file. Setup shows the effective values and changes only what you ask it to save.
 
-The name comes from the Scoville scale, which originally measured chili heat through dilution.
 Here, the heat is control over the settings your project actually uses, including defaults and saved choices.
 
 ### How it works
@@ -340,6 +340,15 @@ Here, the heat is control over the settings your project actually uses, includin
 
 
 
+## Codex limitations
+
+Workflow and native Ask advisers use separate chats because Codex does not
+provide [`close_agent`](https://github.com/openai/codex/issues/36211).
+Those chats add sidebar entries and require archiving. Archived chats can
+[remain visible](https://github.com/openai/codex/issues/30903).
+Desktop-created chats may be [missing from Codex Mobile](https://github.com/openai/codex/issues/24464),
+limiting mobile monitoring and follow-up.
+
 ## Install the suite
 
 Install the suite once in your agent host for use across projects.
@@ -352,6 +361,9 @@ Use this request in your agent host:
 ```text
 Install and enable the complete suite for all my projects directly from https://github.com/benjaminstelzer/scoville-suite-for-codex.
 ```
+
+<details>
+<summary>Upgrade from an earlier Scoville or Ask suite</summary>
 
 ### Upgrade from an earlier Scoville or Ask suite
 
@@ -370,11 +382,16 @@ ask-claude-and-sol-for-codex.
 Skip absent entries, leave unrelated Skills untouched, and keep no backup or settings migration. Then install and enable the complete suite for all my projects directly from https://github.com/benjaminstelzer/scoville-suite-for-codex.
 ```
 
+</details>
+
 Do not mix standalone and suite copies of the same Skill.
 
 If the host cannot install directly from GitHub, download this suite repository
 and copy all its inner package directories to the host's documented Skills
 location. This uses the same complete suite packages and requirements.
+
+<details>
+<summary>Development and builds</summary>
 
 ## Development and builds
 
@@ -411,6 +428,8 @@ does not offer the other profile.
 
 Uncommitted sources produce development builds. Publication requires inspected
 committed sources and the release checks.
+
+</details>
 
 ### Developer links
 

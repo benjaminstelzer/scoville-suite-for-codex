@@ -1,10 +1,6 @@
 ## What it costs
 
 - Worker and reviewer chats, handoffs and Plan updates consume tokens and time.
-- Expect roughly 5–10% of input tokens to go toward coordination, based on experience with a complex real-world project. Much of the repeated context can be cached, reducing its cost.
-- Native subagents would be the cleaner option, but Codex lacks
-  [`close_agent`](https://github.com/openai/codex/issues/36211).
-  Workflow and Ask therefore use separate chats, which add sidebar entries and
-  require archiving. Archived chats can still
-  [remain visible](https://github.com/openai/codex/issues/30903).
-- Desktop-created threads may be [missing from Codex Mobile](https://github.com/openai/codex/issues/24464), limiting mobile monitoring and follow-up.
+- Coordination overhead varies with assignment size, review and handoffs. The retained reports do not establish a typical percentage for the current Workflow. Cached input is included in token counts and does not by itself establish monetary cost.
+- Native chat and mobile constraints are summarized in [Codex limitations](https://github.com/benjaminstelzer/scoville-suite-for-codex#codex-limitations).
+- See a [recorded workflow sequence](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex#one-recorded-workflow-sequence) and its [historical evidence limits](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex#recorded-use-and-limits).
