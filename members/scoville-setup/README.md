@@ -1,8 +1,10 @@
 # Scoville Setup
 
-Save the Scoville settings for your project in one file. Setup shows the effective values and changes only what you ask it to save.
+Setup keeps your project's Scoville settings in one file. It shows the values
+that actually apply and changes only what you ask it to save.
 
-Here, the heat is control over the settings your project actually uses, including defaults and saved choices.
+The heat, in this case, is knowing and controlling which settings your
+project actually uses, defaults included.
 
 ## How it works
 
@@ -11,9 +13,10 @@ Here, the heat is control over the settings your project actually uses, includin
 
 ## What it enforces
 
-- Saves settings only on explicit request and preserves unrelated values.
+- Saves settings only when you ask and leaves unrelated values alone.
 - Rejects invalid values before writing.
-- Changes configuration between runs, without starting or supervising a workflow.
+- Changes configuration between runs. It doesn't start or supervise a
+  workflow.
 
 ## What it costs
 
@@ -34,27 +37,32 @@ in testing.
 
 ## Install
 
-Setup is included with the Codex Suite. It has no standalone distribution.
+Setup comes with the Codex Suite and isn't available on its own.
 Install the complete suite from [its own packages](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/packages).
-Partial installation is not supported. Every suite member must be installed
-and enabled.
+Partial installations aren't supported: every member has to be installed and
+enabled.
 
 ## How to use
 
-Ask Scoville Setup to show the settings for this project, or tell it which values to save. You can configure Ask advisers, model and effort, Claude spending limits, timeouts, session storage, custom instructions and web access. Workflow supports model/reasoning pairs for each route and the coordinator/worker context rollover percentages.
+Ask Scoville Setup to show this project's settings, or tell it which values
+to save. For Ask, you can set the advisers, model and effort, Claude spending
+limits, timeouts, session storage, custom instructions and web access. For
+Workflow, you can set a model and reasoning pair per route and the context
+percentages at which coordinators and workers roll over.
 
-Setup shows the values that apply to the project, including defaults. A one-time choice remains in the request or Plan Step unless you ask to save it.
-Setup saves the regular reasoning levels `low`, `medium`, `high` and `xhigh`.
-Other supported levels require manual configuration and remain unchanged when
-Setup saves unrelated settings.
+Setup shows the values that apply to the project, defaults included. A
+one-off choice stays in the request or Plan Step unless you ask Setup to save
+it. Setup saves the regular reasoning levels `low`, `medium`, `high` and
+`xhigh`. Other supported levels have to be configured by hand, and Setup
+leaves them unchanged when it saves other settings.
 
-Ask and Workflow each have a `pin_threads` switch, enabled by default.
-For example: “Use Scoville Setup to disable pinning for Workflow but keep it
-enabled for Ask.” Setup saves `workflow.pin_threads: false` and
-`ask.pin_threads: true` in the project's `.scoville/config.json`.
-Use true/false boolean values, not strings. Workflow includes its starting
-manager, workers, reviewers and rollover successors. Existing pins stay as
-they are. Claude CLI sessions have no sidebar entry.
+Ask and Workflow each have a `pin_threads` switch, enabled by default. For
+example: "Use Scoville Setup to disable pinning for Workflow but keep it
+enabled for Ask." Setup then saves `workflow.pin_threads: false` and
+`ask.pin_threads: true` in the project's `.scoville/config.json`. Use the
+boolean values true and false, not strings. For Workflow, the switch covers
+the starting manager, workers, reviewers and rollover successors. Existing
+pins stay as they are, and Claude CLI sessions have no sidebar entry.
 
 
 

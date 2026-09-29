@@ -1,8 +1,8 @@
 ### One recorded workflow sequence
 
-This shortened sequence comes from a real project run on 21 September 2026.
-The historical chat titles are retained, with coordinator IDs omitted.
-It covers one Step, not an invented multi-Step group.
+This is a shortened sequence from a real project run on 21 September 2026.
+The chat titles are the original ones, minus the coordinator IDs. It covers
+one real Step, not a made-up group of several.
 
 ```text
 Scoville-Workflow-Codex G6 selects W-015/step-1.
@@ -15,5 +15,5 @@ G6's boundary checkpoint requests a coordinator handoff.
 Scoville-Workflow-Codex G7 takes over W-015/step-2.
 ```
 
-This illustrates review, correction and continuation. The focused review pass
-was not a claim that every live interface check had passed.
+It shows review, correction and continuation. The focused review passing did
+not mean that every live interface check had passed.

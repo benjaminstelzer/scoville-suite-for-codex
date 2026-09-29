@@ -1,8 +1,9 @@
 ## Codex limitations
 
-Workflow and native Ask advisers use separate chats because Codex does not
-provide [`close_agent`](https://github.com/openai/codex/issues/36211).
-Those chats add sidebar entries and require archiving. Archived chats can
-[remain visible](https://github.com/openai/codex/issues/30903).
-Desktop-created chats may be [missing from Codex Mobile](https://github.com/openai/codex/issues/24464),
-limiting mobile monitoring and follow-up.
+Workflow and native Ask advisers run in separate chats because Codex has no
+[`close_agent`](https://github.com/openai/codex/issues/36211). That means
+extra sidebar entries that need archiving, and archived chats can
+[stay visible](https://github.com/openai/codex/issues/30903) anyway. Chats
+created on desktop may also be
+[missing from Codex Mobile](https://github.com/openai/codex/issues/24464),
+which makes it harder to follow or continue a run from your phone.

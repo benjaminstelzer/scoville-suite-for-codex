@@ -1,5 +1,10 @@
 ## How it was developed
 
-- Real project histories informed assignment scope, review, communication and context handoffs.
-- GPT-6 SOL Medium tests covered grouped work, review, repair and rollover. Targeted Luna tests found instruction-following gaps.
-- Simulated delivery checks do not establish live reliability. Immediate post-handoff compaction and host-level delivery failures have not been fully verified.
+- Real project histories shaped assignment size, reviews, communication and
+  context handoffs.
+- Tests with GPT-6 SOL Medium covered grouped work, review, repair and
+  rollover. Targeted Luna tests found places where the instructions weren't
+  followed.
+- Simulated delivery checks don't show how reliable it is live. Compaction
+  right after a handoff and delivery failures at host level haven't been fully
+  verified.

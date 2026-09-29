@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.1.1 - 2026-09-29
+
+- Keep the calling chat waiting after native wait timeouts so completed reviews are collected without another user message.
+- Preserve consultation references separately from reviewed scopes in clarifications and result matching.
+
 ## v1.1.0 - 2026-09-29
 
 - Build adviser requests with consistent SC-ASK-MODEL titles and collect native answers in the calling chat.

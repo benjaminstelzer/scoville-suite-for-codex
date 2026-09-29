@@ -10,26 +10,28 @@ Use scoville-ask-for-codex to review this patch with SOL.
 Ask Fable and Claude independently how they would approach this problem, then return and compare their answers here.
 ```
 
-An Ask request includes the adviser chats and the messages needed to bring their
-answers back. You do not need to approve those steps separately.
+Asking covers creating the adviser chats and the messages that bring their
+answers back. You don't have to approve those steps one by one.
 
-After a review, the calling chat asks whether you still need the review sessions.
-Say yes or ask a follow-up to keep them. Say no, or move to another topic without
-answering, and it archives the native review chats. Silence alone does nothing.
-Claude CLI consultations are closed for further use; saved Claude history is
-not archived or deleted. The advisers do not ask the closing question themselves.
+After a review, your chat asks whether you still need the review sessions.
+Say yes, or ask a follow-up, and they stay. Say no, or move on to another
+topic without answering, and it archives the native review chats. Silence
+alone does nothing. Claude CLI consultations are closed for further use, but
+the saved Claude history is neither archived nor deleted. The advisers never
+ask the closing question themselves.
 
 ### Configure defaults
 
-`config.default.json` beside the installed `SKILL.md` contains the defaults.
-Save project choices under `ask` in `.scoville/config.json` at the project root.
-Missing values use the shipped defaults. Reading settings creates no file.
-Explicit requests override these values for that call without saving them.
+The defaults are in `config.default.json` next to the installed `SKILL.md`.
+Project choices go under `ask` in `.scoville/config.json` at the project
+root. Anything missing falls back to the shipped defaults.
+Reading settings creates no file. If you name something explicitly in a
+request, it overrides these values for that call only, without saving them.
 
-The `astra`, `sol`, `claude` and `fable` presets resolve named requests. The
-shipped `advisers` list applies when you do not name an adviser. Every preset's
-model, effort and route is configurable. Current defaults:
-
+The `astra`, `sol`, `claude` and `fable` presets are what a named request
+resolves to. If you don't name an adviser, the shipped `advisers` list
+applies. Model, effort and route are configurable for every preset. Current
+defaults:
 ```json
 {{ include: member.defaults }}
 ```
@@ -46,12 +48,13 @@ changes only SOL's effort:
 }
 ```
 
-Project settings override the bundled defaults field by field. An adviser list
-replaces the default list in full. A model or reasoning level named in your
-request applies to that call without changing saved settings.
-Follow-ups retain their original settings unless explicitly changed. For a
-custom adviser, supply an ID, route, exact model and effort in `advisers`.
-See the installed configuration reference for helper inputs and migration.
+Project settings override the bundled defaults one field at a time, except
+the adviser list, which replaces the default list completely. A model or
+reasoning level you name in a request applies only to that call and doesn't
+change saved settings. Follow-ups keep their original settings unless you
+change them explicitly. For a custom adviser, add an ID, route, exact model
+and effort to `advisers`. The installed configuration reference covers helper
+inputs and migration.
 
 ### How to Ask with Claude Code
 
@@ -60,4 +63,6 @@ See the installed configuration reference for helper inputs and migration.
 3. Run `claude auth login` and complete sign-in in your browser. Run `claude auth status` to check that you are signed in.
 4. In Codex with this Skill installed, ask: **“Ask Claude to review this change.”** The defaults above determine the model and reasoning level. Change the `ask` settings in `.scoville/config.json` or name another model or effort in the request.
 
-If Ask reports an expired OAuth session, repeat step 3 and retry. An old CLI can reject the correct model ID. Repeat step 2 instead of substituting a model.
+If Ask reports an expired OAuth session, repeat step 3 and try again. An
+outdated CLI can reject the correct model ID. In that case, repeat step 2
+rather than switching to another model.

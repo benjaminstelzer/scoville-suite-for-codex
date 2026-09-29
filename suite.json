@@ -78,7 +78,7 @@
       "family": {
         "label": "Code",
         "owner": "engineering scope, implementation, risk, and validation.",
-        "summary": "owns engineering scope, implementation, risk, and validation.",
+        "summary": "covers engineering scope, implementation, risk and validation.",
         "order": 0,
         "neighbors": []
       },
@@ -159,7 +159,7 @@
       "family": {
         "label": "Handoff",
         "owner": "active-work transfer.",
-        "summary": "transfers active work to another agent or session.",
+        "summary": "passes active work to another agent or session.",
         "order": 6,
         "neighbors": []
       },
@@ -264,7 +264,7 @@
       "family": {
         "label": "Plan",
         "owner": "durable Plans, Work Items, Decisions, and lifecycle state.",
-        "summary": "owns durable Plans, Work Items, Decisions, and lifecycle state.",
+        "summary": "keeps Plans, Work Items, Decisions and their status in the repository.",
         "neighbors": [
           {
             "member": "scoville-code",
@@ -431,7 +431,7 @@
       "family": {
         "label": "UI",
         "owner": "framework UI implementation and acceptance, including supported WordPress admin surfaces.",
-        "summary": "owns UI implementation, information structure, accessibility and rendered evidence, with a conditional WordPress adapter.",
+        "summary": "covers UI implementation, information structure, accessibility and rendered checks, with an optional WordPress adapter.",
         "neighbors": [
           {
             "member": "scoville-code",

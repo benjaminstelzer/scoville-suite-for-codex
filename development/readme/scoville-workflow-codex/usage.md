@@ -6,21 +6,21 @@ With the suite installed in Codex, start Workflow in your saved project:
 Use $scoville-workflow-for-codex to execute the active Scoville Plan in this saved project.
 ```
 
-No additional project installation or `AGENTS.md` entry is needed.
+You don't need a separate project installation or an `AGENTS.md` entry.
 
-Name a Work Item or end boundary to limit the run. Without one, the coordinator
-continues through the active Plan.
+To limit the run, name a Work Item or the point where it should stop.
+Otherwise the coordinator works through the active Plan.
 
-The calling chat coordinates the run and creates workers for implementation.
-You can also explicitly name Workflow in your request:
+The chat you start it in coordinates the run and creates workers for the
+implementation. You can also just name Workflow in your request:
 
 ```text
-Führe ausschließlich PLAN-0001 mit dem Scoville Workflow aus.
+Run only PLAN-0001 with Scoville Workflow.
 ```
 
-“Starte den Scoville-Workflow” also starts it. “Führe den Plan aus” alone does
-not. Mentions, questions and quoted examples do not start a run. `$scw` works
-once the Skill is loaded.
+"Start Scoville Workflow" also starts it. "Execute the Plan" alone
+does not. Mentions, questions and quoted examples don't start a run. `$scw`
+works once the Skill is loaded.
 
 Task titles identify the work and role:
 
@@ -30,39 +30,43 @@ SC-WRK-3: My project · PLAN-0011/W-010/steps-1-3
 SC-REV-3: My project · PLAN-0011/W-010/steps-1-3
 ```
 
-Manager numbers count coordinators within a run. Every new worker gets the next
-worker number, including rollover and correction assignments. Reviewers use the
-number of the worker whose final result triggers their review. A reviewer rollover
-keeps that number. A grouped review's title shows the full reviewed Step range.
+Manager numbers count the coordinators within one run. Every new worker gets
+the next number, including workers for rollovers and corrections. A reviewer
+takes the number of the worker whose final result it reviews and keeps it
+after a rollover. For a grouped review, the title shows the full range of
+Steps reviewed.
 
-Titles show the Plan, Work Item and assigned range: `step-2` or `steps-1-3`.
-A whole Work Item shows its full Step range, or no suffix when it has no Steps.
-Only the role prefix is uppercase; project names and inserted content keep their casing.
+Titles show the Plan, the Work Item and the assigned range: `step-2` or
+`steps-1-3`. A whole Work Item shows its full Step range, or no suffix if it
+has no Steps. Only the role prefix is uppercase. Project names and inserted
+content keep their own casing.
 
 ### Configuration
 
-To change the defaults, use Scoville Setup to inspect or save project settings in
-`.scoville/config.json`. Under `workflow`, `execute.CLASS` and `review.CLASS`
-select model/reasoning pairs, and `context` sets rollover thresholds. Missing
-values use the bundled defaults. Starting a run creates no configuration file.
+To change the defaults, use Scoville Setup to view or save the project
+settings in `.scoville/config.json`. Under `workflow`, `execute.CLASS` and
+`review.CLASS` choose model and reasoning pairs, and `context` sets the
+rollover thresholds. Anything missing uses the bundled defaults, and starting
+a run doesn't create a configuration file.
 
 ### Pin chats
 
-Workflow pins the manager, workers, reviewers and rollover successors by default.
-Use Scoville Setup before a run to turn this off for the project:
+Workflow pins the manager, workers, reviewers and rollover successors by
+default. To turn this off for the project, use Scoville Setup before a run:
 
 ```text
 Use Scoville Setup to disable pinning for Workflow in this project.
 ```
 
 Setup saves `workflow.pin_threads: false` in `.scoville/config.json`. Ask has
-its own `ask.pin_threads` switch. Both default to `true` and can be enabled
-again through Setup. These settings control new pin operations; existing pins
-are not removed. Claude CLI sessions have no Codex sidebar entry.
+its own `ask.pin_threads` switch. Both are `true` by default and can be turned
+back on through Setup. The switches only affect new pins. Existing pins stay.
+Claude CLI sessions don't appear in the Codex sidebar.
 
-Default rollover triggers are at or above 40% context usage for the coordinator
-and strictly above 60% for workers and reviewers. The Plan records progress;
-direct messages carry handoffs. At most one worker writes in the shared checkout.
+By default, the coordinator hands over at 40% context usage or more, and
+workers and reviewers above 60%. The Plan records progress, direct messages
+carry the handoffs, and at most one worker writes to the shared checkout at a
+time.
 
-See the [dispatch rules](scoville-workflow-for-codex/references/operations-dispatch.md)
-for task classification and explicit model choices.
+The [dispatch rules](scoville-workflow-for-codex/references/operations-dispatch.md)
+explain how tasks are classified and how explicit model choices work.

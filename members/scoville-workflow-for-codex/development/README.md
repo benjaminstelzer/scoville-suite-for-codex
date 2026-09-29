@@ -1,35 +1,32 @@
 # Development
 
-The [member source](../scoville-workflow-for-codex/) belongs to
-[Scoville Suite](../../../README.md#development-and-builds). Build before
-installing. Development files stay in the suite, whose root Plan owns current
-work. Member Plans are historical records.
+The [member source](../scoville-workflow-for-codex/) is part of
+[Scoville Suite](../../../README.md#development-and-builds). Build before you
+install. Development files stay in the suite, and current work is tracked in
+the suite's root Plan. The Plans in this member are historical.
 
 ## Validate
 
-Run the focused contract suite from `members/scoville-workflow-for-codex/`:
+Run the focused contract tests from `members/scoville-workflow-for-codex/`:
 
 ```text
 python -B -m unittest discover -s development/tests -v
 ```
 
-Run package validation against a generated build. Validate the planning profile
-at the suite root. Contract tests cover source rules, not the live task lifecycle.
-See the suite's [context-fix evidence](../../../development/workflow-context-fix.md)
-for the bounded runtime and model checks.
-
-The [coordinator startup correction](../../../development/coordinator-startup-fix.md)
-records native contract and transport checks, validation and installation limits.
+Run package validation against a generated build, and validate the planning
+profile at the suite root. The contract tests check source rules, not the
+live task lifecycle. The [development history](../../../docs/README.md)
+explains the runtime problems and the changes they led to.
 
 ## Installation identity
 
-Install only the generated package. Before replacing an existing installation,
-wait for every workflow using it to become terminal. Then compare the complete
-build and installed inventories and file content. Do not infer adoption from a
-copy command alone.
+Install only the generated package. Before you replace an existing
+installation, wait until every workflow using it has finished. Then compare
+the complete build and installed file lists and their contents. A copy
+command alone doesn't prove the new version is in use.
 
 ## Retention
 
-Keep current tests, Plans, Decisions, and this maintenance summary. Store raw
-model reviews, transcripts, screenshots, and one-off runtime evidence in
-temporary task storage unless a published artifact explicitly depends on them.
+Current tests, Plans, Decisions and this summary are kept. Raw model reviews,
+transcripts, screenshots and one-off runtime evidence go to temporary storage,
+unless a published artifact depends on them.

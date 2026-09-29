@@ -1,6 +1,6 @@
 ## Install
 
-Setup is included with the Codex Suite. It has no standalone distribution.
+Setup comes with the Codex Suite and isn't available on its own.
 Install the complete suite from [its own packages]({{ include: suite.repository }}/tree/main/packages).
-Partial installation is not supported. Every suite member must be installed
-and enabled.
+Partial installations aren't supported: every member has to be installed and
+enabled.

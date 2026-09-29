@@ -1,5 +1,7 @@
 # Scoville Setup
 
-Save the Scoville settings for your project in one file. Setup shows the effective values and changes only what you ask it to save.
+Setup keeps your project's Scoville settings in one file. It shows the values
+that actually apply and changes only what you ask it to save.
 
-Here, the heat is control over the settings your project actually uses, including defaults and saved choices.
+The heat, in this case, is knowing and controlling which settings your
+project actually uses, defaults included.

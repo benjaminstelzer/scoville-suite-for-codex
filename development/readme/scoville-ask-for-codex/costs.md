@@ -1,5 +1,8 @@
 ## What it costs
 
-- Each adviser adds a model call and waiting time through its configured Codex or Claude account.
-- Native chat and mobile constraints are summarized in [Codex limitations](https://github.com/benjaminstelzer/scoville-suite-for-codex#codex-limitations).
-- You choose the advisers and assess disagreements. More opinions do not guarantee a better answer.
+- Every adviser means another model call and more waiting, on the Codex or
+  Claude account it's configured with.
+- Native chat and mobile limits are summarized under
+  [Codex limitations](https://github.com/benjaminstelzer/scoville-suite-for-codex#codex-limitations).
+- You choose the advisers and weigh up disagreements yourself. More opinions
+  don't guarantee a better answer.

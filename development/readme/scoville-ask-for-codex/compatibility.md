@@ -1,10 +1,15 @@
 ## Compatibility
 
-Adviser chats require Codex desktop, a saved project and native tools to collect
-their answers. All advisers require network access
-and Python 3.11 or newer.
+Adviser chats need Codex desktop, a saved project and the native tools to
+collect their answers. Every adviser needs network access. Python 3.11 or newer
+is required for the helper scripts.
 
-Requires a frontier model from the Fable, Astra, SOL or Opus families, version
+Needs a frontier model from the Fable, Astra, SOL or Opus families, version
 5.0 or newer. Luna was also used in testing.
 
-Codex checks whether the requested model and reasoning level are available when it creates the adviser chat. A rejected request is reported without substituting another model. Third-party models need a provider connection configured in Codex. The Claude CLI route requires installed, authenticated Claude Code. Opus 5.5 requires version 2.1.280 or newer. See “How to Ask with Claude Code” for setup.
+When Codex creates the adviser chat, it checks whether the requested model
+and reasoning level are available. If not, Ask reports it and doesn't
+substitute another model. Third-party models need a provider connection
+configured in Codex. The Claude CLI route needs Claude Code installed and
+signed in, and Opus 5.5 needs version 2.1.280 or newer. See "How to Ask with
+Claude Code" for setup.

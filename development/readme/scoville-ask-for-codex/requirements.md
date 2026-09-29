@@ -1,9 +1,14 @@
 ## What it enforces
 
-- **Independent advice.** Advisers inspect and answer. The calling task owns changes.
-- **Traceable answers.** Each response identifies the adviser and question. Codex chat titles show the model and original task.
-- **Visible failures.** Invalid settings, unavailable models and failed consultations are reported without silently replacing the model or route.
+- **Independent advice.** Advisers look and answer. Changes stay with the task
+  that asked.
+- **Traceable answers.** Each response shows which adviser answered which
+  question. Codex chat titles show the model and the original task.
+- **Visible failures.** Invalid settings, unavailable models and failed
+  consultations are reported. Ask never quietly switches to another model or
+  route.
 
-Native advisers are instructed to stay read-only. The host provides no separate
-write barrier. Claude permits Read, Grep and Glob by default. WebSearch and
-WebFetch require `claude.web_tools`. Model communication always needs network access.
+Native advisers are told to stay read-only, but the host doesn't enforce that
+with a separate write barrier. Claude may use Read, Grep and Glob by default.
+WebSearch and WebFetch need `claude.web_tools`. Talking to the model always
+needs network access.

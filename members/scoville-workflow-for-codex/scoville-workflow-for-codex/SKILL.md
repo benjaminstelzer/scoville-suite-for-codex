@@ -1,6 +1,6 @@
 ---
 name: scoville-workflow-for-codex
-description: Run Scoville Workflow in Codex only when the user explicitly requests execution with it, such as "Führe den Plan mit dem Scoville Workflow aus", "Starte den Scoville-Workflow", $scoville-workflow-for-codex or scoflow codex. The calling chat coordinates workers, review and context rollover. Generic plan execution, implementation, delegation, mentions and questions do not activate it.
+description: Run Scoville Workflow in Codex only when the user explicitly requests execution with it, such as "Execute the Plan with Scoville Workflow", "Start Scoville Workflow", $scoville-workflow-for-codex or scoflow codex. The calling chat coordinates workers, review and context rollover. Generic plan execution, implementation, delegation, mentions and questions do not activate it.
 compatibility: "Codex desktop with native task controls, own task identity, a saved shared project, filesystem and Git access, Python 3.11+ and compatible Scoville Plan helpers. Codex Suite only; no Claude Code execution route."
 ---
 

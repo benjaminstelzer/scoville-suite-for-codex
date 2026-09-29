@@ -1,7 +1,9 @@
 # Scoville Ask for Codex
 
-Scoville Ask sends your question and relevant evidence to independently
-configured advisers, then returns their assessments to the original task.
-Use it for a second opinion, a patch review or a comparison of approaches.
+Scoville Ask sends your question and the relevant evidence to advisers you
+configure separately, then brings their assessments back to the task you
+started from. Use it for a second opinion, a patch review or to compare
+approaches.
 
-Here, the heat is the useful advice that remains clear when independent opinions are brought together.
+The heat, in this case, is the useful part of the advice, still clear after
+independent opinions have been brought together.

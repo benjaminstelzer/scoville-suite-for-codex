@@ -1,14 +1,34 @@
 ## How it works
 
-- The coordinator selects a Step, related consecutive Steps or a whole Work Item. Grouping shares setup and produces a checkable result while preserving the Plan's order.
-- Helpers build the assignments and native start arguments. Chat titles include the saved project name, role, number and assigned Plan or Steps. New chats are pinned by default; Setup can disable this with workflow.pin_threads=false.
-- Risk determines the worker's model and effort. The worker implements in the existing checkout and returns its result by message.
-- Reviews follow the project's cadence, otherwise product-code changes receive an earlier review after a defect fix or before dependent work or extensive testing, and the final review reuses earlier assessments of unchanged parts.
-- The coordinator corrects Plan findings and assigns project findings to a new worker. Material or unclear corrections receive another review.
-- Accepted changes and Plan updates enter one commit when committing is authorized.
-- At a configured context threshold, a successor continues the unfinished work in the same checkout with the same model and effort read from that manager’s native settings, retaining pending work, review and unanswered questions.
-- Handoffs use direct messages. The successor confirms receipt and asks the predecessor to archive itself, then continues. Archive errors are reported without blocking accepted work.
-- After receiving a worker or reviewer result, the coordinator asks that chat to archive itself. Reviewers report their findings and anything they could not verify in one complete response.
+- The coordinator picks a Step, a few related Steps in a row or a whole Work
+  Item. Grouping saves repeated setup and still produces a result that can be
+  checked, without changing the Plan's order.
+- Helper scripts build the assignments and the arguments for starting native
+  chats. Each chat title shows the saved project name, the role, a number and
+  the assigned Plan or Steps. New chats are pinned by default. Setup can turn
+  that off with `workflow.pin_threads=false`.
+- The risk of the task decides which model and effort the worker gets. The
+  worker implements in the existing checkout and sends its result back as a
+  message.
+- If the project defines when to review, Workflow follows that. Otherwise,
+  product-code changes get an early review after a defect fix, or before
+  dependent work or extensive testing. The final review reuses earlier
+  assessments of parts that haven't changed.
+- The coordinator fixes findings in the Plan itself and hands findings in the
+  project to a new worker. Substantial or unclear corrections get reviewed
+  again.
+- If you've allowed commits, accepted changes and the matching Plan updates go
+  into one commit.
+- When a chat reaches the configured context threshold, a successor takes over
+  the unfinished work in the same checkout. It uses the same model and effort,
+  read from the manager's native settings, and keeps pending work, reviews and
+  unanswered questions.
+- Handoffs run through direct messages. The successor confirms it has
+  everything, asks its predecessor to archive itself and carries on. If
+  archiving fails, that gets reported, but it doesn't block accepted work.
+- Once the coordinator has a worker's or reviewer's result, it asks that chat
+  to archive itself. Reviewers deliver their findings, and anything they
+  couldn't verify, in one complete response.
 
 ```mermaid
 flowchart TD

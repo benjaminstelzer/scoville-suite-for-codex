@@ -67,9 +67,11 @@ Codex chat per adviser; do not substitute subagents.
    and reviewed scope or revision match the retained request. A receipt,
    truncated answer or mismatch remains unresolved; use the relevant route's
    recovery rules. For a known native task, that is one targeted native status
-   query or `read_thread` call for only the missing answer or state, never a
-   polling loop. Keep partial answers and failures visible and collect remaining answers
-   without polling or automatic replacement. A receipt alone is not an answer.
+   query or `read_thread` call for only the missing answer or state. Continue
+   pending native work through the bounded event waits in native operation,
+   not repeated status reads. Keep partial answers and failures visible and
+   collect remaining answers without automatic replacement. A receipt alone
+   is not an answer.
 5. Present answers with material evidence and limits. For a consultation,
    synthesize agreement, differences and useful conclusions without inventing
    consensus. No mandatory second exchange round. For reviews, distinguish
