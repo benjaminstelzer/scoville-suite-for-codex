@@ -40,11 +40,11 @@ Resolve settings once; native create_thread validates the requested model and
 effort on the actual host. No model-catalog subprocess is required. Report a
 host rejection without substituting another model or route.
 
-Native Ask requires a separate Codex chat per adviser; subagents cannot
-implement this Skill. The user's request must explicitly include those adviser
-chats. The package's default invocation prompt does so because the chat-based
-route is part of Ask's design. If another invocation omits that request, name
-the missing authorization before dispatch. Do not silently change routes.
+An explicit Ask request commissions the full consultation: create the needed
+adviser chats, exchange necessary questions and answers, and return the results.
+Do not ask for separate chat or message approval or require authorization fields.
+Respect explicit user limits and host requirements. Native Ask uses one separate
+Codex chat per adviser; do not substitute subagents.
 
 ## Ask and collect
 
@@ -54,18 +54,16 @@ the missing authorization before dispatch. Do not silently change routes.
    unrelated history and secrets from fresh consultations.
 2. For native advisers, resolve the verified calling task ID, exact current
    title and saved project. Never infer identity from title or recency.
-   Claude-only requests use the Claude session rules and do not need a native
-   return destination. Read [native task operation](references/native.md) for
+   Read [native task operation](references/native.md) for
    native advisers, or [Claude operation](references/claude.md) for CLI advisers.
 3. For native advisers, call create_thread directly with the question and
    adviser role under [native operation](references/native.md). Its title is
-   exactly `SC · ASK · <UPPERCASE selected model ID> · <exact calling task title>`.
+   exactly `SC-ASK-<ADVISER ID>: <exact calling task title>`.
    For Claude,
    use the existing prepare/claude route. Invoke each selected adviser once.
 4. Retain each native task ID, adviser settings and current question. Follow
-   native operation's host requirements before ending the caller turn;
-   authorized adviser messages
-   resume it. Accept a complete answer only when sender, consultation reference
+   native operation to wait for and collect the answer in that chat. A necessary
+   question is answered in the same adviser chat. Accept a complete answer only when task ID, consultation reference
    and reviewed scope or revision match the retained request. A receipt,
    truncated answer or mismatch remains unresolved; use the relevant route's
    recovery rules. For a known native task, that is one targeted native status
@@ -78,9 +76,30 @@ the missing authorization before dispatch. Do not silently change routes.
    findings from untested concerns and verify findings before authorized fixes.
 
 Retain requested and actually reported model/effort separately; unavailable
-telemetry is unknown. Keep successful native adviser tasks open for follow-ups.
+telemetry is unknown. Keep adviser handles for follow-ups until review closure below.
 Resume exact retained handles with their previous settings unless explicitly
 overridden; identify a newly authorized fresh consultation as fresh.
+
+## After a completed review
+
+The calling chat presents the review and asks once whether its review sessions
+are still needed. The advisers do not ask this question. Keep the exact native
+task/host IDs or Claude session IDs and the pending question in conversation
+context; no separate state file is needed. Ask only after the requested review
+round is complete, not while an adviser or requested follow-up is still working.
+
+- Yes, or a request using the review session: retain it and handle the follow-up.
+- No: close the sessions that are no longer needed.
+- The next user message addresses something else without answering: close the
+  pending review sessions first, then handle that message. Do not ask again.
+- No new user message: leave the question pending; no timer or automatic action.
+
+Apply an explicit choice per adviser when the user distinguishes sessions.
+For native sessions, the caller archives the retained review chat through
+native operation. For Claude CLI, close the consultation as described in Claude
+operation; do not claim native archival. Preserve review results and evidence.
+An explicit later request may retain/reopen a session under its route's rules.
+This closing rule applies to reviews, not ordinary consultations.
 
 All Skills included in this suite must be installed and enabled. Use the
 applicable owner without checking sibling availability. Load only instructions
@@ -89,3 +108,12 @@ needed for the task. Explicit invocation gates and user exclusions still apply.
 Native advisers receive a read-only instruction. Creating a native task does
 not add a technical write barrier or a separate sandbox. Claude tool restrictions
 and opt-in web access are described in references/claude.md.
+
+## Runtime helpers
+
+Use the bundled helpers for their operations. Read their invocation instructions,
+not their source, unless diagnosing a failure.
+Python and every named helper are required. Missing dependencies or helper
+errors stop the affected operation. Do not substitute manual execution.
+
+Helpers: `scripts/ask.py`, `scripts/build_adviser_prompt.py`, `scripts/list_models.py`.

@@ -98,7 +98,15 @@ defect that changes no intent.
 
 After every completed write operation, validate the complete resulting profile
 using the command and diagnostic handling in edit.md.
-Python 3.11+ and the bundled validator and selector are required. A missing
-runtime, missing helper or helper error blocks its operation.
+See Runtime helpers below for the profile-specific runtime rule.
 Report outcome, active or blocked work, actual evidence, unresolved choices and
 the next action. These direct edits provide no locks or atomic transactions.
+
+## Runtime helpers
+
+Use the bundled helpers for their operations. Read their invocation instructions,
+not their source, unless diagnosing a failure.
+Python and every named helper are required. Missing dependencies or helper
+errors stop the affected operation. Do not substitute manual execution.
+
+Helpers: `scripts/select_context.py`, `scripts/validate_profile.py`.

@@ -16,8 +16,10 @@ def load_config(path: Path, project_root: Path | str | None = None) -> dict:
         config = merge(tomllib.load(stream), config_section('workflow', project_root))
     if type(config.get("schema_version")) is not int or config["schema_version"] != 1:
         raise ValueError(f"workflow.schema_version={type(config.get('schema_version')).__name__} is unsupported; use integer 1 for this configuration format")
-    if set(config) - {"schema_version", "context", "execute", "review"}:
-        raise ValueError(f"unknown workflow configuration keys: {sorted(set(config) - {'schema_version', 'context', 'execute', 'review'})}; use only schema_version, context, execute and review")
+    if set(config) - {"schema_version", "context", "execute", "review", "pin_threads"}:
+        raise ValueError(f"unknown workflow configuration keys: {sorted(set(config) - {'schema_version', 'context', 'execute', 'review', 'pin_threads'})}; use only schema_version, context, execute, review and pin_threads")
+    if type(config.get('pin_threads')) is not bool:
+        raise ValueError('workflow.pin_threads must be a JSON boolean; use true or false')
     for section in ("execute", "review"):
         table = config.get(section)
         if not isinstance(table, dict) or set(table) != set(ROUTES):

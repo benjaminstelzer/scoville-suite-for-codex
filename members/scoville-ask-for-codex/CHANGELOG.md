@@ -1,12 +1,15 @@
 # Changelog
 
+## v1.1.0 - 2026-09-29
+
+- Build adviser requests with consistent SC-ASK-MODEL titles and collect native answers in the calling chat.
+- Keep follow-up questions in the same native chat or Claude session. The caller asks whether the consultation should remain open and handles closure.
+- Configure automatic adviser pinning through Scoville Setup, enabled by default.
+- Remove obsolete separate authorization fields from Claude requests.
+
 ## v1.0.5 - 2026-09-28
 
 - Name adviser chats SC · ASK · MODEL · Caller title, keeping technical model IDs and follow-up identities unchanged.
-
-## v1.0.4 - 2026-09-28
-
-- Clarify the README presentation and keep the name explanation once per package.
 
 ## v1.0.3 - 2026-09-27
 

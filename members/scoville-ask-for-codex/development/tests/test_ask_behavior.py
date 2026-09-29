@@ -35,7 +35,7 @@ ADVISERS = [
 def prepare_request(advisers=ADVISERS, **extra):
     return {"mode": "review", "question": "Could this patch lose data?", "scope": "patch A",
             "reference": "round-1", "caller_id": "caller-17", "caller_title": "Review patch",
-            "projectId": "project-1", "creation_authorized": True,
+            "projectId": "project-1",
             "prior_state": "not_started", "prior_task_ids": ["older-task"],
             "cwd": str(PACKAGE), "catalog": CATALOG,
             "overrides": {"advisers": advisers}, **extra}
@@ -203,17 +203,15 @@ for line in sys.stdin:
                 ask.prepare(prepare_request([adviser]))
         self.assertNotIn('followup', ask.OPERATIONS)
 
-    def test_claude_prepare_keeps_question_and_authority(self):
+    def test_claude_prepare_keeps_question_without_separate_authority_fields(self):
         request = prepare_request([ADVISERS[1]])
         result = ask.prepare(request)['entries'][0]
         self.assertEqual(result['request']['operation'], 'claude')
         self.assertIn(request['question'], result['request']['prompt'])
-        self.assertTrue(result['request']['authorized'])
+        self.assertNotIn('authorized', result['request'])
+        self.assertNotIn('creation_authorized', result['request'])
         with self.assertRaisesRegex(ValueError, 'clarify ambiguous intent'):
             ask.prepare({**request, 'mode': None})
-        prepared = ask.prepare({**request, 'creation_authorized': False})['entries'][0]['request']
-        with self.assertRaisesRegex(ValueError, 'requires authorization'):
-            ask.claude(prepared)
 
     def test_resolve_cli_flags_return_direct_technical_settings(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -252,6 +250,8 @@ for line in sys.stdin:
              mock.patch.object(ask.ask_claude, "run_command", return_value=completed) as run:
             result = ask.claude(cli_request)
         command = run.call_args.args[0]
+        self.assertIn('-p', command)
+        self.assertNotIn('--bg', command)
         self.assertEqual(command[command.index("--tools") + 1],
                          "Read,Grep,Glob")
         self.assertIn("--safe-mode", command)
@@ -265,6 +265,19 @@ for line in sys.stdin:
             next_result = ask.claude({**cli_request, "session_id": "sid-1"})
         self.assertEqual(resumed.call_args.args[0][resumed.call_args.args[0].index("--resume") + 1], "sid-1")
         self.assertEqual(next_result["context_mode"], "continued")
+
+    def test_nonpersistent_claude_result_does_not_offer_session_continuation(self):
+        request = prepare_request([ADVISERS[1]])
+        request['overrides']['claude'] = {'session_persistence': False}
+        prepared = ask.prepare(request)['entries'][0]['request']
+        completed = subprocess.CompletedProcess(['claude'], 0,
+            json.dumps({'result': 'Review complete', 'session_id': 'ephemeral-id'}), '')
+        with mock.patch.object(ask.ask_claude, 'resolve_claude_command', return_value=['claude']), \
+             mock.patch.object(ask.ask_claude, 'run_command', return_value=completed) as run:
+            result = ask.claude(prepared)
+        self.assertIn('-p', run.call_args.args[0])
+        self.assertIn('--no-session-persistence', run.call_args.args[0])
+        self.assertFalse(result['continuation_available'])
 
     def test_web_tools_require_boolean_opt_in_and_reach_both_cli_flags(self):
         for enabled in (False, True):

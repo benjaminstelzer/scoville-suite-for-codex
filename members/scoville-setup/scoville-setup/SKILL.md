@@ -1,6 +1,6 @@
 ---
 name: scoville-setup
-description: Show or change the selected project's Scoville Ask and Workflow settings. Use for saved models, effort, Claude limits and context rollover thresholds. Excludes running workflows, installations, updates and monitoring.
+description: Show or change the selected project's Scoville Ask and Workflow settings. Use for saved models, effort, chat pinning, Claude limits and context rollover thresholds. Excludes running workflows, installations, updates and monitoring.
 compatibility: "Codex Suite with Python 3.11+, bundled configuration helpers and filesystem access to the selected project. Configuration changes are local; this Skill starts no host tasks."
 ---
 
@@ -44,6 +44,10 @@ The object uses `ask` and/or `workflow` sections. Ask supports `advisers`,
 (`max_budget_usd`, `session_persistence`, `customizations`, `timeout_seconds`,
 `web_tools`). Workflow supports `execute` and `review` model/reasoning pairs
 per route and `context.coordinator_percent` / `context.worker_percent`.
+Both sections support `pin_threads` as a JSON boolean. It defaults to true;
+false disables pinning newly created chats for that section. Workflow includes
+the starting manager and rollover successors. Existing pins stay unchanged.
+Ask applies this setting only to native chats; Claude CLI has no sidebar row.
 Percentages are integers from 1 through 99. An adviser list replaces the old
 selection. Model/effort availability is checked by Ask or Workflow on use.
 
@@ -59,3 +63,5 @@ Offer and save only `low`, `medium`, `high` and `xhigh` reasoning levels.
 Other supported levels require a manual entry in `.scoville/config.json`.
 Show and preserve such entries when changing unrelated settings; never silently
 map them to another level. Actual model support still determines execution.
+
+{{ include: helper.policy }}

@@ -1,76 +1,75 @@
 # Native Ask chats
 
-Start the round in a normal Codex caller chat. Desktop multi-agent v2 subagents
-cannot receive send_message_to_thread deliveries; return the request to their
-parent instead of creating an adviser from that unsupported caller.
+Start the round in the calling Codex chat. It owns creation, necessary follow-up
+messages and collection of the advisers' answers through native task tools.
 
-The user must explicitly request the separate adviser chats and return messages
-required for the consultation. The package's default invocation prompt includes
-that request. These chats are the Skill's execution mechanism, not generic
-subtasks subject to a subagent default. Current subagents have no supported
-close operation, so repeated Ask rounds can exhaust their shared slots. Do not
-substitute a subagent. Resolve authorization before dispatch when another
-invocation omits the required chat or message scope.
+The Ask request covers these chats and their consultation messages under
+SKILL.md. Use that route without a separate approval step.
 
 Resolve the requested advisers once, then use create_thread directly for each.
 Preserve the selected saved project and its local checkout. Each adviser gets
-fresh context and exactly `SC · ASK · <UPPERCASE selected model ID> · <calling task title>`.
-Example: `SC · ASK · GPT-6-SOL · Plan überprüfen`. Uppercase only the displayed model
-ID; preserve the caller title and technical model parameter. Keep existing
-chat titles and follow-up identities unchanged.
-Use the actual caller ID and title; titles do not identify tasks.
+fresh context and exactly `SC-ASK-<ADVISER ID>: <calling task title>`.
+Example: `SC-ASK-ASTRA: Plan überprüfen`. Use the resolved adviser ID in uppercase
+for the title label. Preserve caller-title casing and the exact technical model
+parameter. Do not add a number or project name.
+Keep existing chat titles and follow-up identities unchanged.
+Use the actual caller ID and title and saved project ID;
+titles do not identify tasks.
 
-Build each native assignment from these parts, including in mixed native/Claude rounds:
-- The full instructions from references/adviser.md and references/native-delivery.md.
-- The actual return_to_thread_id (task ID only; keep host separate),
-  consultation_reference, mode and exact scope.
-- The user's question, necessary raw evidence and existing message authorization
-  with its actual wording and scope.
+Put the user's request, necessary raw evidence and explicit limits in a UTF-8
+file. Exclude the caller's verdict and unrelated history. Build the assignment:
 
-A question alone or filenames without their instructions are not a complete
-assignment. Exclude the caller's verdict and unrelated history.
-Native parameters are model=<resolved model>, thinking=<resolved effort>
-and target={type:project,projectId:<saved-id>,environment:{type:local}}.
+```text
+python "<ask-skill-directory>/scripts/build_adviser_prompt.py" --question-file "<question.txt>" --mode review --scope "<exact scope>" --reference "<consultation reference>" --format create --project-id <saved-id> --adviser-id <resolved-adviser-id> --caller-title "<actual caller title>" --model <resolved-model> --thinking <resolved-effort>
+```
+
+Use `--mode consultation` for advice. `CODEX_THREAD_ID`, or the optional
+`--caller-thread-id`, adds caller provenance; no callback address is required. The helper includes
+the packaged adviser and delivery rules. Parse its successful, complete stdout
+as JSON and pass that object unchanged to create_thread. It includes the prompt,
+canonical title, project and selected model/effort. A nonzero exit or truncated output stops
+dispatch; fix the named input, not the generated prompt. No manual rule assembly.
+
 The host validates availability; report failure without changing the model.
-
-Before dispatch, use the user's existing authorization for messages within
-this consultation and carry its actual wording and scope in the assignment.
-Do not ask again when it already covers the adviser and caller. An agent's
-dispatch alone grants no permission. If a required authorization is missing,
-resolve it before creating the adviser rather than leaving an undeliverable answer.
 
 Retain intended adviser/question before creation, then the returned task/host ID.
 clientThreadId is pending, not a usable threadId. Resolve pending creation with
 host-provided correlation; never retry an unknown creation or match only by title.
-No lifecycle helper or intermediate payload is required.
+When resolved config.pin_threads is true, pin each ready adviser with move_thread_to_sidebar_section using its returned
+threadId, hostId and sectionId="pinned". Resolve pending creation before pinning.
+If pinning fails, report it and retry only the pin on that existing chat.
+When false, omit pinning; do not unpin existing chats. The default is true.
 
-After dispatch, satisfy any host-required wait for progress before ending the
-caller turn. Otherwise use adviser messages to resume it. Match the actual
-sender ID and consultation_reference to the current question. Retain complete
-answers or individual failures before reporting the round. Multiple advisers may
-reply in any order, including while the caller is already active; retain each
-once and end the turn again if another answer remains pending and the host
-permits it. Add no polling loop.
+After creation or a follow-up, use wait_threads on the actual task/host IDs.
+Consume a complete returned answer directly. If the response is missing or
+truncated, read that same chat once with read_thread. Match the actual task ID
+and consultation_reference, retain the answer or concrete failure, then report
+it to the user. The adviser replies in its own chat; no callback is required.
 
-On a host completion event, resume or reported missing delivery, recover the
-existing answer/state from the retained task. Prefer one read_thread or native
-status query to avoid an extra turn. A request to resend that answer is also
-covered by existing consultation-message authorization. Keep the same reference
-and scope; recovery does not start a new review. An unresolved task remains
-pending; do not create a replacement or loop.
-`RESULT NOT DELIVERED` is a diagnostic in the adviser chat, not a wake-up event.
-Do not claim automatic recovery without an observed host event or message.
+A necessary question is an ordinary adviser response. Answer it through
+send_message_to_thread in the same chat, using available facts; ask the user
+only when the missing fact requires them. Preserve the reference while resolving
+that question. Then collect the response normally.
+
+A timeout leaves the existing consultation pending, not failed or completed.
+Do independent work if available; otherwise report the pending state and end
+the turn. Resume on a host completion event or user request by collecting from
+the retained chat. Do not poll, start a timer, duplicate creation or request a
+resend of an answer already present. For multiple advisers, retain each result
+once and keep only unfinished advisers pending.
 
 ## Follow-ups and archival
 
 For an authorized follow-up, use send_message_to_thread on the same unarchived
-chat with a new reference and question. Include the unchanged delivery destination.
+chat with a new reference and question.
 Keep its model/effort unless explicitly overridden. Retain the intended question
 before sending; an unknown send result is reconciled rather than sent again.
 Never silently replace or unarchive a missing/archived adviser.
 
-Leave successful advisers open. Explicit archival consent in that adviser chat,
-an authorized cleanup, or an observed access/permission failure may archive the
-exact task after its answer/failure is retained. Call set_thread_archived directly
-once for that exact ID. No confirmation message or archival check follows.
+The caller owns the post-review question and closes sessions under SKILL.md's
+review-closing rule. After retaining the answer, call set_thread_archived once
+with archived=true and the exact adviser threadId and hostId. Never archive the
+calling chat or send the adviser another question about archival. No receipt
+or archival check follows. Ordinary consultations stay open unless the user
+requests closure or cleanup.
 Report an explicit tool error if returned, without changing permissions or retrying.

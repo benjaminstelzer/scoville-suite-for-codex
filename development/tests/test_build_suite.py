@@ -26,6 +26,8 @@ class BuildTests(unittest.TestCase):
             if not relative:
                 continue
             path = ROOT / relative.decode('utf-8')
+            if not path.exists():  # A tracked file may be deleted or renamed in this change.
+                continue
             try:
                 text = path.read_text(encoding='utf-8')
             except UnicodeDecodeError:

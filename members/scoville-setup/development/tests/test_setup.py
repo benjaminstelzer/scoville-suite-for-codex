@@ -41,6 +41,15 @@ class SetupTests(unittest.TestCase):
             self.assertEqual(shown["effective"]["workflow"]["context"],
                              {"coordinator_percent": 40, "worker_percent": 60})
             self.assertFalse((project / ".scoville").exists())
+            self.assertTrue(shown['effective']['ask']['pin_threads'])
+            self.assertTrue(shown['effective']['workflow']['pin_threads'])
+            result, saved = run('set', {'ask': {'pin_threads': False}, 'workflow': {'pin_threads': False}})
+            self.assertEqual(result.returncode, 0, result.stdout)
+            self.assertFalse(saved['effective']['ask']['pin_threads'])
+            self.assertFalse(saved['effective']['workflow']['pin_threads'])
+            result, saved = run('set', {'ask': {'pin_threads': True}})
+            self.assertTrue(saved['effective']['ask']['pin_threads'])
+            self.assertFalse(saved['effective']['workflow']['pin_threads'])
             result, saved = run("set", {"ask": {"claude": {"timeout_seconds": 2400}},
                                         "workflow": {"context": {"worker_percent": 82}}})
             self.assertEqual(result.returncode, 0, result.stderr)
@@ -71,6 +80,8 @@ class SetupTests(unittest.TestCase):
             self.assertEqual(saved["effective"]["ask"]["presets"]["astra"]["effort"], "ultra")
             before = path.read_bytes()
             for patch in ({"ask": {"claude": {"timeout_seconds": 0}}},
+                          {'ask': {'pin_threads': 'false'}},
+                          {'workflow': {'pin_threads': 0}},
                           {"ask": {"presets": {"sol": {"model": False}}}},
                           {"workflow": {"context": {"worker_percent": True}}},
                           {"workflow": {"execute": {"low": {"reasoning": "bad"}}}},
@@ -94,6 +105,12 @@ class SetupTests(unittest.TestCase):
                                     text=True, encoding="utf-8", capture_output=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(json.loads(result.stdout)["config"]["claude"]["timeout_seconds"], 2400)
+            self.assertTrue(json.loads(result.stdout)['config']['pin_threads'])
+            resolver = base / 'scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/resolve_model_pair.py'
+            result = subprocess.run([sys.executable, str(resolver), '--show-config', '--project-root', str(project)],
+                                    capture_output=True, text=True, encoding='utf-8')
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertFalse(json.loads(result.stdout)['config']['pin_threads'])
             checkpoint = base / "scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/check_context_checkpoint.py"
             result = subprocess.run([sys.executable, "-B", str(checkpoint), "--role", "executor",
                                      "--project-root", str(project)], capture_output=True,

@@ -26,6 +26,9 @@ remain supported, including the unchanged Ask Claude interface.
 ask_settings.py, scoville_config.py and ask_claude.py are imported modules, not
 separate commands. Use the bundled ask.py from this installed package.
 
+config.pin_threads controls pinning new native adviser chats. Default true;
+set ask.pin_threads=false through Setup to disable it. Preserve existing pins.
+
 The selected project root owns `.scoville/config.json`. Its `ask` section
 overrides this Skill's defaults. Missing files or fields use those defaults.
 Reads never create a file and never search parent directories.
@@ -43,6 +46,7 @@ Shipped settings, generated from their canonical file:
 ```json
 {
   "schema_version": 1,
+  "pin_threads": true,
   "advisers": ["astra"],
   "presets": {
     "astra": {"route": "native", "model": "gpt-6-astra", "effort": "high"},
@@ -73,7 +77,8 @@ Native availability is checked by create_thread on the actual host, not by a
 separate CLI catalog. Display resolved settings when configuration is requested.
 
 Claude-only prepare takes mode=review|consultation, question, scope, reference,
-creation_authorized and an absolute cwd, with overrides selecting only Claude
+and an absolute cwd, with overrides selecting only Claude
 advisers. It returns entries[].request unchanged for operation=claude. The Claude
-adapter, authorization, deadlines and follow-up session rules are unchanged.
+adapter, deadlines and follow-up session rules are unchanged. No separate
+authorization field is required: the explicit Ask request commissions the call.
 Native prepare and followup operations are removed; use native tools directly.

@@ -57,7 +57,7 @@ def prepare(request):
             raise ValueError(f"adviser {type(adviser['id']).__name__}.route='native' cannot use prepare; create_thread directly for this native adviser or select a claude-cli adviser")
         else:
             entry['request'] = {'operation': 'claude', 'adviser': adviser, 'claude': settings['claude'],
-                'prompt': prompt, 'reference': ref, 'scope': scope, 'cwd': request.get('cwd'), 'authorized': request.get('creation_authorized')}
+                'prompt': prompt, 'reference': ref, 'scope': scope, 'cwd': request.get('cwd')}
         entries.append(entry)
     return {'mode': mode, 'entries': entries}
 
@@ -68,8 +68,6 @@ def claude(request):
     require(not missing, f'request is missing required fields {missing}; include adviser and claude settings from a prepared request')
     require(isinstance(request['adviser'], dict), 'request.adviser must be an object; use the adviser object from prepare output')
     require(isinstance(request['claude'], dict), 'request.claude must be an object; use the claude settings from prepare output')
-    require(request.get('authorized') is True,
-            'Claude consultation requires authorization: request.authorized must be true; obtain explicit authorization, then set authorized=true')
     adviser, config = request['adviser'], request['claude']
     require(adviser.get('route') == 'claude-cli',
             f"request.adviser.route={type(adviser.get('route')).__name__} must be 'claude-cli' for this operation; provide a Claude CLI adviser")

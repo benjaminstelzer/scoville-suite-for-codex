@@ -25,9 +25,9 @@ once the Skill is loaded.
 Task titles identify the work and role:
 
 ```text
-SC · MNGR · 2 · PLAN-0011
-SC · WORK · 3 · W-010/STEPS-1-3
-SC · REVW · 3 · W-010/STEPS-1-3
+SC-MGR-2: My project · PLAN-0011
+SC-WRK-3: My project · PLAN-0011/W-010/steps-1-3
+SC-REV-3: My project · PLAN-0011/W-010/steps-1-3
 ```
 
 Manager numbers count coordinators within a run. Every new worker gets the next
@@ -35,9 +35,9 @@ worker number, including rollover and correction assignments. Reviewers use the
 number of the worker whose final result triggers their review. A reviewer rollover
 keeps that number. A grouped review's title shows the full reviewed Step range.
 
-Titles show the Plan or Work Item and assigned range: `STEP-2` or `STEPS-1-3`.
+Titles show the Plan, Work Item and assigned range: `step-2` or `steps-1-3`.
 A whole Work Item shows its full Step range, or no suffix when it has no Steps.
-Uppercase applies to titles only.
+Only the role prefix is uppercase; project names and inserted content keep their casing.
 
 ### Configuration
 
@@ -45,6 +45,20 @@ To change the defaults, use Scoville Setup to inspect or save project settings i
 `.scoville/config.json`. Under `workflow`, `execute.CLASS` and `review.CLASS`
 select model/reasoning pairs, and `context` sets rollover thresholds. Missing
 values use the bundled defaults. Starting a run creates no configuration file.
+
+### Pin chats
+
+Workflow pins the manager, workers, reviewers and rollover successors by default.
+Use Scoville Setup before a run to turn this off for the project:
+
+```text
+Use Scoville Setup to disable pinning for Workflow in this project.
+```
+
+Setup saves `workflow.pin_threads: false` in `.scoville/config.json`. Ask has
+its own `ask.pin_threads` switch. Both default to `true` and can be enabled
+again through Setup. These settings control new pin operations; existing pins
+are not removed. Claude CLI sessions have no Codex sidebar entry.
 
 Default rollover triggers are at or above 40% context usage for the coordinator
 and strictly above 60% for workers and reviewers. The Plan records progress;

@@ -56,9 +56,9 @@ def apply(project_root: Path, patch: dict) -> dict:
         if key in patch and not isinstance(patch[key], dict):
             raise ValueError(f"patch.{key} must be an object; provide nested settings as a JSON object")
     if "workflow" in patch:
-        unknown = sorted(set(patch["workflow"]) - {"execute", "review", "context"})
+        unknown = sorted(set(patch["workflow"]) - {"execute", "review", "context", "pin_threads"})
         if unknown:
-            raise ValueError(f"patch.workflow has unsupported fields {unknown}; Setup accepts execute, review and context")
+            raise ValueError(f"patch.workflow has unsupported fields {unknown}; Setup accepts execute, review, context and pin_threads")
     validate_setup_choices(patch)
     current = read_config(project_root)
     proposed = merge(current, patch)

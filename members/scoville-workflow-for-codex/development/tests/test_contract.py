@@ -32,6 +32,18 @@ import resolve_model_pair as model_resolver
 import build_dispatch_prompt as prompt_builder
 
 class NativeWorkflowContractTests(unittest.TestCase):
+    def test_configuration_mode_and_model_mode_are_exclusive(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = [sys.executable, str(MODEL_RESOLVER), '--project-root', directory]
+            for extra in ([], ['--show-config', '--role', 'executor']):
+                failed = subprocess.run(base + extra, text=True, encoding='utf-8', capture_output=True)
+                self.assertNotEqual(failed.returncode, 0)
+                self.assertIn('usage:', failed.stderr)
+                self.assertIn('--show-config', failed.stderr)
+            corrected = subprocess.run(base + ['--show-config'], text=True, encoding='utf-8', capture_output=True)
+            self.assertEqual(corrected.returncode, 0, corrected.stderr)
+            self.assertTrue(json.loads(corrected.stdout)['config']['pin_threads'])
+
     def test_model_resolver_rejects_malformed_user_config(self):
         source = (PACKAGE / "assets" / "workflow.toml").read_text(encoding="utf-8")
         for altered, diagnostic in (
@@ -47,7 +59,7 @@ class NativeWorkflowContractTests(unittest.TestCase):
 
     def test_models_preserve_five_routes_and_executor_overrides(self):
         config = model_resolver.load_config(PACKAGE / 'assets/workflow.toml', PACKAGE)
-        self.assertEqual(set(config), {'schema_version', 'context', 'execute', 'review'})
+        self.assertEqual(set(config), {'schema_version', 'context', 'execute', 'review', 'pin_threads'})
         routes = ('ultra_low', 'low', 'medium', 'high', 'ultra_high')
         for role, table in [('executor', 'execute'), ('reviewer', 'review')]:
             self.assertEqual(set(config[table]), set(routes))
@@ -170,7 +182,10 @@ class NativeWorkflowContractTests(unittest.TestCase):
             if role == 'reviewer': inputs['executor_result'] = 'Completed. See actual diff.'
             prompt = prompt_builder.build_prompt(role, PACKAGE, 'manager', '', context, inputs)
             self.assertIn('## predecessor_thread_id\nworker-a', prompt)
-            self.assertIn('call send_message_to_thread with predecessor_thread_id as threadId', prompt)
+            self.assertTrue(prompt.startswith('FIRST ACTION'))
+            self.assertIn('call send_message_to_thread with threadId=worker-a', prompt)
+            self.assertLess(prompt.index('send_message_to_thread'), prompt.index('## Assigned unit'))
+            self.assertEqual(prompt.count('I have the information.'), 1)
             self.assertIn(data['context_handoff'], prompt)
         del data['predecessor_thread_id']
         with self.assertRaisesRegex(ValueError, '--predecessor-thread-id'):

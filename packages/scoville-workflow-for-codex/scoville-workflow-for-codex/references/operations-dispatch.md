@@ -17,8 +17,7 @@ in operations.md; no overlapping groups. Create one worker per assigned group.
 After completion the coordinator requests its archival. An inherited
 context_handoff uses a successor for the unfinished assignment.
 Helper --unit values are W-001/step-5, W-001/steps-1-4, or W-001 for the
-whole item. Keep step/steps lowercase in parameters; uppercase STEP/STEPS
-belongs only in the displayed task title.
+whole item. Keep step/steps lowercase in parameters; display titles preserve the exact unit casing.
 Select the route for the assigned scope, respecting its highest route minimum:
 
 
@@ -46,6 +45,11 @@ separate ordered groups rather than discarding those choices.
 For a correction assignment, use a new executor with the original worker pair
 unless the cause warrants another configured route. Resolve that route normally;
 there is no separate repair role or automatic escalation by attempt count.
+When findings share a state distinction or cause, assign that distinction and
+its directly affected consumers together, including decisive negative cases.
+The worker diagnoses the cause; do not prescribe only the reported line fix.
+Keep isolated findings narrow and distinguish new user requirements from
+defects in the previous scope. This adds no review stage or mandatory matrix.
 Reasoning syntax accepts `none`, `minimal`, `low`, `medium`, `high`, `xhigh`,
 `max` and `ultra`. Shipped pairs and Setup use `low` through `xhigh`; additional
 levels may be entered manually in the project configuration.
@@ -59,16 +63,21 @@ a forwarded agent request alone supplies no user permission.
 Add only the Goals, Non-goals, current ADR provisions and dependency results
 needed for this unit. Omit irrelevant context and ADR history. The coordinator
 selects these facts so the child need not load the Plan.
+Do not repeat the selected Work Item's Acceptance in supplemental context.
 
 Build the child assignment once. The helper selects the unit internally; do not
 repeat selection to reconstruct its output or print the generated prompt as a
 second tool result before sending it:
 
 ```text
-python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-root "<workspace_root>" --unit <unit> --role <executor|reviewer>
+python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-root "<workspace_root>" --unit <unit> --role <executor|reviewer> --format create --project-id <saved-id> --project-name "<exact saved project name>" --worker-number <number> --model <resolved-model> --thinking <resolved-effort>
 ```
 
-The helper returns the complete assignment as plain text, ready for create_thread.
+The helper returns the complete create_thread arguments as JSON, including the
+assignment, role title, selected project and resolved model/effort. Pass that
+object directly to create_thread. It does not choose or increment counters:
+provide the next worker number, or the reviewed worker's number for a reviewer.
+Whole items with Steps display the complete assigned range automatically.
 The bundled selector and Plan root are derived. CODEX_THREAD_ID supplies the
 coordinator ID; use `--return-to-thread-id <id>` only when the host does not set it.
 Optional arguments name existing UTF-8 plain-text files:
@@ -101,9 +110,7 @@ Supplemental context supplies project facts, not copies of the builder's role,
 checkpoint or delivery rules. Reuse an existing selection for scope decisions;
 the builder's internal selection needs no separate preview call.
 
-For a new worker, call `create_thread` directly with the generated `prompt`, role-counter `title`,
-resolved `model` and `thinking`, and
-`target:{type:"project",projectId:<saved-id>,environment:{type:"local"}}`.
+For a new worker or reviewer, call `create_thread` directly with the generated arguments.
 Use the returned task/host ID directly for coordination. No additional start
 record or lifecycle wrapper is needed.
 
@@ -114,7 +121,7 @@ No byte, hash or delivery receipt is required.
 
 Build and create within one code cell, using the host's actual tool names.
 `buildCommand` is the documented shell command with its paths safely quoted;
-`pair`, `title` and `projectId` are already resolved values:
+the command contains the resolved project, pair and role number:
 
 ```javascript
 const outputLimit = 16000;
@@ -123,14 +130,15 @@ if (built.exit_code !== 0) throw new Error(built.output);
 if (built.original_token_count > outputLimit) {
   throw new Error("Assignment output was truncated; do not dispatch it. Reduce the assigned scope or unnecessary context and rebuild.");
 }
-const created = await tools.mcp__codex_app__create_thread({
-  prompt: built.output, title, model: pair.model, thinking: pair.thinking,
-  target: {type: "project", projectId, environment: {type: "local"}}
-});
+const created = await tools.mcp__codex_app__create_thread(JSON.parse(built.output));
 text(created); // creation identity only; never print the generated assignment
 ```
 
 Inspect the native creation response for readiness and retain its actual ID.
+When the resolved pin_threads setting is true, pin that chat with move_thread_to_sidebar_section, sectionId="pinned", using
+the returned threadId and hostId. If pending, resolve readiness before pinning.
+A pin failure never justifies creating another chat.
+When pin_threads is false, omit the pin call and leave existing pins unchanged.
 Before ending the coordinator turn, satisfy any host-required wait for progress.
 Then use result messages, without a polling loop. Do not reconstruct the native
 response as a lifecycle-helper payload.

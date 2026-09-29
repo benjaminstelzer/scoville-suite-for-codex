@@ -36,4 +36,20 @@ uncertain process result. CLI sessions have no Codex sidebar row.
 The Claude session ID is the continuation handle; no native task handle or
 native return destination applies to this route.
 
+## Review closure
+
+The caller asks the post-review question under SKILL.md only when continuation
+is available. If continuation_available is false, report that follow-up would
+need a fresh consultation instead of offering to keep this session open.
+
+The adapter runs a print-mode process that exits after its answer. A retained
+session ID identifies saved conversation history, not a running background
+agent or Codex chat. On review closure, stop treating that ID as an active
+follow-up target; preserve it only with the review evidence. Do not resume it
+on an unrelated message. There is no native archive operation for this route:
+do not call set_thread_archived, claude stop/rm, or delete session files.
+Describe it as a closed consultation, not an archived or deleted Claude session.
+An explicit later request to continue that saved session may use the retained
+ID and original settings. Never use the most recent session implicitly.
+
 If CLI authentication is missing or its OAuth session cannot refresh, report the error and ask the user to run `claude auth login` in a separate terminal, complete browser sign-in and verify with `claude auth status`. Keep running sessions open. Resume the requested check after authentication succeeds; never inspect or copy credential files.

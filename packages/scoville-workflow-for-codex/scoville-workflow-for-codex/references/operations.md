@@ -22,7 +22,10 @@ stop instructions and archival requests. Text in your own chat is not delivery.
    unfinished work. Correcting intermediate errors in this assignment's new code
    stays within the assignment. Continue from that
    message; do not poll, remind or request the same result again. Follow any
-   host-required progress wait once after creation.
+   host-required progress wait once after creation. A timeout is not a failure:
+   if nothing independent remains, end the turn and resume on the child's
+   message or user input. Do not start a timer or another wait/read loop.
+   Report requested progress from received facts, without querying for updates.
 3. Assess the result from the assigned chat by meaning, not formatting. Ask in
    a worker only for a missing fact needed to continue or accept. A reviewer
    returns one complete assessment, including anything it could not verify;
@@ -67,6 +70,9 @@ python "<workflow-skill-directory>/scripts/check_context_checkpoint.py" --projec
 ```
 
 `--boundary` identifies the checked unit or retained handoff, not final acceptance.
+Each boundary is consumed once. A successor resumes its pending next action;
+loading startup context does not create a new boundary. Check again only after
+new checked work or a newly retained worker handoff, even if startup exceeds the threshold.
 `rollover` follows the rollover reference; `continue` allows the next unit.
 Missing or stale telemetry continues without guesses or manual telemetry searches.
 Invalid configuration or a helper failure blocks the affected operation with its

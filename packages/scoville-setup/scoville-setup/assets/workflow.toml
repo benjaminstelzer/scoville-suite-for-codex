@@ -1,5 +1,6 @@
 # User-editable native Codex model choices and context thresholds.
 schema_version = 1
+pin_threads = true
 
 [context]
 # Coordinator: at or above; workers: strictly above. Percent of context window.

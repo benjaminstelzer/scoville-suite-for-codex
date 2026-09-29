@@ -9,7 +9,8 @@ Here, the heat is the useful advice that remains clear when independent opinions
 ## How it works
 
 - Select advisers with their own model, effort and Codex or Claude CLI route.
-- Send independent questions and retain each conversation for follow-up.
+- A small helper combines the question, scope and adviser rules into the native start arguments, including project, model and title. Pass those arguments directly and retain each conversation for follow-up. Native chats are pinned by default; Setup can disable this with ask.pin_threads=false.
+- Advisers answer in their own chats. The calling chat collects those answers and handles necessary questions in the same adviser chat.
 - Return separate reviews or synthesize answers to a general question.
 
 ## What it enforces
@@ -36,12 +37,12 @@ WebFetch require `claude.web_tools`. Model communication always needs network ac
 
 ## Compatibility
 
-Adviser chats require Codex desktop and a saved project. Ask must be able to
-identify the calling chat to return answers. All advisers require network access
+Adviser chats require Codex desktop, a saved project and native tools to collect
+their answers. All advisers require network access
 and Python 3.11 or newer.
 
-A current Fable, Astra, SOL or Opus model is recommended. Luna was also used
-in testing.
+Requires a frontier model from the Fable, Astra, SOL or Opus families, version
+5.0 or newer. Luna was also used in testing.
 
 Codex checks whether the requested model and reasoning level are available when it creates the adviser chat. A rejected request is reported without substituting another model. Third-party models need a provider connection configured in Codex. The Claude CLI route requires installed, authenticated Claude Code. Opus 5.5 requires version 2.1.280 or newer. See “How to Ask with Claude Code” for setup.
 
@@ -73,12 +74,21 @@ Install its released Skill packages, not development templates.
 Ask naturally, for example:
 
 ```text
-Use scoville-ask-for-codex to create a separate SOL adviser chat for an independent review of this patch and return its answer here.
+Use scoville-ask-for-codex to review this patch with SOL.
 ```
 
 ```text
 Ask Fable and Claude independently how they would approach this problem, then return and compare their answers here.
 ```
+
+An Ask request includes the adviser chats and the messages needed to bring their
+answers back. You do not need to approve those steps separately.
+
+After a review, the calling chat asks whether you still need the review sessions.
+Say yes or ask a follow-up to keep them. Say no, or move to another topic without
+answering, and it archives the native review chats. Silence alone does nothing.
+Claude CLI consultations are closed for further use; saved Claude history is
+not archived or deleted. The advisers do not ask the closing question themselves.
 
 ### Configure defaults
 
@@ -94,6 +104,7 @@ model, effort and route is configurable. Current defaults:
 ```json
 {
   "schema_version": 1,
+  "pin_threads": true,
   "advisers": ["astra"],
   "presets": {
     "astra": {"route": "native", "model": "gpt-6-astra", "effort": "high"},

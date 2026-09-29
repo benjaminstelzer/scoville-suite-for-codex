@@ -30,20 +30,28 @@ def resolve(config: dict, role: str, route: str | None = None,
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--role", choices=("executor", "reviewer"), required=True)
+    parser.add_argument("--role", choices=("executor", "reviewer"))
+    parser.add_argument("--show-config", action="store_true", help="show effective Workflow settings without selecting a model")
     parser.add_argument("--route", choices=ROUTES)
     parser.add_argument("--override-model")
     parser.add_argument("--override-reasoning")
     parser.add_argument("--project-root", type=Path, default=Path.cwd())
     args = parser.parse_args()
+    if args.show_config and any((args.role, args.route, args.override_model, args.override_reasoning)):
+        parser.error('--show-config cannot be combined with role, route or model overrides; use --show-config --project-root PATH')
+    if not args.show_config and not args.role:
+        parser.error('supply --role executor|reviewer and --route CLASS, or use --show-config')
     try:
         config = load_config(Path(__file__).resolve().parents[1] / "assets" / "workflow.toml", args.project_root)
+        if args.show_config:
+            print(json.dumps({"valid": True, "config": config}, ensure_ascii=False))
+            return 0
         result = resolve(config, args.role, args.route, args.override_model,
                          args.override_reasoning)
     except (OSError, ValueError, tomllib.TOMLDecodeError) as error:
         print(json.dumps({"valid": False, "diagnostic": str(error)}, ensure_ascii=False))
         return 1
-    print(json.dumps({"valid": True, **result}, ensure_ascii=False))
+    print(json.dumps({"valid": True, **result, "pin_threads": config['pin_threads']}, ensure_ascii=False))
     return 0
 
 

@@ -1,18 +1,24 @@
 # Native answer delivery
 
-Send this consultation's answer only to the verified `return_to_thread_id`
-through `send_message_to_thread`, using the user's existing authorization for
-this consultation and the host's permission rules. The dispatch itself grants
-no permission. Include your exact task ID, `consultation_reference`, scope, answer and
-material evidence limits. Copy the supplied scope value exactly; do not paraphrase it or add a follow-up suffix. Keep the answer within 6000 characters unless more
-detail was requested. If essential content does not fit, explicitly mark it
-incomplete and request continuation; do not silently truncate.
+Return the complete answer as your final response in this adviser chat. The
+calling chat collects it through native task tools. Do not send a separate
+callback or ask for message permission.
 
-After confirmed delivery, your own final response contains only a delivery
-receipt and asks whether the user wants this adviser task archived. Do not
-repeat the answer or archive automatically. Only an explicit yes in this task
-authorizes self-archival: call set_thread_archived once for your own exact task ID
-as your last action, without a confirmation or archival check. A follow-up keeps
-this conversation and delivery destination, with a new reference.
-If you cannot send, return `RESULT NOT DELIVERED`, the reason, destination and
-complete answer here. Do not report a delivery receipt or retry automatically.
+If a material fact is missing, state the concrete question here instead of
+guessing. The caller supplies the answer in this same chat, then you continue
+the same consultation. Follow the user's scope and the host's rules.
+
+Include `consultation_reference`, the supplied scope unchanged and material
+evidence limits. Read your own task ID from `CODEX_THREAD_ID` when not already
+known and include it. If unavailable, state that limitation; the caller also
+has the actual task ID from creation. Never infer identity from a title.
+
+Keep the answer within 6000 characters unless more detail was requested. If
+essential content does not fit, explicitly mark the answer incomplete and
+name what remains; do not silently truncate or claim completion.
+
+Leave this adviser chat open after answering. The caller owns the post-review
+question and archival; do not ask whether this session is still needed or
+archive yourself merely because the review finished. An explicit user request
+to archive this chat still applies. Follow-ups preserve this chat and scope
+unless the caller explicitly supplies a new question or changed scope.

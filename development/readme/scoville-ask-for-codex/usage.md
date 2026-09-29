@@ -3,12 +3,21 @@
 Ask naturally, for example:
 
 ```text
-Use scoville-ask-for-codex to create a separate SOL adviser chat for an independent review of this patch and return its answer here.
+Use scoville-ask-for-codex to review this patch with SOL.
 ```
 
 ```text
 Ask Fable and Claude independently how they would approach this problem, then return and compare their answers here.
 ```
+
+An Ask request includes the adviser chats and the messages needed to bring their
+answers back. You do not need to approve those steps separately.
+
+After a review, the calling chat asks whether you still need the review sessions.
+Say yes or ask a follow-up to keep them. Say no, or move to another topic without
+answering, and it archives the native review chats. Silence alone does nothing.
+Claude CLI consultations are closed for further use; saved Claude history is
+not archived or deleted. The advisers do not ask the closing question themselves.
 
 ### Configure defaults
 

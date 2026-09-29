@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.8.0 - 2026-09-29
+
+- Build native assignments and manager handoffs with consistent project titles, inherited manager settings and a validated report destination.
+- Confirm takeover before reading, consume rollover boundaries once and return completed assignments without another checkpoint.
+- Deliver the full result once to the coordinator and keep the child's final confirmation short.
+- Let Scoville Setup disable automatic pinning while keeping it enabled by default.
+
 ## v0.7.3 - 2026-09-28
 
 - Keep continuation assignments focused on remaining work and its acceptance criteria, constraints and evidence. Completed implementation instructions are no longer inserted automatically.

@@ -53,8 +53,7 @@ This projection does not replace every read operation. Inventory Decision
 frontmatter and load relevant proposals separately, or all for a full audit. Read relevant dependency
 Evidence, bounded graph state, queued or paused return state, and complete
 relevant Work Items separately when the operation requires them. Keep those
-reads bounded and never widen the selector response. If Python or the selector is unavailable or fails, report its diagnostic
-and stop the selection. Do not invent partial context.
+reads bounded and never widen the selector response. Use the profile-specific Runtime helpers rule in SKILL.md when Python is unavailable. A helper failure stops selection; do not invent partial context.
 
 ## Read state outside the selector
 

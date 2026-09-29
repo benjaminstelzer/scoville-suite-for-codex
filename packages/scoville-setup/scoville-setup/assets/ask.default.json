@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "pin_threads": true,
   "advisers": ["astra"],
   "presets": {
     "astra": {"route": "native", "model": "gpt-6-astra", "effort": "high"},

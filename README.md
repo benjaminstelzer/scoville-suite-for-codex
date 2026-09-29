@@ -35,14 +35,40 @@ tools.
 
 ## Scoville Workflow for Codex
 
-Long software tasks need consistent direction, independent review and a way to
-continue when a conversation fills up. Scoville Workflow coordinates those
-responsibilities across Codex chats using a repository Plan.
+Scoville Workflow makes sense when there is a substantial Plan to execute and
+software you intend to keep maintaining. Coordination, independent reviews and
+handoffs take time and tokens. For a small fix or a one-prompt experiment, that
+effort rarely pays off. For longer AI-assisted development, it gives the work a
+structure that holds across many assignments and conversations.
 
-Workers implement bounded assignments, fresh reviewers inspect the result,
-and the coordinator records accepted work. Context handoffs preserve unfinished
-work for a successor. The workflow suits structured development and long-term
-maintenance, including larger codebases.
+Planning comes before implementation. To get the most out of Workflow, put real
+work into the Plan first: clarify requirements, dependencies and acceptance
+criteria, have it reviewed through Scoville Ask, and revise it until the material
+questions are resolved. For a complex Plan, that can mean several rounds of
+review and changes before execution starts. Good planning is a substantial part
+of software engineering. AI helps with it, but requirements, architecture and
+tradeoffs still need informed judgment. Workflow then carries that direction
+through implementation.
+
+Workers implement a defined piece of work, then fresh reviewers inspect the
+result. Reviewing at the relevant dependency boundaries helps catch mistakes
+before later Plan points build on faulty code. That makes longer sessions easier
+to manage. The coordinator records accepted progress in the Plan, so what is
+done, what remains and what was actually checked stay visible.
+
+Automatic context compaction can arrive right in the middle of ongoing work,
+without a completed work unit or a prepared handoff. Rollover moves that
+transition to a controlled work boundary. Results are checked and completed
+Plan points are recorded before the coordinator changes. The Plan is the
+backbone: the next agent knows where to continue, without reconstructing progress
+from the whole conversation. If a worker hands over within an unfinished Step,
+the handoff separates the checked parts from the work still to do.
+
+The successor starts before the conversation reaches automatic compaction.
+Smaller assignments also keep unrelated history out of worker and reviewer
+contexts. Progress stays in the Plan, and each agent loads the relevant
+instructions. Rules, Decisions and open Steps have a stable place across
+sessions.
 
 Install it through the complete Codex Suite. It requires Codex desktop's native
 task controls.
@@ -52,11 +78,12 @@ Here, the heat is the goal and accepted results kept intact across workers, revi
 ### How it works
 
 - The coordinator selects a Step, related consecutive Steps or a whole Work Item. Grouping shares setup and produces a checkable result while preserving the Plan's order.
+- Helpers build the assignments and native start arguments. Chat titles include the saved project name, role, number and assigned Plan or Steps. New chats are pinned by default; Setup can disable this with workflow.pin_threads=false.
 - Risk determines the worker's model and effort. The worker implements in the existing checkout and returns its result by message.
 - Reviews follow the project's cadence, otherwise product-code changes receive an earlier review after a defect fix or before dependent work or extensive testing, and the final review reuses earlier assessments of unchanged parts.
 - The coordinator corrects Plan findings and assigns project findings to a new worker. Material or unclear corrections receive another review.
 - Accepted changes and Plan updates enter one commit when committing is authorized.
-- At a configured context threshold, a successor continues the unfinished work in the same checkout. The coordinator checks after completed groups and worker handoffs, retaining pending work and review.
+- At a configured context threshold, a successor continues the unfinished work in the same checkout with the same model and effort read from that manager’s native settings, retaining pending work, review and unanswered questions.
 - Handoffs use direct messages. The successor confirms receipt and asks the predecessor to archive itself, then continues. Archive errors are reported without blocking accepted work.
 - After receiving a worker or reviewer result, the coordinator asks that chat to archive itself. Reviewers report their findings and anything they could not verify in one complete response.
 
@@ -103,6 +130,7 @@ for delivery, permissions and recovery.
 ### What it costs
 
 - Worker and reviewer chats, handoffs and Plan updates consume tokens and time.
+- Repeated input may largely use cached tokens when caching applies, but large contexts still add processing time. Handoffs take time too; avoiding automatic compaction can partly offset that work.
 - Coordination overhead varies with assignment size, review and handoffs. The retained reports do not establish a typical percentage for the current Workflow. Cached input is included in token counts and does not by itself establish monetary cost.
 - Native chat and mobile constraints are summarized in [Codex limitations](https://github.com/benjaminstelzer/scoville-suite-for-codex#codex-limitations).
 - See a [recorded workflow sequence](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex#one-recorded-workflow-sequence) and its [historical evidence limits](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex#recorded-use-and-limits).
@@ -164,12 +192,29 @@ The full instructions are in [SKILL.md](https://github.com/benjaminstelzer/scovi
 
 ## Scoville Plan
 
-Work spread across conversations needs a durable record of the goal, decisions
-and next action. Scoville Plan keeps those facts in the repository, with Work
-Items that describe resumable outcomes and evidence required for completion.
+Before an agent starts implementing, it should be clear what it is supposed to
+achieve and how the result will be checked. A Plan makes the goal, dependencies
+and acceptance criteria explicit. That matters in AI-assisted software
+engineering, especially when the work spans several conversations.
 
-Use it for dependent work and long-running projects. It follows the project's
-existing planning system and keeps small tasks proportionate.
+Scoville Plan keeps those facts in the repository: Work Items, relevant
+Decisions, accepted results and the next action. The next agent can pick up the
+work from there. You can see what is finished, why a choice was made and what
+still needs checking, without piecing it together from an entire chat.
+
+For substantial work, the Plan deserves substantial attention before execution.
+Clarify requirements, check dependencies and get independent feedback, for
+example through Scoville Ask. Revise the Plan until the material questions are
+settled. Complex work may need several rounds of review and changes before
+Scoville Workflow starts implementing it. Its coordination overhead makes sense
+when the size and dependencies justify it. Good planning is a substantial part
+of software engineering. AI helps with the work, while goals, architecture and
+tradeoffs still need informed judgment.
+
+When implementation shows that an assumption was wrong, update the Plan. Its
+job is to preserve direction while the work develops. Use it for dependent work
+and long-term maintenance, within the project's existing planning system. Keep
+small tasks small. A large Plan for a contained fix only adds work.
 
 Here, the heat is the direction another agent can recover: the goal, decisions, current state and next action.
 
@@ -294,7 +339,8 @@ Here, the heat is the useful advice that remains clear when independent opinions
 ### How it works
 
 - Select advisers with their own model, effort and Codex or Claude CLI route.
-- Send independent questions and retain each conversation for follow-up.
+- A small helper combines the question, scope and adviser rules into the native start arguments, including project, model and title. Pass those arguments directly and retain each conversation for follow-up. Native chats are pinned by default; Setup can disable this with ask.pin_threads=false.
+- Advisers answer in their own chats. The calling chat collects those answers and handles necessary questions in the same adviser chat.
 - Return separate reviews or synthesize answers to a general question.
 
 ### What it enforces

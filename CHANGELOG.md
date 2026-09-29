@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.2.0 - 2026-09-29
+
+- Keep manual no-Python procedures separately loadable in the general edition. Codex requires the packaged helpers, with concrete diagnostics for invalid calls.
+- Continue explicitly requested Plan execution through eligible work while preserving recorded stops and unresolved Decisions.
+
+- Build Workflow assignments and rollover prompts with consistent project titles, the manager's own model settings and an exact report destination. Successors take over before reading and do not repeat an inherited checkpoint boundary.
+- Keep complete worker and reviewer results in the message to the manager, with a short delivery confirmation in the child chat. Finished assignments return without another checkpoint.
+- Keep Ask advisers available for follow-up. The caller collects native answers and owns the closing question, while Claude follow-ups retain the same session.
+- Add separate Setup switches for Ask and Workflow chat pinning, both enabled by default.
+
+
 
 ## v2.1.9 - 2026-09-28
 
@@ -31,12 +42,6 @@
 
 - Start Workflow from its Skill entry prompt in the current chat, without a setup gate or a separate launcher coordinator. Setup remains optional for inspecting or changing settings.
 
-
-## v2.1.4 - 2026-09-28
-
-- Add an edition guide and Skill overview, and collapse upgrade and development details.
-- Clarify examples and remove repeated name explanations.
-- Align Workflow review and handoff descriptions, add a recorded sequence and historical evidence, and consolidate Codex limitations.
 
 ## v2.1.3 - 2026-09-28
 
@@ -70,10 +75,6 @@
 
 - Review completed Workflow Work Items at the project-defined boundary and reuse available workers for corrections.
 - Keep formal Plan updates and related test repairs within their existing Work Item, with concise evidence and retained history.
-
-## v2.0.5 - 2026-09-27
-
-- Explain how to keep personal conventions in `AGENTS.md` for Codex or `CLAUDE.md` for Claude Code.
 
 ## v2.0.4 - 2026-09-27
 

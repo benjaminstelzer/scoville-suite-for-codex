@@ -1,13 +1,39 @@
 # Scoville Workflow for Codex
 
-Long software tasks need consistent direction, independent review and a way to
-continue when a conversation fills up. Scoville Workflow coordinates those
-responsibilities across Codex chats using a repository Plan.
+Scoville Workflow makes sense when there is a substantial Plan to execute and
+software you intend to keep maintaining. Coordination, independent reviews and
+handoffs take time and tokens. For a small fix or a one-prompt experiment, that
+effort rarely pays off. For longer AI-assisted development, it gives the work a
+structure that holds across many assignments and conversations.
 
-Workers implement bounded assignments, fresh reviewers inspect the result,
-and the coordinator records accepted work. Context handoffs preserve unfinished
-work for a successor. The workflow suits structured development and long-term
-maintenance, including larger codebases.
+Planning comes before implementation. To get the most out of Workflow, put real
+work into the Plan first: clarify requirements, dependencies and acceptance
+criteria, have it reviewed through Scoville Ask, and revise it until the material
+questions are resolved. For a complex Plan, that can mean several rounds of
+review and changes before execution starts. Good planning is a substantial part
+of software engineering. AI helps with it, but requirements, architecture and
+tradeoffs still need informed judgment. Workflow then carries that direction
+through implementation.
+
+Workers implement a defined piece of work, then fresh reviewers inspect the
+result. Reviewing at the relevant dependency boundaries helps catch mistakes
+before later Plan points build on faulty code. That makes longer sessions easier
+to manage. The coordinator records accepted progress in the Plan, so what is
+done, what remains and what was actually checked stay visible.
+
+Automatic context compaction can arrive right in the middle of ongoing work,
+without a completed work unit or a prepared handoff. Rollover moves that
+transition to a controlled work boundary. Results are checked and completed
+Plan points are recorded before the coordinator changes. The Plan is the
+backbone: the next agent knows where to continue, without reconstructing progress
+from the whole conversation. If a worker hands over within an unfinished Step,
+the handoff separates the checked parts from the work still to do.
+
+The successor starts before the conversation reaches automatic compaction.
+Smaller assignments also keep unrelated history out of worker and reviewer
+contexts. Progress stays in the Plan, and each agent loads the relevant
+instructions. Rules, Decisions and open Steps have a stable place across
+sessions.
 
 Install it through the complete Codex Suite. It requires Codex desktop's native
 task controls.
@@ -17,11 +43,12 @@ Here, the heat is the goal and accepted results kept intact across workers, revi
 ## How it works
 
 - The coordinator selects a Step, related consecutive Steps or a whole Work Item. Grouping shares setup and produces a checkable result while preserving the Plan's order.
+- Helpers build the assignments and native start arguments. Chat titles include the saved project name, role, number and assigned Plan or Steps. New chats are pinned by default; Setup can disable this with workflow.pin_threads=false.
 - Risk determines the worker's model and effort. The worker implements in the existing checkout and returns its result by message.
 - Reviews follow the project's cadence, otherwise product-code changes receive an earlier review after a defect fix or before dependent work or extensive testing, and the final review reuses earlier assessments of unchanged parts.
 - The coordinator corrects Plan findings and assigns project findings to a new worker. Material or unclear corrections receive another review.
 - Accepted changes and Plan updates enter one commit when committing is authorized.
-- At a configured context threshold, a successor continues the unfinished work in the same checkout. The coordinator checks after completed groups and worker handoffs, retaining pending work and review.
+- At a configured context threshold, a successor continues the unfinished work in the same checkout with the same model and effort read from that manager’s native settings, retaining pending work, review and unanswered questions.
 - Handoffs use direct messages. The successor confirms receipt and asks the predecessor to archive itself, then continues. Archive errors are reported without blocking accepted work.
 - After receiving a worker or reviewer result, the coordinator asks that chat to archive itself. Reviewers report their findings and anything they could not verify in one complete response.
 
@@ -68,6 +95,7 @@ for delivery, permissions and recovery.
 ## What it costs
 
 - Worker and reviewer chats, handoffs and Plan updates consume tokens and time.
+- Repeated input may largely use cached tokens when caching applies, but large contexts still add processing time. Handoffs take time too; avoiding automatic compaction can partly offset that work.
 - Coordination overhead varies with assignment size, review and handoffs. The retained reports do not establish a typical percentage for the current Workflow. Cached input is included in token counts and does not by itself establish monetary cost.
 - Native chat and mobile constraints are summarized in [Codex limitations](https://github.com/benjaminstelzer/scoville-suite-for-codex#codex-limitations).
 - See a [recorded workflow sequence](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex#one-recorded-workflow-sequence) and its [historical evidence limits](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex#recorded-use-and-limits).
@@ -172,9 +200,9 @@ once the Skill is loaded.
 Task titles identify the work and role:
 
 ```text
-SC · MNGR · 2 · PLAN-0011
-SC · WORK · 3 · W-010/STEPS-1-3
-SC · REVW · 3 · W-010/STEPS-1-3
+SC-MGR-2: My project · PLAN-0011
+SC-WRK-3: My project · PLAN-0011/W-010/steps-1-3
+SC-REV-3: My project · PLAN-0011/W-010/steps-1-3
 ```
 
 Manager numbers count coordinators within a run. Every new worker gets the next
@@ -182,9 +210,9 @@ worker number, including rollover and correction assignments. Reviewers use the
 number of the worker whose final result triggers their review. A reviewer rollover
 keeps that number. A grouped review's title shows the full reviewed Step range.
 
-Titles show the Plan or Work Item and assigned range: `STEP-2` or `STEPS-1-3`.
+Titles show the Plan, Work Item and assigned range: `step-2` or `steps-1-3`.
 A whole Work Item shows its full Step range, or no suffix when it has no Steps.
-Uppercase applies to titles only.
+Only the role prefix is uppercase; project names and inserted content keep their casing.
 
 ### Configuration
 
@@ -192,6 +220,20 @@ To change the defaults, use Scoville Setup to inspect or save project settings i
 `.scoville/config.json`. Under `workflow`, `execute.CLASS` and `review.CLASS`
 select model/reasoning pairs, and `context` sets rollover thresholds. Missing
 values use the bundled defaults. Starting a run creates no configuration file.
+
+### Pin chats
+
+Workflow pins the manager, workers, reviewers and rollover successors by default.
+Use Scoville Setup before a run to turn this off for the project:
+
+```text
+Use Scoville Setup to disable pinning for Workflow in this project.
+```
+
+Setup saves `workflow.pin_threads: false` in `.scoville/config.json`. Ask has
+its own `ask.pin_threads` switch. Both default to `true` and can be enabled
+again through Setup. These settings control new pin operations; existing pins
+are not removed. Claude CLI sessions have no Codex sidebar entry.
 
 Default rollover triggers are at or above 40% context usage for the coordinator
 and strictly above 60% for workers and reviewers. The Plan records progress;
