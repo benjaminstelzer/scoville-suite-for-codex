@@ -80,7 +80,7 @@ class NativeWorkflowContractTests(unittest.TestCase):
                              '--role', role, '--route', route],
                             text=True, encoding='utf-8', capture_output=True)
                         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-                        self.assertEqual(json.loads(result.stdout), dict(valid=True, **pair, pin_threads=True))
+                        self.assertEqual(json.loads(result.stdout), dict(valid=True, **pair))
         pair = model_resolver.resolve(config, 'executor', 'low', 'custom', 'high')
         self.assertEqual(pair, dict(model='custom', thinking='high', route='low'))
         self.assertEqual(model_resolver.resolve(config, 'reviewer', 'low', 'custom', 'medium'),

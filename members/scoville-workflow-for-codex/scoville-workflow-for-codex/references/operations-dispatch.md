@@ -79,8 +79,8 @@ role task name, fork_turns="none", model and reasoning_effort.
 Every newly built native assignment has an automatic unique name suffix,
 including repeated reviews of the same worker. This changes no role label,
 scope or model. Use that generated name without requesting user permission.
-Retain the complete arguments for a capacity retry; never rebuild them to retry
-an uncertain spawn. Use the resolved
+Retain the complete arguments; do not repeat a failed or uncertain spawn
+automatically. Use the resolved
 pair explicitly; the host cannot override models with an all-history fork.
 The message retains the project, canonical Plan ID and complete assigned range.
 Provide the next worker number, or the reviewed worker's number for a reviewer.
@@ -133,14 +133,12 @@ whitespace; never paraphrase supplemental text. Do not print or rebuild another
 copy. Stop on truncated output or a helper error; never dispatch a partial prompt.
 
 Retain the exact returned agent ID with its role, unit and launched pair. Require
-one unambiguous identity. An unknown spawn state or non-capacity tool error is
-BLOCKED. Inspect only known identities with `list_agents`, without another spawn
-or chat. A definite capacity refusal with no created agent follows
-[agent capacity](agent-capacity.md): retain the unchanged arguments, request
-runner-owned cleanup and retry once only after its matching permission. No new
-writer starts until prior writes are quiescent.
-Native agents have no sidebar pins or archival step. `pin_threads` remains a
-compatible saved setting but has no effect on these agents.
+one unambiguous identity. A failed or uncertain spawn, including capacity refusal,
+is BLOCKED. Preserve the diagnostic, retained results and unfinished assignment
+under operations.md. Inspect only known identities with `list_agents`; no
+automatic retry, completed-agent cleanup or replacement chat. No new writer
+starts until prior writes are quiescent.
+Native agents have no sidebar pins or archival step.
 
 A fresh child starts its assignment on spawn. A recovery child first completes
 the manager receipt/release gate in operations-rollover.md. READY/START belongs

@@ -28,6 +28,8 @@ last displayed key, including across takeover and stop/resume. A different key
 prints exactly the two display lines. The same key prints nothing, including
 review, repair, repeated notifications and a changed scope at the same point.
 The manager retains an authorized scope change for the next point display.
+Regenerate cosmetic display drift from retained project/scope values; clarify
+a substantive conflict before dependent work.
 The progress helper also supports `--previous-key <last-key>` and returns
 `changed: false` with empty `text` for the same project/Plan/point.
 

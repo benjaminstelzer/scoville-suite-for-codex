@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.1 - 2026-10-01
+
+- Accept a complete native adviser final without a separate startup acknowledgement. Keep incomplete results open and route necessary follow-ups to the same exact handle.
+- Remove automatic capacity cleanup and retry; keep completed answers, pending advisers and the actual failure diagnostic.
+- Keep Claude consultations available for an explicitly requested follow-up without an automatic closing question.
+
 ## v1.2.0 - 2026-10-01
 
 - Use native Codex agents for independent advisers and collect their complete final answers in the caller. Separate sidebar chats are no longer required.

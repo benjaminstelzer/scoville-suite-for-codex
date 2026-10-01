@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.8.2 - 2026-10-01
+
+- Remove automatic capacity cleanup and retry. Retain the actual diagnostic and continuation state; preserve necessary follow-ups and verified handoffs.
+- Keep the current Plan point and Step progress clear through pause and continuation, while distinguishing a display mismatch from a changed assignment.
+
 ## v0.8.1 - 2026-10-01
 
 - Save active Work Item and Step progress before worker execution, including corrections and recovery.

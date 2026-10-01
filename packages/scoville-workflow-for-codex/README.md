@@ -126,7 +126,7 @@ handoff. They do not establish complete Luna coverage of the agent lifecycle.
 The run stops when the host cannot confirm agent identity, deliver a required
 message or establish who may write. It does not substitute chats, another model
 or an assumed close operation. Queued messages can keep completed agents resident.
-Bounded cleanup can help, but available agent capacity can still limit a run.
+Available agent capacity can still limit a run.
 
 Context rollover uses fresh Codex measurements tied to the actual agent.
 Without usable telemetry, bounded work continues without claiming a measured

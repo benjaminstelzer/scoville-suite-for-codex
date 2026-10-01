@@ -19,5 +19,5 @@ raw transcripts. Include reported model and effort only when the host exposes
 them. Native delivery follows the additional delivery contract; CLI returns its
 answer through the CLI result.
 
-Do not ask whether the review session is still needed. For Claude sessions, the calling chat
-owns that question and session closure. Native agents need no closure question.
+Do not ask whether the review session is still needed. End with the answer;
+the caller retains the handle and requests any follow-up.

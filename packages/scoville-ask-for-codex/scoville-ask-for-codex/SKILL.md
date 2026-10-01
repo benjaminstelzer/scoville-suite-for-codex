@@ -47,8 +47,8 @@ Respect explicit user limits and host requirements. Native Ask uses direct
 collaboration tools in the calling chat.
 
 Native advisers end their turn with the complete answer. Do not acknowledge an
-already completed adviser. A definite capacity refusal permits only the bounded
-cleanup and unchanged retry under [native operation](references/native.md).
+already completed adviser. Failed starts remain unresolved under
+[native operation](references/native.md).
 
 ## Ask and collect
 
@@ -61,40 +61,27 @@ cleanup and unchanged retry under [native operation](references/native.md).
 3. For native advisers, build the assignment and call collaboration.spawn_agent
    directly under native operation. Use fresh context and the selected settings.
    For Claude, use the existing prepare/claude route. Dispatch only selected advisers.
-4. Retain each adviser’s handle, settings, reference and scope. Check startup and
-   collect complete matching answers under its route’s rules. Necessary questions
+4. Retain each adviser’s handle, settings, reference and scope. Collect complete matching answers under its route’s rules. Necessary questions
    and follow-ups use that same handle. Keep partial answers and failures visible;
-   do not silently replace an adviser. A receipt alone is not an answer.
+   do not silently replace an adviser. A returned handle alone is not an answer.
 5. Present answers with material evidence and limits. For a consultation,
    synthesize agreement, differences and useful conclusions without inventing
    consensus. No mandatory second exchange round. For reviews, distinguish
    findings from untested concerns and verify findings before authorized fixes.
 
 Retain requested and actually reported model/effort separately; unavailable
-telemetry is unknown. Keep adviser handles for follow-ups; Claude review closure follows below.
+telemetry is unknown. Keep exact adviser handles for authorized follow-ups.
 Resume exact retained handles with their previous settings unless explicitly
 overridden; identify a newly authorized fresh consultation as fresh.
 
-## After a completed Claude review
+## Follow-up after completion
 
-For Claude sessions with continuation available, the calling chat presents the
-review and asks once whether those Claude sessions are still needed. The advisers
-do not ask this question. Keep the exact Claude session IDs and pending question in conversation
-context; no separate state file is needed. Ask only after the requested review
-round is complete, not while an adviser or requested follow-up is still working.
-
-- Yes, or a request using the review session: retain it and handle the follow-up.
-- No: close the sessions that are no longer needed.
-- The next user message addresses something else without answering: close the
-  pending review sessions first, then handle that message. Do not ask again.
-- No new user message: leave the question pending; no timer or automatic action.
-
-Apply an explicit choice per adviser when the user distinguishes sessions.
-Close the Claude consultation as described in Claude operation; do not claim
-native archival. Native agent handles remain available under native operation.
-Preserve review results and evidence.
-An explicit later request may retain/reopen a session under its route's rules.
-This closing rule applies to reviews, not ordinary consultations.
+Retain the answer, evidence, exact native handle or Claude session ID and
+settings. Resume only for an explicitly requested follow-up. Do not ask whether
+a completed review should stay open or close it when the user changes topic.
+Claude print-mode exits after its answer; a retained ID is saved history,
+not a running agent. Follow the original route and never select the most recent
+session implicitly.
 
 All Skills included in this suite must be installed and enabled. Use the
 applicable owner without checking sibling availability. Load only instructions

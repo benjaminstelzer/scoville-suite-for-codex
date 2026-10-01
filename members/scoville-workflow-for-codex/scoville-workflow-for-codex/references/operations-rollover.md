@@ -89,7 +89,6 @@ constraints, coordination authority and next action. Include any pending
 user question, answer state and source identity. Keep a received answer; never
 repeat a question solely because of takeover. The consumed checkpoint boundary
 must be named so the successor resumes its pending action rather than rechecking.
-
 Send the runner only `SUCCESSOR_REQUEST <own-agent-id>` plus the explicit manager
 model/effort if one is in force. If the runner needs your launched pair because
 its own settings changed, return that pair from known host metadata, never a

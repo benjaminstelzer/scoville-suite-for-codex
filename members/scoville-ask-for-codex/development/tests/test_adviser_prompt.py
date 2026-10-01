@@ -55,7 +55,7 @@ class AdviserPromptTests(unittest.TestCase):
         self.assertIn('scope: Patch ä', data['message'])
         self.assertIn('Prüfe café ✓', data['message'])
         self.assertIn('Do not create, edit, move or delete', data['message'])
-        self.assertIn('collaboration.send_message', data['message'])
+        self.assertNotIn('collaboration.send_message', data['message'])
         self.assertIn('complete answer as your final agent response', data['message'])
         self.assertNotIn('calling_thread_id:', data['message'])
         self.assertNotIn('not-a-chat-uuid', data['message'])

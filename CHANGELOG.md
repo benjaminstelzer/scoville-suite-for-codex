@@ -3,6 +3,13 @@
 
 
 
+## v2.3.5 - 2026-10-01
+
+- Keep Workflow progress and verified manager handoffs tied to the actual Plan state.
+- Remove automatic capacity cleanup and retry from Workflow and Ask. Preserve diagnostics, results and continuation; recommend a Codex per-session limit of 256 for multiple Workflows.
+- Accept complete Ask adviser finals without startup acknowledgements and keep incomplete answers available for exact-handle follow-up.
+- Show Plan Viewer 1.4.2 progress and current work in a compact, collapsible overview. Clarify Code, Cleanup and UI checks at their existing owners.
+
 ## v2.3.4 - 2026-10-01
 
 - Record active Work Items and Steps before worker execution, and keep progress current inside sequential assignments.
@@ -11,13 +18,6 @@
 - Name the Workflow chat `SC-WFL PLAN-NNNN` at startup, using its actual Plan ID.
 - Give each new native agent a unique name automatically, including repeated reviews of one worker.
 
-## v2.3.3 - 2026-10-01
-
-- Explain Workflow through the user's progress, questions and completion report. Keep the flowchart focused on implementation, review, corrections and continuation.
-
-## v2.3.2 - 2026-10-01
-
-- Shorten the Workflow README by removing the recorded run sections. Keep the development account focused on what worked and what failed.
 
 
 ## v2.3.1 - 2026-10-01

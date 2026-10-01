@@ -87,8 +87,8 @@ python "<workflow-skill-directory>/scripts/build_manager_handoff.py" --mode succ
 
 The builder returns complete `spawn_agent` arguments with `fork_turns="none"`.
 Each new manager assignment has an automatic unique name suffix, even in a new
-run with the same manager number. Use that name without asking the user; retain
-the same complete arguments for a capacity retry and never rebuild an uncertain spawn.
+run with the same manager number. Use that name without asking the user.
+Retain the returned arguments and never repeat a failed or uncertain spawn automatically.
 Parse complete successful stdout and pass the object unchanged to the native
 call; never spawn truncated or failed output. Use direct collaboration tool
 calls if the host does not expose them inside code cells. Default managers
@@ -99,7 +99,6 @@ Keep the manager's launched pair across rollover. If the runner's own settings
 changed meanwhile, obtain the predecessor's exact pair as short control metadata
 and pass both arguments; unavailable settings halt the start rather than guess.
 The runner alone increments the manager number for each new manager start.
-Its sole capacity retry retains that number and the generated arguments.
 
 ```text
 runner --spawn--> manager --READY--> runner --START--> manager
@@ -115,8 +114,8 @@ runner --TAKEOVER_COMPLETE after both--> new manager --work--> children
    infer a request from a timeout or context estimate.
 2. Call `spawn_agent` once. Require one unique returned manager ID and retain its
    host-provided canonical name/ID mapping. An unknown spawn state or other tool
-   error halts the run. Only a definite capacity refusal with no created agent
-   permits the single recovery attempt in [agent capacity](references/agent-capacity.md).
+   error, including a capacity refusal, halts the start with its diagnostic and
+   retained continuation state. Do not wake completed agents or retry automatically.
 3. Wait at most 60 seconds for `READY` from that exact spawned manager. Validate
    the host sender identity, not an ID claimed inside message text. A wrong,
    missing or ambiguous confirmation halts startup with a user message. If a
@@ -135,11 +134,6 @@ runner --TAKEOVER_COMPLETE after both--> new manager --work--> children
    `TAKEOVER_COMPLETE` to the successor. Only then may it write or dispatch.
    A missing confirmation blocks takeover. Retired managers remain write-inactive.
 
-For `CAPACITY_REQUEST` from the current manager, read agent-capacity.md and
-handle only its identified failed spawn. Keep its recovery token and result to
-ignore duplicate requests. Cleanup messages and takeover gates are internal
-control, not progress output. STOP prevents cleanup starts and spawn retries.
-
 While active, use native waits for control messages. Do not poll files or read
 agent results for progress. Accept WORKING_ON only from the current STARTed
 manager. Display its generated Working on/Scope text only when its key differs
@@ -147,16 +141,18 @@ from the last displayed key, retaining the key across manager switches and
 stop/resume. Do not print READY, RUNNING or repeated unit/review notifications.
 For completion, follow run-feedback.md before announcing success. Relay other
 actionable states: a concrete blocker, stop or the exact necessary decision question.
-Keep the first accepted project name and overall scope as run metadata. If the
-user supplied the scope, its display must preserve that request. Accept changed
-values only after actual user steering, never a manager's new interpretation.
-On unapproved drift, keep the retained values and key, do not display the update,
-and tell the current manager which fields to regenerate from those values.
-Unresolved drift is BLOCKED. Never repair successful helper text manually.
+Retain the first accepted project and user scope; only user steering changes
+them. On cosmetic drift, suppress the display and have the manager regenerate
+from retained values, then continue. A substantive scope conflict blocks
+dependent work until user clarification. Never repair helper output manually.
 Never request or relay substantive work results, evidence or handoffs. The
 manager's final response contains only its control status. The authorized final
 run-report read is the exception, under run-feedback.md. The durable Plan owns
 progress and evidence.
+
+Send no routine receipt or closure message after a manager's native completion.
+If its state is unclear before necessary steering, check that exact handle once.
+This does not eliminate a completion race between checking and sending.
 
 ## Steering, stop and resume
 

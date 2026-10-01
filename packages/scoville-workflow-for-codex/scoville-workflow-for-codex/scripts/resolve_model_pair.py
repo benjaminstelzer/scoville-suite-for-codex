@@ -51,7 +51,7 @@ def main() -> int:
     except (OSError, ValueError, tomllib.TOMLDecodeError) as error:
         print(json.dumps({"valid": False, "diagnostic": str(error)}, ensure_ascii=False))
         return 1
-    print(json.dumps({"valid": True, **result, "pin_threads": config['pin_threads']}, ensure_ascii=False))
+    print(json.dumps({"valid": True, **result}, ensure_ascii=False))
     return 0
 
 

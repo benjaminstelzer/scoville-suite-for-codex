@@ -33,6 +33,5 @@ unless a published artifact depends on them.
 
 ## Native agent capacity
 
-[Releasing agents without close_agent](../../../development/native-agent-capacity.md)
-explains native turn completion, queued-message cleanup, the one-retry boundary
-and the recorded host-test limits for Workflow and Ask.
+[Native agent capacity](../../../development/native-agent-capacity.md)
+explains completion, necessary follow-ups and preserving work when a start fails.

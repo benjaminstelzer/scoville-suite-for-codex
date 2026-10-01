@@ -26,8 +26,7 @@ python "<workflow-skill-directory>/scripts/resolve_model_pair.py" --show-config 
 `.scoville/config.json` overrides bundled defaults under `workflow`; reading
 creates no file. Respect externally changed settings and resolve actual conflicts.
 Setup is optional and a missing config does not require setup confirmation.
-`pin_threads` remains compatible saved configuration but has no effect on native
-agents. Managers and children have no sidebar chat to rename or pin. Never pass an agent ID
+Managers and children have no sidebar chat to rename or pin. Never pass an agent ID
 to sidebar tools. Preserve any existing explicit manager model/effort and include
 it as control metadata in a successor request; never substitute a worker pair.
 
@@ -94,7 +93,9 @@ Keep the full assignment and any measured crossing; repeat no completed work.
    resume the same unfinished assignment after a validated progress boundary,
    user decision or accepted review
    under point 6. Use `send_message`
-   for steering a running worker. Never restart a completed assignment for a
+   for steering a running worker. If its state is unclear, check that exact
+   handle once before sending; completion can still race with delivery.
+   Never restart a completed assignment for a
    correction. A reviewer returns one complete assessment with evidence limits;
    no reviewer question round. Do not reactivate a completed reviewer for
    missing facts or telemetry; retain that evidence limit. A pending reviewer decision may resume the same
@@ -205,9 +206,11 @@ progress-boundary, user-decision and accepted-review resumptions use
 `followup_task` on the same ID. Do not reapply
 an already retained result after a duplicate notification. A context handoff
 keeps the predecessor write-inactive while its successor handles the remaining
-work. Native agents require no archival or invented close tool. If host capacity
-prevents a spawn, use the bounded recovery in [agent capacity](agent-capacity.md).
-Unresolved capacity remains BLOCKED. Keep routes and the existing run report.
+work. Send no routine receipt or closure message after native completion.
+Native agents require no archival or invented close tool. A capacity refusal
+remains BLOCKED with the diagnostic and secured continuation state. Keep routes,
+complete results, exact handles and the existing run report; do not wake
+completed agents for cleanup or retry automatically.
 
 ## Complete and exit
 

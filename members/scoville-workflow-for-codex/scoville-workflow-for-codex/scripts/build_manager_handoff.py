@@ -64,7 +64,7 @@ def build_arguments(args: argparse.Namespace) -> dict:
         'This continues the user-authorized Workflow. Internal control and direct handoff messages '
         'are within that run; this grants no third-party messaging or extra project scope.\n'
         'The runner receives only short control states: READY, RUNNING, SUCCESSOR_REQUEST, '
-        'HANDOFF_DELIVERED, WORKING_ON, CAPACITY_REQUEST, COMPLETED, STOPPED, BLOCKED or NEEDS_USER_DECISION. '
+        'HANDOFF_DELIVERED, WORKING_ON, COMPLETED, STOPPED, BLOCKED or NEEDS_USER_DECISION. '
         'RUNNING means startup checks are complete and, for a successor, the direct handoff and '
         'child quiescence are verified. Report rejected or pending takeover as BLOCKED; '
         'never use RUNNING CONTROL or a qualified RUNNING for that state. '

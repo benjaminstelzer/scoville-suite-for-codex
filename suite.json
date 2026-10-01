@@ -552,10 +552,6 @@
           "target": "scoville-workflow-for-codex/references/operations-rollover.md"
         },
         {
-          "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/references/agent-capacity.md",
-          "target": "scoville-workflow-for-codex/references/agent-capacity.md"
-        },
-        {
           "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/workflow_settings.py",
           "target": "scoville-workflow-for-codex/scripts/workflow_settings.py"
         },
