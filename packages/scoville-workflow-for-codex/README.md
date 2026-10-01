@@ -6,154 +6,164 @@ handoffs take time and tokens. For a small fix or a one-prompt experiment, that
 effort rarely pays off. For longer AI-assisted development, it gives the work a
 structure that holds across many assignments and conversations.
 
-Planning comes before implementation. To get the most out of Workflow, put real
-work into the Plan first: clarify requirements, dependencies and acceptance
-criteria, have it reviewed through Scoville Ask, and revise it until the material
-questions are resolved. For a complex Plan, that can mean several rounds of
-review and changes before execution starts. Good planning is a substantial part
-of software engineering. AI helps with it, but requirements, architecture and
-tradeoffs still need informed judgment. Workflow then carries that direction
-through implementation.
+Start from a Plan with settled requirements, dependencies and acceptance
+criteria. Scoville Plan and independent Ask reviews establish that direction
+before Workflow carries it through implementation.
 
 Workers implement a defined piece of work, then fresh reviewers inspect the
 result. Reviewing at the relevant dependency boundaries helps catch mistakes
 before later Plan points build on faulty code. That makes longer sessions easier
-to manage. The coordinator records accepted progress in the Plan, so what is
+to manage. The manager records accepted progress in the Plan, so what is
 done, what remains and what was actually checked stay visible.
 
 Automatic context compaction can arrive right in the middle of ongoing work,
 without a completed work unit or a prepared handoff. Rollover moves that
 transition to a controlled work boundary. Results are checked and completed
-Plan points are recorded before the coordinator changes. The Plan is the
+Plan points are recorded before the manager changes. The Plan is the
 backbone: the next agent knows where to continue, without reconstructing progress
-from the whole conversation. If a worker hands over within an unfinished Step,
-the handoff separates the checked parts from the work still to do.
+from the whole conversation. Crossing a context threshold schedules rollover.
+Workers finish their complete Step or Step group, including required corrections
+and checks, then return the normal result. Later assignments use fresh agents.
 
-The successor starts before the conversation reaches automatic compaction.
+The complete assignment can still reach automatic compaction before that boundary.
 Smaller assignments also keep unrelated history out of worker and reviewer
 contexts. Progress stays in the Plan, and each agent loads the relevant
 instructions. Rules, Decisions and open Steps have a stable place across
 sessions.
 
 Install it through the complete Codex Suite. It requires Codex desktop's native
-task controls.
-
-Here, the heat is the goal and accepted results kept intact across workers, reviews and context handoffs.
+agent controls.
 
 ## How it works
 
-- The coordinator picks a Step, a few related Steps in a row or a whole Work
-  Item. Grouping saves repeated setup and still produces a result that can be
-  checked, without changing the Plan's order.
-- Helper scripts build the assignments and the arguments for starting native
-  chats. Each chat title shows the saved project name, the role, a number and
-  the assigned Plan or Steps. New chats are pinned by default. Setup can turn
-  that off with `workflow.pin_threads=false`.
-- The risk of the task decides which model and effort the worker gets. The
-  worker implements in the existing checkout and sends its result back as a
-  message.
-- If the project defines when to review, Workflow follows that. Otherwise,
-  product-code changes get an early review after a defect fix, or before
-  dependent work or extensive testing. The final review reuses earlier
-  assessments of parts that haven't changed.
-- The coordinator fixes findings in the Plan itself and hands findings in the
-  project to a new worker. Substantial or unclear corrections get reviewed
-  again.
-- If you've allowed commits, accepted changes and the matching Plan updates go
-  into one commit.
-- When a chat reaches the configured context threshold, a successor takes over
-  the unfinished work in the same checkout. It uses the same model and effort,
-  read from the manager's native settings, and keeps pending work, reviews and
-  unanswered questions.
-- Handoffs run through direct messages. The successor confirms it has
-  everything, asks its predecessor to archive itself and carries on. If
-  archiving fails, that gets reported, but it doesn't block accepted work.
-- Once the coordinator has a worker's or reviewer's result, it asks that chat
-  to archive itself. Reviewers deliver their findings, and anything they
-  couldn't verify, in one complete response.
+- The visible chat is the runner. It starts a manager after explicit Workflow
+  activation or when the current manager requests a successor. One exact agent
+  ID and READY from that agent allow the runner to send START. Missing or
+  ambiguous confirmation stops the run. An unknown spawn state never causes
+  a replacement spawn.
+- The manager selects consecutive Plan work, routes model and effort, and starts
+  nested workers and read-only reviewers. At most one worker writes to the shared
+  checkout. The manager owns Plan updates and authorized commits.
+- The manager follows project review rules or the bundled review points below.
+  Reviewers reuse assessments of unchanged parts at final review. A new worker
+  corrects findings.
+- Crossing a measured context threshold schedules rollover. The manager finishes
+  the selected Step or Step group, including due review, corrections, checks,
+  Plan updates and authorized commits. It requests a successor only after all
+  children and writes are quiescent.
+- The runner gives the successor only the predecessor's ID as work context.
+  After START, the new manager requests the handoff directly, checks the Plan,
+  files and child state, and confirms takeover before writing or dispatching a
+  child. Substantive results and handoffs stay with managers and their children.
+  The runner receives short control states, errors and necessary user questions.
+- Children finish their full assignment and return the normal completed or
+  review result after crossing the threshold. Later assignments use fresh
+  children. Explicitly authorized recovery can transfer unfinished work, checked
+  effects, constraints and evidence limits. A recovery child confirms receipt
+  to its manager and waits for release. It does not message the completed child.
+- A retiring manager waits for the successor's receipt before ending its turn.
+  The runner confirms that completion before the successor starts work. This
+  avoids sending routine receipt messages to a completed predecessor.
+- After a definite capacity refusal, the runner may wake its known retired
+  managers once to consume queued messages without writing. The failed spawn
+  then gets one retry. Uncertain starts and persistent failures remain blocked.
+  Native agents need no new chats or archival.
+- The runner shows the current project, Plan point and overall scope when the
+  point changes. Managers preserve user questions and problems in one run file,
+  adding their resolutions. On accepted completion, the runner outputs it.
 
 ```mermaid
 flowchart TD
-    P["Repository Plan"] --> C["Coordinator selects a bounded unit<br/>and routes model and effort"]
-    C --> W["Worker implements and validates"]
-    W -->|Checked result| B{"Review boundary reached?"}
-    W -->|Context handoff| T
-    B -->|No| A
-    B -->|Yes| G{"Review required?"}
-    G -->|Yes| R["Fresh reviewer checks the result"]
-    G -->|No| A["Coordinator records checked result<br/>and updates the Plan"]
-    R -->|Pass| A
-    R -->|Findings| F["Coordinator fixes Plan findings<br/>New worker corrects project findings"]
-    F --> Q{"Follow-up review required?"}
-    Q -->|Yes| R
-    Q -->|No| A
-    A --> E["Accept only when due Acceptance and review pass<br/>Commit accepted changes when authorized"]
-    E --> N{"Requested work remains?"}
-    N -->|No| D["Finish"]
-    N -->|Yes| T{"Context threshold reached?"}
-    T -->|No| C
-    T -->|Yes| H["Hand over the coordinator with pending work<br/>Successor confirms receipt; predecessor self-archives"]
-    H --> C
+    U["Explicit Workflow activation"] --> R["Runner creates report, shows path<br/>and spawns manager"]
+    R --> G["Exact agent sends READY<br/>Runner sends START"]
+    G --> M["Manager selects Plan work<br/>and sends display fields"]
+    M --> W["One writing worker"]
+    W --> V["Required read-only review"]
+    V -->|Findings| W
+    V -->|Accepted| P["Manager updates Plan<br/>Commits when authorized"]
+    P --> B{"Work remains and context boundary reached?"}
+    B -->|No boundary| M
+    B -->|Requested scope accepted| F["Manager finalizes report"]
+    F --> D["COMPLETED and native final<br/>Runner reads report with helper<br/>Then announces completion and outputs it"]
+    B -->|Quiescent boundary| S["SUCCESSOR_REQUEST to runner"]
+    S --> N["Runner gates new manager with READY / START"]
+    N --> H["New manager requests handoff directly<br/>Verifies Plan, files and child state"]
+    H --> A["Successor confirms receipt<br/>Predecessor ends without writing"]
+    A --> T["Runner confirms completion<br/>and releases successor"]
+    T --> M
 ```
 
 ## What it enforces
 
-- **Explicit activation.** Workflow only starts when you ask for it by name.
-- **Separate responsibilities.** The coordinator handles Plan updates,
-  assignments and any authorized commits. Workers implement. Reviewers look
-  but don't edit.
-- **One writing worker.** All tasks share the existing checkout. The Plan
-  records progress, and messages carry the next action.
-- **Bounded context.** A new worker gets the Work Item and its assigned Step
-  range. A continuation only gets what's left: remaining work, applicable
-  criteria and constraints, completed effects and evidence. It doesn't need to
-  reopen the Plan or earlier chats.
-- **Configured models.** Risk decides model and effort. If a required pair
-  isn't available, Workflow says so instead of substituting another.
-- **Independent review.** The project's own review cadence comes first.
-  Otherwise, unreviewed product-code changes get an early review after a fix
-  to previously completed code, or before dependent work or extensive testing.
-  Other required reviews happen when a Work Item is complete and reuse earlier
-  assessments of unchanged parts. If the same failure survives two
-  corrections, the coordinator looks at its cause again before another
-  attempt.
-- **Context handoffs.** By default, the coordinator hands over at or above 40%
-  context, after a checked group, an accepted Work Item or a worker handoff.
-  Workers and reviewers hand over above 60%, at natural stopping points. Both
-  thresholds are configurable. If there's no measurement, Workflow doesn't
-  guess one.
-- **Retained results.** Results are saved before a task is archived. A
-  predecessor only retires after its successor has confirmed the takeover.
-  Archive errors are reported without confirmation loops. Decision requests
-  and the final coordinator stay open.
-- **Accepted commits.** If committing is allowed, the commit contains the
-  accepted changes and Plan updates, and required hooks and backups run.
-- **Defined scope.** Workflow follows the active Plan, or a narrower boundary
-  you set, and keeps its stops and open decisions.
+- **Explicit activation and checked startup.** The runner starts on a named
+  Workflow request or a successor request from its current manager. The exact
+  spawned manager must send READY and receive START before doing project work.
+- **Separate responsibilities.** Managers own Plan transitions and authorized
+  commits. Workers implement. Reviewers stay read-only. At most one worker
+  writes in the shared checkout.
+- **Bounded assignments.** A new child receives its Work Item and assigned
+  Step range. A continuation receives remaining work, applicable criteria,
+  constraints, checked effects and evidence limits.
+- **Configured models.** Risk selects model and effort. Missing support blocks
+  dispatch instead of silently substituting a pair.
+- **Independent review.** Project review rules come first. Otherwise, review
+  follows fixes to previously checked product code and precedes dependent work
+  or extensive tests. Final review reuses checked, unchanged parts. Repeated
+  failure after two corrections requires reassessing the cause.
+- **Measured handoffs.** By default, managers turn over at or above 40% context
+  after completing the selected Step or Step group, including required checks,
+  due review and corrections. Workers, reviewers and correction workers schedule
+  rollover strictly above 60%, finish their complete assignment and return the
+  normal result. Later assignments use fresh agents. Thresholds are configurable.
+  A handoff requires no active writer. Missing or stale telemetry is never counted
+  as a switch.
+- **Direct takeover.** The successor manager obtains the handoff from its
+  predecessor and verifies Plan, files and child state before writing. Results
+  remain retained, and predecessors stay write-inactive after handoff.
+- **Retained decisions and stops.** An unanswered question blocks dependent
+  work. A stop interrupts children and requires confirmed quiescence before
+  STOPPED is reported. Resumption preserves pending findings and decisions.
+- **Accepted commits and scope.** Authorized commits include accepted changes
+  and Plan updates, with required hooks and backups. Workflow respects the
+  requested scope and only reports completion when its acceptance is met.
+- **Visible work.** `Working on:` identifies the project, Plan and point.
+  `Scope:` gives the actual overall assignment as free text. Repeated events,
+  reviews, repairs and manager switches at the same point add no progress message.
+- **Targeted run report.** Every run gets its own Markdown file under `.scoville`,
+  with the full path shown before startup. User questions, requested pauses and
+  problems needing user review stay in it with their clarifications. Normal
+  progress and test results stay out. A clean completed run has the sentence
+  `No issues occurred during this run.`. Completion includes the report output.
 
 [Native Codex operations](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-workflow-for-codex/scoville-workflow-for-codex/references/operations.md)
 covers delivery, permissions and recovery.
 
 ## What it costs
 
-- Worker and reviewer chats, handoffs and Plan updates cost tokens and time.
-- When caching applies, much of the repeated input may come from cached
-  tokens, but large contexts still take longer to process. Handoffs take time
-  as well, although avoiding automatic compaction can partly make up for that.
-- How much overhead coordination adds depends on assignment size, reviews and
-  handoffs. The reports in this repository don't support a typical percentage
-  for the current Workflow. Token counts include cached input, so on their own
-  they don't tell you what it costs in money.
-- Native chat and mobile limits are summarized under
-  [Codex limitations](https://github.com/benjaminstelzer/scoville-suite-for-codex#codex-limitations).
-- There's a [recorded workflow sequence](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex#one-recorded-workflow-sequence)
-  and a note on [what that record can and can't show](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex#recorded-use-and-limits).
+- Worker and reviewer agents, handoffs and Plan updates cost tokens and time.
+- Caching can reduce charges for repeated input. Large contexts still take time
+  to process, and a controlled handoff adds another exchange.
+- Coordination overhead depends on assignment size, reviews and handoffs.
+  The retained reports don't establish a typical percentage for the current
+  Workflow. Token counts include cached input, so they don't show the price
+  of a run on their own.
+
+## How it was developed
+
+- Real project histories shaped assignment size, reviews, communication and
+  context handoffs.
+- Tests with GPT-6 SOL Medium covered grouped work, review, repair and
+  rollover. Targeted Luna tests found places where the instructions weren't
+  followed.
+- Simulated delivery checks don't show how reliable it is live. Compaction
+  right after a handoff and delivery failures at host level haven't been fully
+  verified.
 
 ### One recorded workflow sequence
 
-This is a shortened sequence from a real project run on 21 September 2026.
-The chat titles are the original ones, minus the coordinator IDs. It covers
-one real Step, not a made-up group of several.
+This is a historical sequence from the earlier chat-based Workflow on
+21 September 2026. The current Workflow uses native agents. The old chat titles
+are retained here, minus the coordinator IDs. It covers one real Step.
 
 ```text
 Scoville-Workflow-Codex G6 selects W-015/step-1.
@@ -178,35 +188,69 @@ sessions**. That was an older version in a single project, so it's neither a
 reliability rate nor a performance measurement of the current Workflow. And
 the logs only show what they recorded.
 
-## How it was developed
+On 30 September 2026, an earlier native-agent run exercised four managers, direct
+predecessor handoffs, review and repair, stop/resume and measured 15-percent
+context boundaries. It finished a full child assignment after crossing the
+boundary.
 
-- Real project histories shaped assignment size, reviews, communication and
-  context handoffs.
-- Tests with GPT-6 SOL Medium covered grouped work, review, repair and
-  rollover. Targeted Luna tests found places where the instructions weren't
-  followed.
-- Simulated delivery checks don't show how reliable it is live. Compaction
-  right after a handoff and delivery failures at host level haven't been fully
-  verified.
+A later run checked the file-backed assignment, completed statuses, review and
+correction, three ordered units and two direct manager handoffs. It also checked
+progress deduplication, a question with its answer, stop/resume and the same run
+report through completion. A contradictory file hash blocked takeover until the
+managers resolved it directly. The run exposed a wrong bundled Skill path and an
+unnecessary follow-up to a completed reviewer. The builder and instructions were
+corrected. Those earlier failures remain part of the evidence.
+
+A separate clean run then completed an identity function, exact UTF-8 output and
+fresh independent review with the current bundled contracts. The runner read
+the report before announcing completion. The report contained only
+`No issues occurred during this run.` The completed reviewer was not reactivated
+when its final assessment deliberately omitted checkpoint metadata. That tests the
+clarified lifecycle rule, not context rollover. One runner status query exposed
+a child result, so this run does not prove complete result isolation.
+
+On 1 October 2026, a Luna Medium run completed two Plan items with fresh reviews,
+two status questions and a manager handoff. The runner waited for the
+predecessor's native completion before releasing the successor. The clean report
+was read before completion output. This run used isolated 1/99-percent context
+thresholds. A separate test woke two completed managers and then spawned a new
+Luna Medium agent successfully. A later attempt to prepare a capacity-refusal
+probe failed before its readiness condition, so that refusal and retry were not
+exercised. These observations do not establish a universal recovery mechanism.
+
+Three further Luna Medium cases tested authorized continuation of unfinished
+executor, correction-executor and reviewer assignments. Each predecessor ended
+its native turn before the successor confirmed receipt to the active manager.
+The successor waited for that manager's release. Correction review boundaries,
+exact artifact checks, Plan validation and package hashes passed. These cases
+used explicit test authorization, not a measured context threshold. Wrong-sender
+release and capacity refusal were not injected.
+
+These are bounded observations, not a reliability rate or proof of every model
+route. The earlier measured runs used authorized 15-percent test thresholds,
+not the 40/60 defaults. Some negative cases were injected exercises. Genuine lost host
+messages remain unverified, and encrypted host message fields limit independent
+comparison of the exact prompts.
 
 ## Compatibility
 
-Needs Codex desktop, a saved local project, native task creation, messaging
-and archiving, access to the task ID, Python 3.11+ and the complete Codex
-Suite. It also needs a frontier model from the Fable, Astra, SOL or Opus
-families, version 5.0 or newer. Luna was also used in testing.
+Needs Codex with native agent spawning, messaging, waiting, interruption and
+agent-state inspection, Python 3.11+ and the complete Codex Suite. Agents must
+share the existing checkout and support the configured model and effort pairs.
+It also needs a frontier model from the Fable, Astra, SOL or Opus families,
+version 5.0 or newer. Bounded Luna Medium tests also cover the current manager
+handoff. They do not establish complete Luna coverage of the agent lifecycle.
 
-All tasks have to share the existing checkout, and authorized result messages
-have to be able to resume the coordinator. If the host can't do either,
-Workflow says so before dispatching anything.
+The run stops when the host cannot confirm agent identity, deliver a required
+message or establish who may write. It does not substitute chats, another model
+or an assumed close operation. Queued messages can keep completed agents resident.
+Bounded cleanup can help, but available agent capacity can still limit a run.
 
-Context rollover uses Codex's own measurements when they're available.
-Without them, bounded work simply continues. If a result can't be delivered,
-recovery uses the existing chat and the saved result. Codex may ask for
-approval before it delivers a message.
-
-Install and enable every Skill in the suite. Each one covers its own kind of
-task. To start Workflow, ask for it explicitly.
+Context rollover uses fresh Codex measurements tied to the actual agent.
+Without usable telemetry, bounded work continues without claiming a measured
+switch. Automated tests cover helper validation and controlled telemetry.
+Live multi-unit execution, stop handling, child completion after a measured
+crossing and manager handoffs need separate evidence.
 
 Install and enable every Skill in the suite. Each applies to its own task scope.
 Start Workflow by asking for it explicitly.
@@ -221,11 +265,7 @@ from the individual repositories, and don't continue if members are missing.
 The suite needs Codex and Python 3.11 or newer. Use the suite's prompt for a
 new installation, or its upgrade prompt if you already have one installed.
 
-### Install the complete Scoville suite
 
-The complete suite is in the
-[Scoville Suite monorepo](https://github.com/benjaminstelzer/scoville-suite-for-codex).
-Install its released Skill packages, not development templates.
 
 ## How to use
 
@@ -238,10 +278,11 @@ Use $scoville-workflow-for-codex to execute the active Scoville Plan in this sav
 You don't need a separate project installation or an `AGENTS.md` entry.
 
 To limit the run, name a Work Item or the point where it should stop.
-Otherwise the coordinator works through the active Plan.
+Otherwise the manager works through the active Plan.
 
-The chat you start it in coordinates the run and creates workers for the
-implementation. You can also just name Workflow in your request:
+The chat you start it in runs the startup handshake and monitors short control
+states. A manager agent coordinates workers and reviewers. You can also just
+name Workflow in your request:
 
 ```text
 Run only PLAN-0001 with Scoville Workflow.
@@ -251,24 +292,48 @@ Run only PLAN-0001 with Scoville Workflow.
 does not. Mentions, questions and quoted examples don't start a run. `$scw`
 works once the Skill is loaded.
 
-Task titles identify the work and role:
+Assignment labels identify the work and role:
 
 ```text
-SC-MGR-2: My project · PLAN-0011
 SC-WRK-3: My project · PLAN-0011/W-010/steps-1-3
 SC-REV-3: My project · PLAN-0011/W-010/steps-1-3
 ```
 
-Manager numbers count the coordinators within one run. Every new worker gets
-the next number, including workers for rollovers and corrections. A reviewer
+Managers have numbered agent names such as `scoville_manager_2`. Each new
+worker gets the next number, including workers for recovery and corrections. A reviewer
 takes the number of the worker whose final result it reviews and keeps it
-after a rollover. For a grouped review, the title shows the full range of
+after a recovery transfer. For a grouped review, the label shows the full range of
 Steps reviewed.
 
-Titles show the Plan, the Work Item and the assigned range: `step-2` or
+Labels show the Plan, the Work Item and the assigned range: `step-2` or
 `steps-1-3`. A whole Work Item shows its full Step range, or no suffix if it
 has no Steps. Only the role prefix is uppercase. Project names and inserted
 content keep their own casing.
+
+### Run feedback
+
+Before the first manager starts, the runner shows the full path of the run's
+Markdown file in your project's `.scoville` directory. You can open it manually.
+
+At the first point and each project, Plan or point change, you see:
+
+```text
+Working on: My project → PLAN-0024 → W-003/step-4
+Scope: Finishing PLAN-0024 from W-003 to W-006.
+```
+
+Scope repeats the overall goal you assigned. Reviews, corrections and a manager
+change at the same point don't repeat the display.
+
+The report keeps questions, points paused at your request and problems needing
+your inspection. Later clarifications stay with the original issue. A stop and
+resume use the same file. Routine status messages and normal test results aren't
+recorded.
+
+At accepted completion, the runner says the assignment is complete and outputs
+the report. If the whole run had no such issues, it contains
+`No issues occurred during this run.`. Stops, blockers and unreadable reports
+don't produce a completion message.
 
 ### Configuration
 
@@ -278,29 +343,23 @@ settings in `.scoville/config.json`. Under `workflow`, `execute.CLASS` and
 rollover thresholds. Anything missing uses the bundled defaults, and starting
 a run doesn't create a configuration file.
 
-### Pin chats
-
-Workflow pins the manager, workers, reviewers and rollover successors by
-default. To turn this off for the project, use Scoville Setup before a run:
-
-```text
-Use Scoville Setup to disable pinning for Workflow in this project.
-```
-
-Setup saves `workflow.pin_threads: false` in `.scoville/config.json`. Ask has
-its own `ask.pin_threads` switch. Both are `true` by default and can be turned
-back on through Setup. The switches only affect new pins. Existing pins stay.
-Claude CLI sessions don't appear in the Codex sidebar.
-
-By default, the coordinator hands over at 40% context usage or more, and
-workers and reviewers above 60%. The Plan records progress, direct messages
+By default, 40% context usage or more schedules manager rollover, and
+above 60% schedules it for workers, reviewers and correction workers. Each
+finishes its complete current assignment, including required corrections and
+checks, before a handoff with no active writer. Children return the normal result
+and later assignments use fresh agents. The Plan records progress, direct messages
 carry the handoffs, and at most one worker writes to the shared checkout at a
 time.
 
 The [dispatch rules](scoville-workflow-for-codex/references/operations-dispatch.md)
 explain how tasks are classified and how explicit model choices work.
 
+### Agent lifecycle
 
+Workflow uses nested agents. They do not create separate sidebar chats, and
+`workflow.pin_threads` does not pin them. The setting remains readable for
+compatibility. Agents keep their exact IDs for messages and handoffs. If the
+host cannot start the next agent, the run reports the limitation and stops.
 
 ## Sources
 

@@ -41,26 +41,37 @@ class SetupTests(unittest.TestCase):
             self.assertEqual(shown["effective"]["workflow"]["context"],
                              {"coordinator_percent": 40, "worker_percent": 60})
             self.assertFalse((project / ".scoville").exists())
-            self.assertTrue(shown['effective']['ask']['pin_threads'])
+            self.assertNotIn('pin_threads', shown['effective']['ask'])
             self.assertTrue(shown['effective']['workflow']['pin_threads'])
-            result, saved = run('set', {'ask': {'pin_threads': False}, 'workflow': {'pin_threads': False}})
+            result, rejected = run('set', {'ask': {'pin_threads': True}})
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('patch.ask.pin_threads is obsolete', rejected['diagnostic'])
+            self.assertIn('omit this field', rejected['diagnostic'])
+            self.assertFalse((project / '.scoville').exists())
+            result, rejected = run('set', {'workflow': {'pin_threads': False}})
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('patch.workflow.pin_threads is obsolete', rejected['diagnostic'])
+            self.assertIn('omit this field', rejected['diagnostic'])
+            self.assertFalse((project / '.scoville').exists())
+            result, saved = run('set', {'workflow': {'context': {'worker_percent': 82}}})
             self.assertEqual(result.returncode, 0, result.stdout)
-            self.assertFalse(saved['effective']['ask']['pin_threads'])
-            self.assertFalse(saved['effective']['workflow']['pin_threads'])
-            result, saved = run('set', {'ask': {'pin_threads': True}})
-            self.assertTrue(saved['effective']['ask']['pin_threads'])
-            self.assertFalse(saved['effective']['workflow']['pin_threads'])
+            self.assertNotIn('pin_threads', saved['effective']['ask'])
             result, saved = run("set", {"ask": {"claude": {"timeout_seconds": 2400}},
                                         "workflow": {"context": {"worker_percent": 82}}})
             self.assertEqual(result.returncode, 0, result.stderr)
             path = project / ".scoville/config.json"
             values = json.loads(path.read_text(encoding="utf-8"))
             values["other_tool"] = {"keep": [1, 2]}
+            # Existing projects remain readable and unrelated saves preserve the old key.
+            values["ask"]["pin_threads"] = True
+            values["workflow"]["pin_threads"] = False
             path.write_text(json.dumps(values), encoding="utf-8")
             result, saved = run("set", {"ask": {"presets": {"sol": {"effort": "medium"}}}})
             self.assertEqual(result.returncode, 0)
             self.assertEqual(json.loads(path.read_text())["other_tool"], {"keep": [1, 2]})
             self.assertEqual(saved["effective"]["ask"]["claude"]["timeout_seconds"], 2400)
+            self.assertTrue(json.loads(path.read_text())["ask"]["pin_threads"])
+            self.assertFalse(json.loads(path.read_text())["workflow"]["pin_threads"])
             for level in ("none", "minimal", "max", "ultra"):
                 result, failed = run("set", {"workflow": {"execute": {"low": {"reasoning": level}}}})
                 self.assertNotEqual(result.returncode, 0)

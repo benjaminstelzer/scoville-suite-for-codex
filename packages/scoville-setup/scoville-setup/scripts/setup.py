@@ -59,6 +59,10 @@ def apply(project_root: Path, patch: dict) -> dict:
         unknown = sorted(set(patch["workflow"]) - {"execute", "review", "context", "pin_threads"})
         if unknown:
             raise ValueError(f"patch.workflow has unsupported fields {unknown}; Setup accepts execute, review, context and pin_threads")
+    if "pin_threads" in patch.get("ask", {}):
+        raise ValueError("patch.ask.pin_threads is obsolete: native Ask advisers are subagents without sidebar chats; omit this field and use ask.advisers or ask.presets for adviser settings")
+    if "pin_threads" in patch.get("workflow", {}):
+        raise ValueError("patch.workflow.pin_threads is obsolete: Workflow roles are subagents without sidebar chats; omit this field and use workflow.execute, workflow.review or workflow.context for active settings")
     validate_setup_choices(patch)
     current = read_config(project_root)
     proposed = merge(current, patch)

@@ -7,7 +7,7 @@ next session. Setup manages the project's model and Workflow settings.
 
 The Scoville scale originally measured chili heat through dilution. Here, the
 point is that the goal, the decisions and the verified results stay clear as
-work passes between coordinators, workers, reviewers and successor chats.
+work passes between manager, worker and reviewer agents and into later sessions.
 
 Using Claude Code or another Agent Skills host? Take
 [Scoville Suite](https://github.com/benjaminstelzer/scoville-suite).
@@ -17,13 +17,14 @@ which adds Workflow, Ask and Setup.
 
 | Skill | Purpose |
 | --- | --- |
-| [Workflow for Codex](#scoville-workflow-for-codex) | Runs a repository Plan through worker, reviewer and successor chats. |
+| [Workflow for Codex](#scoville-workflow-for-codex) | Runs a repository Plan through manager, worker and reviewer agents. |
 | [Code](#scoville-code) | Keeps implementation, risk assessment and checks focused on what you asked for. |
 | [Plan](#scoville-plan) | Keeps longer work, decisions and progress easy to pick up again. |
 | [UI](#scoville-ui) | Builds and checks interfaces with their framework and design system. |
 | [Handoff](#scoville-handoff) | Passes unfinished work to another session. |
 | [Ask for Codex](#scoville-ask-for-codex) | Asks the advisers you configured for an independent opinion. |
 | [Setup](#scoville-setup) | Manages the selected project's Scoville settings. |
+| [Project Context Cleanup](#scoville-project-context-cleanup) | Keeps requested project rules and index text clear without losing required context. |
 
 ## Suite requirements
 
@@ -41,148 +42,147 @@ handoffs take time and tokens. For a small fix or a one-prompt experiment, that
 effort rarely pays off. For longer AI-assisted development, it gives the work a
 structure that holds across many assignments and conversations.
 
-Planning comes before implementation. To get the most out of Workflow, put real
-work into the Plan first: clarify requirements, dependencies and acceptance
-criteria, have it reviewed through Scoville Ask, and revise it until the material
-questions are resolved. For a complex Plan, that can mean several rounds of
-review and changes before execution starts. Good planning is a substantial part
-of software engineering. AI helps with it, but requirements, architecture and
-tradeoffs still need informed judgment. Workflow then carries that direction
-through implementation.
+Start from a Plan with settled requirements, dependencies and acceptance
+criteria. Scoville Plan and independent Ask reviews establish that direction
+before Workflow carries it through implementation.
 
 Workers implement a defined piece of work, then fresh reviewers inspect the
 result. Reviewing at the relevant dependency boundaries helps catch mistakes
 before later Plan points build on faulty code. That makes longer sessions easier
-to manage. The coordinator records accepted progress in the Plan, so what is
+to manage. The manager records accepted progress in the Plan, so what is
 done, what remains and what was actually checked stay visible.
 
 Automatic context compaction can arrive right in the middle of ongoing work,
 without a completed work unit or a prepared handoff. Rollover moves that
 transition to a controlled work boundary. Results are checked and completed
-Plan points are recorded before the coordinator changes. The Plan is the
+Plan points are recorded before the manager changes. The Plan is the
 backbone: the next agent knows where to continue, without reconstructing progress
-from the whole conversation. If a worker hands over within an unfinished Step,
-the handoff separates the checked parts from the work still to do.
+from the whole conversation. Crossing a context threshold schedules rollover.
+Workers finish their complete Step or Step group, including required corrections
+and checks, then return the normal result. Later assignments use fresh agents.
 
-The successor starts before the conversation reaches automatic compaction.
+The complete assignment can still reach automatic compaction before that boundary.
 Smaller assignments also keep unrelated history out of worker and reviewer
 contexts. Progress stays in the Plan, and each agent loads the relevant
 instructions. Rules, Decisions and open Steps have a stable place across
 sessions.
 
 Install it through the complete Codex Suite. It requires Codex desktop's native
-task controls.
-
-Here, the heat is the goal and accepted results kept intact across workers, reviews and context handoffs.
+agent controls.
 
 ### How it works
 
-- The coordinator picks a Step, a few related Steps in a row or a whole Work
-  Item. Grouping saves repeated setup and still produces a result that can be
-  checked, without changing the Plan's order.
-- Helper scripts build the assignments and the arguments for starting native
-  chats. Each chat title shows the saved project name, the role, a number and
-  the assigned Plan or Steps. New chats are pinned by default. Setup can turn
-  that off with `workflow.pin_threads=false`.
-- The risk of the task decides which model and effort the worker gets. The
-  worker implements in the existing checkout and sends its result back as a
-  message.
-- If the project defines when to review, Workflow follows that. Otherwise,
-  product-code changes get an early review after a defect fix, or before
-  dependent work or extensive testing. The final review reuses earlier
-  assessments of parts that haven't changed.
-- The coordinator fixes findings in the Plan itself and hands findings in the
-  project to a new worker. Substantial or unclear corrections get reviewed
-  again.
-- If you've allowed commits, accepted changes and the matching Plan updates go
-  into one commit.
-- When a chat reaches the configured context threshold, a successor takes over
-  the unfinished work in the same checkout. It uses the same model and effort,
-  read from the manager's native settings, and keeps pending work, reviews and
-  unanswered questions.
-- Handoffs run through direct messages. The successor confirms it has
-  everything, asks its predecessor to archive itself and carries on. If
-  archiving fails, that gets reported, but it doesn't block accepted work.
-- Once the coordinator has a worker's or reviewer's result, it asks that chat
-  to archive itself. Reviewers deliver their findings, and anything they
-  couldn't verify, in one complete response.
+- The visible chat is the runner. It starts a manager after explicit Workflow
+  activation or when the current manager requests a successor. One exact agent
+  ID and READY from that agent allow the runner to send START. Missing or
+  ambiguous confirmation stops the run. An unknown spawn state never causes
+  a replacement spawn.
+- The manager selects consecutive Plan work, routes model and effort, and starts
+  nested workers and read-only reviewers. At most one worker writes to the shared
+  checkout. The manager owns Plan updates and authorized commits.
+- The manager follows project review rules or the bundled review points below.
+  Reviewers reuse assessments of unchanged parts at final review. A new worker
+  corrects findings.
+- Crossing a measured context threshold schedules rollover. The manager finishes
+  the selected Step or Step group, including due review, corrections, checks,
+  Plan updates and authorized commits. It requests a successor only after all
+  children and writes are quiescent.
+- The runner gives the successor only the predecessor's ID as work context.
+  After START, the new manager requests the handoff directly, checks the Plan,
+  files and child state, and confirms takeover before writing or dispatching a
+  child. Substantive results and handoffs stay with managers and their children.
+  The runner receives short control states, errors and necessary user questions.
+- Children finish their full assignment and return the normal completed or
+  review result after crossing the threshold. Later assignments use fresh
+  children. Explicitly authorized recovery can transfer unfinished work, checked
+  effects, constraints and evidence limits. A recovery child confirms receipt
+  to its manager and waits for release. It does not message the completed child.
+- A retiring manager waits for the successor's receipt before ending its turn.
+  The runner confirms that completion before the successor starts work. This
+  avoids sending routine receipt messages to a completed predecessor.
+- After a definite capacity refusal, the runner may wake its known retired
+  managers once to consume queued messages without writing. The failed spawn
+  then gets one retry. Uncertain starts and persistent failures remain blocked.
+  Native agents need no new chats or archival.
+- The runner shows the current project, Plan point and overall scope when the
+  point changes. Managers preserve user questions and problems in one run file,
+  adding their resolutions. On accepted completion, the runner outputs it.
 
 ```mermaid
 flowchart TD
-    P["Repository Plan"] --> C["Coordinator selects a bounded unit<br/>and routes model and effort"]
-    C --> W["Worker implements and validates"]
-    W -->|Checked result| B{"Review boundary reached?"}
-    W -->|Context handoff| T
-    B -->|No| A
-    B -->|Yes| G{"Review required?"}
-    G -->|Yes| R["Fresh reviewer checks the result"]
-    G -->|No| A["Coordinator records checked result<br/>and updates the Plan"]
-    R -->|Pass| A
-    R -->|Findings| F["Coordinator fixes Plan findings<br/>New worker corrects project findings"]
-    F --> Q{"Follow-up review required?"}
-    Q -->|Yes| R
-    Q -->|No| A
-    A --> E["Accept only when due Acceptance and review pass<br/>Commit accepted changes when authorized"]
-    E --> N{"Requested work remains?"}
-    N -->|No| D["Finish"]
-    N -->|Yes| T{"Context threshold reached?"}
-    T -->|No| C
-    T -->|Yes| H["Hand over the coordinator with pending work<br/>Successor confirms receipt; predecessor self-archives"]
-    H --> C
+    U["Explicit Workflow activation"] --> R["Runner creates report, shows path<br/>and spawns manager"]
+    R --> G["Exact agent sends READY<br/>Runner sends START"]
+    G --> M["Manager selects Plan work<br/>and sends display fields"]
+    M --> W["One writing worker"]
+    W --> V["Required read-only review"]
+    V -->|Findings| W
+    V -->|Accepted| P["Manager updates Plan<br/>Commits when authorized"]
+    P --> B{"Work remains and context boundary reached?"}
+    B -->|No boundary| M
+    B -->|Requested scope accepted| F["Manager finalizes report"]
+    F --> D["COMPLETED and native final<br/>Runner reads report with helper<br/>Then announces completion and outputs it"]
+    B -->|Quiescent boundary| S["SUCCESSOR_REQUEST to runner"]
+    S --> N["Runner gates new manager with READY / START"]
+    N --> H["New manager requests handoff directly<br/>Verifies Plan, files and child state"]
+    H --> A["Successor confirms receipt<br/>Predecessor ends without writing"]
+    A --> T["Runner confirms completion<br/>and releases successor"]
+    T --> M
 ```
 
 ### What it enforces
 
-- **Explicit activation.** Workflow only starts when you ask for it by name.
-- **Separate responsibilities.** The coordinator handles Plan updates,
-  assignments and any authorized commits. Workers implement. Reviewers look
-  but don't edit.
-- **One writing worker.** All tasks share the existing checkout. The Plan
-  records progress, and messages carry the next action.
-- **Bounded context.** A new worker gets the Work Item and its assigned Step
-  range. A continuation only gets what's left: remaining work, applicable
-  criteria and constraints, completed effects and evidence. It doesn't need to
-  reopen the Plan or earlier chats.
-- **Configured models.** Risk decides model and effort. If a required pair
-  isn't available, Workflow says so instead of substituting another.
-- **Independent review.** The project's own review cadence comes first.
-  Otherwise, unreviewed product-code changes get an early review after a fix
-  to previously completed code, or before dependent work or extensive testing.
-  Other required reviews happen when a Work Item is complete and reuse earlier
-  assessments of unchanged parts. If the same failure survives two
-  corrections, the coordinator looks at its cause again before another
-  attempt.
-- **Context handoffs.** By default, the coordinator hands over at or above 40%
-  context, after a checked group, an accepted Work Item or a worker handoff.
-  Workers and reviewers hand over above 60%, at natural stopping points. Both
-  thresholds are configurable. If there's no measurement, Workflow doesn't
-  guess one.
-- **Retained results.** Results are saved before a task is archived. A
-  predecessor only retires after its successor has confirmed the takeover.
-  Archive errors are reported without confirmation loops. Decision requests
-  and the final coordinator stay open.
-- **Accepted commits.** If committing is allowed, the commit contains the
-  accepted changes and Plan updates, and required hooks and backups run.
-- **Defined scope.** Workflow follows the active Plan, or a narrower boundary
-  you set, and keeps its stops and open decisions.
+- **Explicit activation and checked startup.** The runner starts on a named
+  Workflow request or a successor request from its current manager. The exact
+  spawned manager must send READY and receive START before doing project work.
+- **Separate responsibilities.** Managers own Plan transitions and authorized
+  commits. Workers implement. Reviewers stay read-only. At most one worker
+  writes in the shared checkout.
+- **Bounded assignments.** A new child receives its Work Item and assigned
+  Step range. A continuation receives remaining work, applicable criteria,
+  constraints, checked effects and evidence limits.
+- **Configured models.** Risk selects model and effort. Missing support blocks
+  dispatch instead of silently substituting a pair.
+- **Independent review.** Project review rules come first. Otherwise, review
+  follows fixes to previously checked product code and precedes dependent work
+  or extensive tests. Final review reuses checked, unchanged parts. Repeated
+  failure after two corrections requires reassessing the cause.
+- **Measured handoffs.** By default, managers turn over at or above 40% context
+  after completing the selected Step or Step group, including required checks,
+  due review and corrections. Workers, reviewers and correction workers schedule
+  rollover strictly above 60%, finish their complete assignment and return the
+  normal result. Later assignments use fresh agents. Thresholds are configurable.
+  A handoff requires no active writer. Missing or stale telemetry is never counted
+  as a switch.
+- **Direct takeover.** The successor manager obtains the handoff from its
+  predecessor and verifies Plan, files and child state before writing. Results
+  remain retained, and predecessors stay write-inactive after handoff.
+- **Retained decisions and stops.** An unanswered question blocks dependent
+  work. A stop interrupts children and requires confirmed quiescence before
+  STOPPED is reported. Resumption preserves pending findings and decisions.
+- **Accepted commits and scope.** Authorized commits include accepted changes
+  and Plan updates, with required hooks and backups. Workflow respects the
+  requested scope and only reports completion when its acceptance is met.
+- **Visible work.** `Working on:` identifies the project, Plan and point.
+  `Scope:` gives the actual overall assignment as free text. Repeated events,
+  reviews, repairs and manager switches at the same point add no progress message.
+- **Targeted run report.** Every run gets its own Markdown file under `.scoville`,
+  with the full path shown before startup. User questions, requested pauses and
+  problems needing user review stay in it with their clarifications. Normal
+  progress and test results stay out. A clean completed run has the sentence
+  `No issues occurred during this run.`. Completion includes the report output.
 
 [Native Codex operations](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-workflow-for-codex/scoville-workflow-for-codex/references/operations.md)
 covers delivery, permissions and recovery.
 
 ### What it costs
 
-- Worker and reviewer chats, handoffs and Plan updates cost tokens and time.
-- When caching applies, much of the repeated input may come from cached
-  tokens, but large contexts still take longer to process. Handoffs take time
-  as well, although avoiding automatic compaction can partly make up for that.
-- How much overhead coordination adds depends on assignment size, reviews and
-  handoffs. The reports in this repository don't support a typical percentage
-  for the current Workflow. Token counts include cached input, so on their own
-  they don't tell you what it costs in money.
-- Native chat and mobile limits are summarized under
-  [Codex limitations](https://github.com/benjaminstelzer/scoville-suite-for-codex#codex-limitations).
-- There's a [recorded workflow sequence](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex#one-recorded-workflow-sequence)
-  and a note on [what that record can and can't show](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex#recorded-use-and-limits).
+- Worker and reviewer agents, handoffs and Plan updates cost tokens and time.
+- Caching can reduce charges for repeated input. Large contexts still take time
+  to process, and a controlled handoff adds another exchange.
+- Coordination overhead depends on assignment size, reviews and handoffs.
+  The retained reports don't establish a typical percentage for the current
+  Workflow. Token counts include cached input, so they don't show the price
+  of a run on their own.
 
 [How to use Scoville Workflow for Codex](members/scoville-workflow-for-codex/README.md#how-to-use).
 
@@ -196,20 +196,18 @@ Use it to write, debug, review or remove code. It has the agent find the
 actual cause, work within the project's architecture and check the affected
 behavior, with as much effort as the task deserves.
 
-The heat, in this case, is the behavior you asked for and the evidence that it
-works. Scoville Code keeps both clear through implementation and testing.
-
 ### How it works
 
 - Before editing, pin down the outcome, the responsible code, the risks and
   the check that will settle whether it works.
 - Read the relevant code, its callers and tests. Look further when the
   evidence calls for it.
-- Fix the cause, within the existing architecture and the scope you asked for.
-- Check runtime and memory costs before and after the change. Prefer simpler
+- Assess runtime and memory costs before the change. Prefer simpler
   algorithms and avoiding repeated work. Use suitable existing caches correctly
   and explain the tradeoff before asking you to approve a new one.
-- Check the changed behavior and report what the evidence actually proves.
+- Fix the cause, within the existing architecture and the scope you asked for.
+- Check the changed behavior, including runtime and memory costs, and report
+  what the evidence actually proves.
 - When something fails, investigate it without weakening guarantees. Change
   an outdated assertion only when a change to the expected behavior has been
   approved. After two failed fixes for the same cause, step back and reassess.
@@ -281,14 +279,11 @@ work and long-term maintenance, inside whatever planning system the project
 already has. And keep small tasks small: a large Plan for a contained fix
 just adds work.
 
-The heat, in this case, is the direction another agent can pick up again: the
-goal, the decisions, the current state and the next action.
-
 ### How it works
 
 - Use the repository's existing planning system and relevant Plan, Work Items and Decisions.
 - Check current sources before starting the next item.
-- Edit Markdown and YAML records with an explicit next action.
+- Edit Markdown and YAML records with observed Step progress and any additional Instructions.
 - Record evidence before completion, preserve accepted history and validate the records.
 
 ### What it enforces
@@ -333,9 +328,6 @@ terms stay consistent across views and translations.
 On supported WordPress admin pages, it uses Core components and follows
 WordPress spacing, version requirements and translation conventions.
 
-The heat, in this case, is a task people can still understand and finish,
-whatever the layout, the interaction or the error.
-
 ### How it works
 
 - Find out which design system, components and approved product decisions
@@ -343,10 +335,10 @@ whatever the layout, the interaction or the error.
 - Read the relevant code and use the components the framework supports.
 - Apply the WordPress guidance to supported plugin-owned `wp-admin` pages.
   Editor surfaces and metaboxes keep their host's conventions.
-- Implement the affected states and responsive behavior, then look at the
-  rendered result and try the interactions.
 - Take blocked product decisions to whoever owns them. Where the visual
   direction is still open, stay within the framework's existing conventions.
+- Implement the affected states and responsive behavior, then look at the
+  rendered result and try the interactions.
 
 ### What it enforces
 
@@ -368,7 +360,8 @@ whatever the layout, the interaction or the error.
 - **Accessibility.** Reading order, names, relationships, contrast, focus and
   keyboard or touch behavior are checked.
 - **Visual checks.** Nothing is reported as working until the rendered
-  interface has been inspected and its interactions tested.
+  interface has been inspected and its interactions tested. Source checks
+  alone leave rendering and interaction unverified.
 - **WordPress conventions.** Each part of the page uses the appropriate
   WordPress components and design tokens. Existing PHP-rendered pages can stay
   in PHP.
@@ -379,8 +372,6 @@ The full instructions are in [SKILL.md](https://github.com/benjaminstelzer/scovi
 
 - Browser inspection, interaction checks and corrections take tokens and time.
 - WordPress tasks load extra platform guidance.
-- If only the source can be checked, rendering and interaction remain
-  unverified.
 
 [How to use Scoville UI](members/scoville-ui/README.md#how-to-use).
 
@@ -390,9 +381,6 @@ Continuing a task requires its current blocker, unfinished changes and relevant
 decisions. Scoville Handoff gathers those facts into one compact, copy-ready
 prompt with the objective, permissions and next action, so another session can
 resume the work.
-
-The heat, in this case, is the working context another session still needs
-once a long conversation has been condensed.
 
 ### How it works
 
@@ -430,46 +418,45 @@ configure separately, then brings their assessments back to the task you
 started from. Use it for a second opinion, a patch review or to compare
 approaches.
 
-The heat, in this case, is the useful part of the advice, still clear after
-independent opinions have been brought together.
-
 ### How it works
 
 - Pick advisers, each with its own model, effort and route through Codex or
   the Claude CLI.
-- A small helper turns the question, scope and adviser rules into the native
-  start arguments, including project, model and title. Those arguments are
-  passed on unchanged, and each conversation stays available for follow-up
-  questions. Native chats are pinned by default. Setup can turn that off with
-  `ask.pin_threads=false`.
-- Advisers answer in their own chats. Your chat collects the answers and asks
-  any follow-up questions in the same adviser chat. If a native wait times out,
-  it keeps waiting and brings the result back without needing another message
-  from you.
+- A helper prepares the question, scope and read-only rules. Selected Codex
+  advisers start as independent subagents with fresh context and the configured
+  model and effort. Claude uses the CLI.
+- Your chat checks each native agent's startup and collects its complete answer.
+  Questions and follow-ups use the same agent. A wait timeout leaves the adviser
+  pending, and collection continues while it is working.
+- A complete answer ends the native turn. Your chat waits for that completion
+  and sends no routine receipt afterward. If a new adviser is definitely refused
+  for capacity, Ask may wake its own completed advisers once to consume queued
+  messages, then retry the same start once. This doesn't guarantee a free slot.
 - You get separate reviews back or, for a general question, one combined
-  answer.
+  answer. Failed starts and missing answers remain visible alongside completed
+  results. Ask doesn't replace an adviser when capacity or startup is uncertain.
 
 ### What it enforces
 
 - **Independent advice.** Advisers look and answer. Changes stay with the task
   that asked.
 - **Traceable answers.** Each response shows which adviser answered which
-  question. Codex chat titles show the model and the original task.
+  question. Native results stay tied to the agent handle, reference and scope.
+  Requested settings stay separate from model telemetry the host actually reports.
 - **Visible failures.** Invalid settings, unavailable models and failed
   consultations are reported. Ask never quietly switches to another model or
   route.
 
 Native advisers are told to stay read-only, but the host doesn't enforce that
 with a separate write barrier. Claude may use Read, Grep and Glob by default.
-WebSearch and WebFetch need `claude.web_tools`. Talking to the model always
-needs network access.
+WebSearch and WebFetch need `claude.web_tools`.
 
 ### What it costs
 
 - Every adviser means another model call and more waiting, on the Codex or
   Claude account it's configured with.
-- Native chat and mobile limits are summarized under
-  [Codex limitations](https://github.com/benjaminstelzer/scoville-suite-for-codex#codex-limitations).
+- Native advisers occupy agent capacity. Ask retains their handles for follow-ups
+  and cannot assume idle agents free a slot or that the host offers a close tool.
 - You choose the advisers and weigh up disagreements yourself. More opinions
   don't guarantee a better answer.
 
@@ -479,9 +466,6 @@ needs network access.
 
 Setup keeps your project's Scoville settings in one file. It shows the values
 that actually apply and changes only what you ask it to save.
-
-The heat, in this case, is knowing and controlling which settings your
-project actually uses, defaults included.
 
 ### How it works
 
@@ -501,17 +485,48 @@ project actually uses, defaults included.
 
 [How to use Scoville Setup](members/scoville-setup/README.md#how-to-use).
 
+## Scoville Project Context Cleanup
 
+Project rules grow with every new note. Repeated instructions and stale context
+make the next task harder to follow. Scoville Project Context Cleanup adds or
+revises the rules you request in `AGENTS.md` and context in `PROJECT_INDEX.md`,
+placing them where they belong and preserving their meaning.
+
+Suitable text stays unchanged. Necessary scope, exceptions and safeguards stay
+explicit, even when they need more words.
+
+### How it works
+
+- Resolve the target file and read its relevant governing rules.
+- Check the addition for useful project information, duplicates and conflicts.
+- Place concise wording in the affected structure, with conditions and exceptions together.
+- Inspect the saved change and use the record owner's checks where required.
+
+### What it enforces
+
+- Requested additions and cleanup stay within the named project-context files.
+- Scope, conditions, permissions, safeguards and necessary reasons survive edits.
+- Existing formats and record owners remain responsible for fields and lifecycle.
+- Suitable text stays unchanged, and unresolved material choices are asked directly.
+
+### What it costs
+
+- Reading the target, relevant rules and saved edits takes additional tokens and time.
+
+[How to use Scoville Project Context Cleanup](members/scoville-project-context-cleanup/README.md#how-to-use).
 
 ## Codex limitations
 
-Workflow and native Ask advisers run in separate chats because Codex has no
-[`close_agent`](https://github.com/openai/codex/issues/36211). That means
-extra sidebar entries that need archiving, and archived chats can
-[stay visible](https://github.com/openai/codex/issues/30903) anyway. Chats
-created on desktop may also be
-[missing from Codex Mobile](https://github.com/openai/codex/issues/24464),
-which makes it harder to follow or continue a run from your phone.
+Workflow and native Ask advisers use subagents within the calling chat. They
+retain exact handles for messages and follow-ups, without separate sidebar chats.
+Host capacity can prevent another agent from starting. An idle agent does not
+prove a slot is free, and a run cannot assume that a close tool is available.
+For a definite capacity refusal, Workflow permits one bounded cleanup of its
+known retired managers. Ask applies the same limit to its own advisers with
+complete answers and confirmed native completion. Both permit one unchanged
+spawn retry after verified cleanup. Other spawn failures, required message
+failures and identity uncertainty stop the affected operation with the remaining
+results and unresolved handles visible.
 
 ## Install the suite
 
@@ -554,6 +569,8 @@ Don't mix standalone and suite copies of the same Skill.
 If your host can't install directly from GitHub, download this repository and
 copy all the package directories inside it to the host's Skills folder. You
 end up with the same complete suite and the same requirements.
+
+
 
 <details>
 <summary>Development and builds</summary>
@@ -613,6 +630,7 @@ this block and the development files.
 - **scoville-workflow-for-codex**: [Source](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex) | [Tests](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex/development/tests) | [Notes](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/members/scoville-workflow-for-codex/development/README.md)
 - **scoville-ask-for-codex**: [Source](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-ask-for-codex) | [Tests](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-ask-for-codex/development/tests) | [Notes](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/members/scoville-ask-for-codex/development/README.md)
 - **scoville-setup**: [Source](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-setup) | [Tests](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-setup/development/tests) | [Notes](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/members/scoville-setup/development/README.md)
+- **scoville-project-context-cleanup**: [Source](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-project-context-cleanup) | [Tests](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/development/tests/test_build_suite.py) | [Notes](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/members/scoville-project-context-cleanup/development/README.md)
 
 
 

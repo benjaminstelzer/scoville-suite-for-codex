@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only role-specific context decision from the caller's native rollout."""
+"""Read-only context decision; child threshold crossings only schedule rollover."""
 from __future__ import annotations
 
 import argparse
@@ -19,7 +19,7 @@ def decide(events: list[dict], thread_id: str, role: str, thresholds: dict) -> d
     if role not in {"coordinator", "executor", "reviewer"}:
         raise InspectionError("unknown checkpoint role")
     meta = [e for e in events if e.get("type") == "session_meta"]
-    if len(meta) != 1 or event_payload(meta[0]).get("session_id") != thread_id:
+    if len(meta) != 1 or event_payload(meta[0]).get("id") != thread_id:
         raise InspectionError("rollout does not identify the calling task")
     contexts = [e for e in events if e.get("type") == "turn_context"]
     samples = [e for e in events if event_payload(e).get("type") == "token_count"]
@@ -42,9 +42,19 @@ def decide(events: list[dict], thread_id: str, role: str, thresholds: dict) -> d
             raise InspectionError("telemetry interval has conflicting turn identity")
         if payload.get("type") in {"task_started", "task_complete", "task_failed", "task_aborted"}:
             raise InspectionError("telemetry interval crosses a turn boundary")
+    records = [e for e in events if e.get("type") == "token_usage_record"
+               and e["ordinal"] < sample["ordinal"]]
+    if not records or records[-1]["ordinal"] <= max(boundaries):
+        raise InspectionError("token sample has no fresh identity-bearing usage record")
+    record = records[-1]
+    usage_record = event_payload(record)
+    if usage_record.get("thread_id") != thread_id or usage_record.get("turn_id") != turn_id:
+        raise InspectionError("token sample belongs to another agent or turn")
     info = event_payload(sample).get("info")
     if not isinstance(info, dict) or not isinstance(info.get("last_token_usage"), dict):
         raise InspectionError("telemetry fields are missing")
+    if usage_record.get("usage") != info["last_token_usage"]:
+        raise InspectionError("token sample does not match its identity-bearing usage record")
     used = info["last_token_usage"].get("input_tokens")
     window = info.get("model_context_window")
     if type(used) is not int or type(window) is not int or not 0 < used <= window:
@@ -53,11 +63,11 @@ def decide(events: list[dict], thread_id: str, role: str, thresholds: dict) -> d
         "action": (
             ("rollover" if used * 100 >= window * thresholds["coordinator_percent"] else "continue")
             if role == "coordinator" else
-            ("context_handoff" if used * 100 > window * thresholds["worker_percent"] else "continue")
+            ("rollover_pending" if used * 100 > window * thresholds["worker_percent"] else "continue")
         ),
         "telemetry": "fresh", "input_tokens": used,
         "model_context_window": window, "sample_ordinal": sample["ordinal"],
-        "turn_id": turn_id,
+        "turn_id": turn_id, "usage_ordinal": record["ordinal"],
     }
 
 
@@ -65,11 +75,11 @@ def main() -> int:
     configure_utf8()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--role", choices=("coordinator", "executor", "reviewer"), required=True)
-    parser.add_argument("--boundary", "--accepted-unit", dest="boundary", help="checked unit or retained worker handoff")
+    parser.add_argument("--boundary", "--accepted-unit", dest="boundary", help="completed selected unit, including due review, repairs and closure")
     parser.add_argument("--project-root", type=Path, default=Path.cwd())
     args = parser.parse_args()
     if args.role == "coordinator" and (not args.boundary or not args.boundary.strip()):
-        parser.error("coordinator checkpoint requires --boundary <unit-or-handoff>; add e.g. --boundary W-001/step-3/handoff for a retained worker handoff")
+        parser.error("coordinator checkpoint requires --boundary <completed-unit>; finish the selected unit, then add e.g. --boundary W-001/step-3")
     if args.role != "coordinator" and args.boundary is not None:
         parser.error("--boundary/--accepted-unit is coordinator-only; remove it for an executor or reviewer checkpoint")
     thread_id = os.environ.get("CODEX_THREAD_ID")

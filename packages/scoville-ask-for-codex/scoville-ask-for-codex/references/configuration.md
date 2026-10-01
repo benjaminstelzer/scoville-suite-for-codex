@@ -18,7 +18,7 @@ python "<ask-skill-directory>/scripts/ask.py" --input-file "<request.json>"
 The object contains operation=resolve, project_root and optional overrides.
 The JSON response config.advisers supplies id, route, model and effort directly.
 These are technical settings, not a dispatch prompt. Use model and effort as
-create_thread model and thinking. Dispatch questions and adviser answers remain
+spawn_agent model and reasoning_effort. Dispatch questions and adviser answers remain
 plain text. No model/list call or output repair is required. A nonzero exit or
 ok:false stops the operation with its diagnostic. Existing stdin JSON requests
 remain supported, including the unchanged Ask Claude interface.
@@ -26,8 +26,9 @@ remain supported, including the unchanged Ask Claude interface.
 ask_settings.py, scoville_config.py and ask_claude.py are imported modules, not
 separate commands. Use the bundled ask.py from this installed package.
 
-config.pin_threads controls pinning new native adviser chats. Default true;
-set ask.pin_threads=false through Setup to disable it. Preserve existing pins.
+Legacy ask.pin_threads booleans remain readable and are preserved when other
+settings change, but have no effect. Native advisers are subagents without
+sidebar chats. Setup explains this and does not offer to save new Ask pin settings.
 
 The selected project root owns `.scoville/config.json`. Its `ask` section
 overrides this Skill's defaults. Missing files or fields use those defaults.
@@ -46,7 +47,6 @@ Shipped settings, generated from their canonical file:
 ```json
 {
   "schema_version": 1,
-  "pin_threads": true,
   "advisers": ["astra"],
   "presets": {
     "astra": {"route": "native", "model": "gpt-6-astra", "effort": "high"},
@@ -73,7 +73,7 @@ settings take precedence over new defaults unless explicitly changed.
 selected project's absolute root. When omitted, `cwd` supplies the root, or
 the process working directory if neither was supplied. `project_config` is
 rejected with migration guidance. Keep settings unchanged during a run.
-Native availability is checked by create_thread on the actual host, not by a
+Native availability is checked by spawn_agent on the actual host, not by a
 separate CLI catalog. Display resolved settings when configuration is requested.
 
 Claude-only prepare takes mode=review|consultation, question, scope, reference,
@@ -81,4 +81,4 @@ and an absolute cwd, with overrides selecting only Claude
 advisers. It returns entries[].request unchanged for operation=claude. The Claude
 adapter, deadlines and follow-up session rules are unchanged. No separate
 authorization field is required: the explicit Ask request commissions the call.
-Native prepare and followup operations are removed; use native tools directly.
+Native prepare and followup operations are removed; use collaboration tools directly.

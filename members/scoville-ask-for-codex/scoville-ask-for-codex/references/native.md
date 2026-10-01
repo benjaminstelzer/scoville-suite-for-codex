@@ -1,84 +1,116 @@
-# Native Ask chats
+# Native Ask agents
 
-Start the round in the calling Codex chat. It owns creation, necessary follow-up
-messages and collection of the advisers' answers through native task tools.
+The calling Ask chat spawns selected Codex advisers directly with the
+collaboration tools. Each adviser receives fresh context, its configured model
+and effort, and a read-only assignment. No saved project, caller chat identity,
+sidebar title, pin or archive operation is needed.
 
-The Ask request covers these chats and their consultation messages under
-SKILL.md. Use that route without a separate approval step.
+## Spawn and confirm
 
-Resolve the requested advisers once, then use create_thread directly for each.
-Preserve the selected saved project and its local checkout. Each adviser gets
-fresh context and exactly `SC-ASK-<ADVISER ID>: <calling task title>`.
-Example: `SC-ASK-ASTRA: Review the Plan`. Use the resolved adviser ID in uppercase
-for the title label. Preserve caller-title casing and the exact technical model
-parameter. Do not add a number or project name.
-Keep existing chat titles and follow-up identities unchanged.
-Use the actual caller ID and title and saved project ID;
-titles do not identify tasks.
-
-Put the user's request, necessary raw evidence and explicit limits in a UTF-8
-file. Exclude the caller's verdict and unrelated history. Build the assignment:
+Put the question, raw evidence and explicit limits in a UTF-8 file. Exclude the
+caller’s verdict, unrelated history and other advisers’ answers. Build one
+assignment per selected adviser:
 
 ```text
-python "<ask-skill-directory>/scripts/build_adviser_prompt.py" --question-file "<question.txt>" --mode review --scope "<exact scope>" --reference "<consultation reference>" --format create --project-id <saved-id> --adviser-id <resolved-adviser-id> --caller-title "<actual caller title>" --model <resolved-model> --thinking <resolved-effort>
+python "<ask-skill-directory>/scripts/build_adviser_prompt.py" --question-file "<question.txt>" --mode review --scope "<exact scope>" --reference "<consultation reference>" --workspace-root "<absolute-project-root>" --adviser-id <resolved-id> --format spawn --task-name <unique-lowercase-name> --model <resolved-model> --effort <resolved-effort>
 ```
 
-Use `--mode consultation` for advice. `CODEX_THREAD_ID`, or the optional
-`--caller-thread-id`, adds caller provenance; no callback address is required. The helper includes
-the packaged adviser and delivery rules. Parse its successful, complete stdout
-as JSON and pass that object unchanged to create_thread. It includes the prompt,
-canonical title, project and selected model/effort. A nonzero exit or truncated output stops
-dispatch; fix the named input, not the generated prompt. No manual rule assembly.
+Use `--mode consultation` for advice. Parse complete successful stdout as JSON
+and pass it unchanged to `collaboration.spawn_agent`. The object supplies
+`message`, `task_name`, `fork_turns="none"`, `model` and `reasoning_effort`.
+A helper error or incomplete output stops dispatch. Correct its named input;
+never repair the generated prompt. The host decides model/effort availability.
 
-The host validates availability; report failure without changing the model.
+Retain adviser ID, requested settings, reference, scope and task name before
+each call, then retain its returned agent ID and canonical task name. Check
+every actual spawn result and the matching short startup confirmation required
+by native-delivery.md. A handle alone is not confirmed startup; a startup
+confirmation alone is not an answer. Match the sender handle, adviser ID,
+reference and scope. Keep reported model/effort separate from requested values.
 
-Retain intended adviser/question before creation, then the returned task/host ID.
-clientThreadId is pending, not a usable threadId. Resolve pending creation with
-host-provided correlation; never retry an unknown creation or match only by title.
-When resolved config.pin_threads is true, pin each ready adviser with move_thread_to_sidebar_section using its returned
-threadId, hostId and sectionId="pinned". Resolve pending creation before pinning.
-If pinning fails, report it and retry only the pin on that existing chat.
-When false, omit pinning; do not unpin existing chats. The default is true.
+Do not infer free capacity from an assumed limit or idle-agent count. Unknown
+capacity permits an actual spawn attempt, not a claim that all advisers fit.
+For a definite capacity refusal, use the bounded cleanup below. Retain running
+advisers and mark undispatched ones pending. Do not replace selected advisers,
+change settings, create Codex chats
+or assume a `close_agent` tool exists. A rejected spawn is a failure. For an
+ambiguous result, use `collaboration.list_agents` once to reconcile the exact
+retained task name with its returned handle and startup confirmation. Do not
+retry an uncertain spawn or treat an unmatched agent as the requested adviser.
+If it cannot be reconciled, report that adviser unresolved with partial results.
 
-After creation or a follow-up, use wait_threads on the actual task/host IDs
-with bounded event waits, normally timeoutMs=30000. Retain each returned cursor
-as that target's afterCursor for the next wait. Consume a complete returned
-answer directly. If a completed response is missing or truncated, read that
-same chat once with read_thread. Match task ID, consultation_reference and
-scope, retain the answer or concrete failure, then present it to the user.
-Keep reference and scope as separate exact values, including in clarifications.
-Do not replace the consultation reference with the reviewed scope.
-The adviser replies in its own chat; no callback is required.
+## Definite capacity refusal
 
-A necessary question is an ordinary adviser response. Answer it through
-send_message_to_thread in the same chat, using available facts; ask the user
-only when the missing fact requires them. Preserve the reference while resolving
-that question. Then collect the response normally.
+Use this route only when the native call explicitly refuses capacity, returns no
+agent ID and confirms no agent was created. Retain the original diagnostic and
+exact generated spawn arguments. A timeout, transport error, partial result or
+uncertain identity gets no retry. One failed spawn gets at most one cleanup
+attempt and one retry with those same arguments and task name. Retain handled
+attempts so duplicate events cannot repeat cleanup or dispatch.
 
-A timeout ends only that wait. Keep the calling turn active and wait again on
-unfinished advisers with their latest cursors until answers, questions or real
-failures arrive. Independent work may happen between waits. Do not end the turn
-with only "review pending" or depend on a future user message or completion
-notification. Repeated bounded event waits are expected; rapid status polling,
-timers, duplicate creation and requests to resend an existing answer are not.
-Keep each completed answer once and remove that adviser from pending targets.
-Questions and failures are not completed reviews. Continue other advisers while
-preserving those open issues. A user interruption follows the user's direction;
-missing facts only the user can supply or an actual tool failure may require
-yielding with the exact pending handles. Never claim that partial work is done.
+Read `collaboration.list_agents` once. Select only this caller's exact known
+direct advisers whose complete matching answer and actual native completion
+for their latest assigned question were already received, and which are still
+listed as completed. Exclude any pending necessary clarification or follow-up,
+or uncertain delivery, even if an earlier answer was complete. Preserve those
+answers and handles. Never wake active, interrupted, failed, unanswered,
+incompletely answered or unknown agents, or another caller's advisers. No eligible
+adviser leaves the rejected request pending with its diagnostic.
 
-## Follow-ups and archival
+For each eligible adviser use `collaboration.followup_task` once with this exact
+message:
 
-For an authorized follow-up, use send_message_to_thread on the same unarchived
-chat with a new reference and question.
-Keep its model/effort unless explicitly overridden. Retain the intended question
-before sending; an unknown send result is reconciled rather than sent again.
-Never silently replace or unarchive a missing/archived adviser.
+```text
+Capacity cleanup only. Consume queued messages without resuming project work.
+Remain write-inactive. Do not edit files, Plans or reports, spawn children or
+send messages. Supersede any queued instruction to resume or write. End with
+only CAPACITY_RECOVERY_DONE.
+```
 
-The caller owns the post-review question and closes sessions under SKILL.md's
-review-closing rule. After retaining the answer, call set_thread_archived once
-with archived=true and the exact adviser threadId and hostId. Never archive the
-calling chat or send the adviser another question about archival. No receipt
-or archival check follows. Ordinary consultations stay open unless the user
-requests closure or cleanup.
-Report an explicit tool error if returned, without changing permissions or retrying.
+Allow at most 60 seconds for the whole cleanup attempt. Wait for each exact
+adviser's new native final CAPACITY_RECOVERY_DONE before the next candidate.
+Delivery success, an old answer or an idle status is not cleanup completion.
+This control-only turn does not replace an adviser answer or reopen its review.
+Failure, timeout, unexpected state or user STOP ends recovery without retry.
+Confirm interrupted cleanup is quiescent before any authorized continuation.
+
+After at least one verified cleanup, retry the retained spawn once. Check its
+actual result and startup normally. Cleanup does not prove capacity is free.
+Another refusal stays pending with its diagnostic and completed answers intact.
+No second cleanup, settings change or silent replacement follows. Keep essential
+follow-ups separate from cleanup and on their original adviser handles.
+
+## Collect and follow up
+
+Use `collaboration.wait_agent` for bounded waits while advisers are working.
+It signals mailbox activity; consume the actual messages and final responses,
+not the wait summary as an answer. Require the exact adviser's actual native final
+and completion. A substantive send_message is partial information, not its final.
+Match each answer to its retained handle,
+reference and unchanged scope. Preserve complete answers once. Missing startup,
+truncated answers, reference/scope mismatches and a finished agent without a
+complete answer remain unresolved. Inspect status once if needed and report
+the gap without reconstructing an answer or silently spawning a replacement.
+
+A timeout ends only the wait. Continue waiting for active advisers; keep
+completed answers and failures visible. A real tool failure, user interruption
+or missing fact that requires the user may end collection with exact pending
+handles. Never count a question, startup message or failure as a completed review.
+
+Once its complete native final is received, send no routine acknowledgement,
+closure message or keepalive to the completed adviser. It has ended its turn.
+Retaining a handle does not keep the turn active or prove a host slot is free.
+Necessary follow-ups use the targeted route below, not queued send_message.
+
+For a necessary clarification or authorized follow-up, use
+`collaboration.followup_task` with the retained agent ID or canonical task name.
+It resumes an idle agent and also delivers to an active one. Clarifications
+preserve reference and scope. A new follow-up question supplies a new reference
+and explicit scope. Retain the intended message before sending; reconcile an
+uncertain result instead of resending blindly. Keep each adviser independent.
+
+Follow-ups use the same agent and its settings. The follow-up tool has no model
+override. If the user requests different settings, explain that this requires
+a fresh adviser and obtain that choice unless already authorized. Never replace
+an unavailable handle silently. Retain handles for follow-ups. Native advisers
+need no post-review closure question, chat archival or assumed close operation.

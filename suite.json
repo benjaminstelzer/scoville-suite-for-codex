@@ -28,7 +28,6 @@
         "shared:scoville-install.md",
         "shared:scoville-suite-install.md",
         "development/readme/scoville-code/usage.md",
-        "development/readme/name-origin.md",
         "development/readme/scoville-code/sources.md",
         "shared:family.md",
         "shared:license.md"
@@ -121,7 +120,6 @@
         "shared:scoville-install.md",
         "shared:scoville-suite-install.md",
         "development/readme/scoville-handoff/usage.md",
-        "development/readme/name-origin.md",
         "development/readme/scoville-handoff/sources.md",
         "shared:family.md",
         "shared:license.md"
@@ -202,7 +200,6 @@
         "shared:scoville-install.md",
         "shared:scoville-suite-install.md",
         "development/readme/scoville-plan/usage.md",
-        "development/readme/name-origin.md",
         "development/readme/scoville-plan/sources.md",
         "shared:family.md",
         "shared:license.md"
@@ -227,6 +224,10 @@
         {
           "source": "members/scoville-plan/scoville-plan/references/planning-granularity.md",
           "target": "scoville-plan/references/planning-granularity.md"
+        },
+        {
+          "source": "members/scoville-plan/scoville-plan/references/repair.md",
+          "target": "scoville-plan/references/repair.md"
         },
         {
           "source": "members/scoville-plan/scoville-plan/references/read-only.md",
@@ -329,7 +330,6 @@
         "shared:scoville-install.md",
         "shared:scoville-suite-install.md",
         "development/readme/scoville-ui/usage.md",
-        "development/readme/name-origin.md",
         "development/readme/scoville-ui/sources.md",
         "shared:family.md",
         "shared:license.md"
@@ -480,19 +480,18 @@
         "development/readme/scoville-workflow-codex/mechanism.md",
         "development/readme/scoville-workflow-codex/requirements.md",
         "development/readme/scoville-workflow-codex/costs.md",
-        "development/readme/scoville-workflow-codex/example.md",
-        "development/readme/scoville-workflow-codex/evidence.md",
         "development/readme/scoville-workflow-codex/development.md",
         {
           "source": "shared:member-development-inline.md",
           "audience": "suite"
         },
+        "development/readme/scoville-workflow-codex/example.md",
+        "development/readme/scoville-workflow-codex/evidence.md",
         "development/readme/scoville-workflow-codex/compatibility-3248926e0f8a0db5.md",
         "shared:skill-installation-contract.md",
         "development/readme/scoville-workflow-codex/install-94174f7bf19c6c42.md",
         "shared:scoville-suite-install.md",
         "development/readme/scoville-workflow-codex/usage.md",
-        "development/readme/name-origin.md",
         "development/readme/scoville-workflow-codex/sources.md",
         "shared:family.md",
         "shared:license.md"
@@ -555,6 +554,10 @@
           "target": "scoville-workflow-for-codex/references/operations-rollover.md"
         },
         {
+          "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/references/agent-capacity.md",
+          "target": "scoville-workflow-for-codex/references/agent-capacity.md"
+        },
+        {
           "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/workflow_settings.py",
           "target": "scoville-workflow-for-codex/scripts/workflow_settings.py"
         },
@@ -565,6 +568,14 @@
         {
           "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/build_manager_handoff.py",
           "target": "scoville-workflow-for-codex/scripts/build_manager_handoff.py"
+        },
+        {
+          "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/run_feedback.py",
+          "target": "scoville-workflow-for-codex/scripts/run_feedback.py"
+        },
+        {
+          "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/references/run-feedback.md",
+          "target": "scoville-workflow-for-codex/references/run-feedback.md"
         }
       ],
       "family": {
@@ -607,6 +618,9 @@
         },
         "scripts/native_task_arguments.py": {
           "kind": "library"
+        },
+        "scripts/run_feedback.py": {
+          "kind": "helper"
         }
       },
       "variables": {
@@ -645,7 +659,6 @@
         "shared:scoville-install.md",
         "shared:scoville-suite-install.md",
         "development/readme/scoville-ask-for-codex/usage.md",
-        "development/readme/name-origin.md",
         "development/readme/scoville-ask-for-codex/sources.md",
         "shared:family.md",
         "shared:license.md"
@@ -730,10 +743,6 @@
         {
           "source": "runtime/scoville_config.py",
           "target": "scoville-ask-for-codex/scripts/scoville_config.py"
-        },
-        {
-          "source": "runtime/native_task_arguments.py",
-          "target": "scoville-ask-for-codex/scripts/native_task_arguments.py"
         }
       ],
       "family": {
@@ -766,9 +775,6 @@
         },
         "scripts/scoville_config.py": {
           "kind": "library"
-        },
-        "scripts/native_task_arguments.py": {
-          "kind": "library"
         }
       },
       "distribution": "suite"
@@ -797,7 +803,6 @@
         "development/readme/scoville-setup/compatibility.md",
         "development/readme/scoville-setup/install.md",
         "development/readme/scoville-setup/usage.md",
-        "development/readme/name-origin.md",
         "development/readme/scoville-setup/sources.md",
         "shared:family.md",
         "shared:license.md"
@@ -872,15 +877,94 @@
       "variables": {
         "contract_url": "https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-setup/scoville-setup/SKILL.md"
       }
+    },
+    {
+      "name": "scoville-project-context-cleanup",
+      "development": {
+        "source": "members/scoville-project-context-cleanup",
+        "tests": "development/tests/test_build_suite.py",
+        "notes": "members/scoville-project-context-cleanup/development/README.md"
+      },
+      "repository": "benjaminstelzer/scoville-suite-for-codex",
+      "distribution": "suite",
+      "visibility": "public",
+      "public_distribution": true,
+      "readme": [
+        "development/readme/scoville-project-context-cleanup/description.md",
+        "development/readme/scoville-project-context-cleanup/mechanism.md",
+        "development/readme/scoville-project-context-cleanup/requirements.md",
+        "development/readme/scoville-project-context-cleanup/costs.md",
+        "development/readme/scoville-project-context-cleanup/development.md",
+        {
+          "source": "shared:member-development-inline.md",
+          "audience": "suite"
+        },
+        "development/readme/scoville-project-context-cleanup/compatibility.md",
+        "shared:skill-installation-contract.md",
+        "development/readme/scoville-project-context-cleanup/install.md",
+        "development/readme/scoville-project-context-cleanup/usage.md",
+        "development/readme/scoville-project-context-cleanup/sources.md",
+        "shared:family.md",
+        "shared:license.md"
+      ],
+      "files": [
+        {
+          "source": "members/scoville-project-context-cleanup/scoville-project-context-cleanup/SKILL.md",
+          "target": "scoville-project-context-cleanup/SKILL.md"
+        },
+        {
+          "source": "members/scoville-project-context-cleanup/scoville-project-context-cleanup/agents/openai.yaml",
+          "target": "scoville-project-context-cleanup/agents/openai.yaml"
+        },
+        {
+          "source": "members/scoville-project-context-cleanup/scoville-project-context-cleanup/LICENSE",
+          "target": "scoville-project-context-cleanup/LICENSE"
+        },
+        {
+          "source": "shared:prompting/common.md",
+          "target": "scoville-project-context-cleanup/references/writing.md"
+        },
+        {
+          "source": "members/scoville-project-context-cleanup/LICENSE",
+          "target": "LICENSE"
+        },
+        {
+          "source": "members/scoville-project-context-cleanup/CHANGELOG.md",
+          "target": "CHANGELOG.md"
+        },
+        {
+          "source": "members/scoville-project-context-cleanup/.gitattributes",
+          "target": ".gitattributes"
+        }
+      ],
+      "family": {
+        "label": "Project Context Cleanup",
+        "owner": "requested project-rule and index wording, information quality and structure.",
+        "summary": "keeps requested project rules and index text concise without losing required context.",
+        "order": 12,
+        "neighbors": []
+      },
+      "variables": {
+        "skill_name": "scoville-project-context-cleanup",
+        "codex_skills_guide": "https://learn.chatgpt.com/docs/build-skills",
+        "contract_url": "https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-project-context-cleanup/scoville-project-context-cleanup/SKILL.md"
+      },
+      "description_fragments": [
+        "development/readme/scoville-project-context-cleanup/description.md",
+        "development/readme/scoville-project-context-cleanup/mechanism.md",
+        "development/readme/scoville-project-context-cleanup/requirements.md",
+        "development/readme/scoville-project-context-cleanup/costs.md"
+      ],
+      "helper_contracts": {}
     }
   ],
   "readme": [
     "development/readme/suite-intro.md",
     "shared:suite-requirements.md",
     "shared:suite-descriptions.md",
-    "shared:suite-catalog.md",
     "development/readme/codex-limitations.md",
     "development/readme/suite-install.md",
+    "shared:suite-catalog.md",
     "development/readme/suite-development.md",
     "shared:suite-development-links.md",
     "development/readme/suite-deprecated.md"

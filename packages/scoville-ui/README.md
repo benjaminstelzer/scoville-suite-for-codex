@@ -10,9 +10,6 @@ terms stay consistent across views and translations.
 On supported WordPress admin pages, it uses Core components and follows
 WordPress spacing, version requirements and translation conventions.
 
-The heat, in this case, is a task people can still understand and finish,
-whatever the layout, the interaction or the error.
-
 ## How it works
 
 - Find out which design system, components and approved product decisions
@@ -20,10 +17,10 @@ whatever the layout, the interaction or the error.
 - Read the relevant code and use the components the framework supports.
 - Apply the WordPress guidance to supported plugin-owned `wp-admin` pages.
   Editor surfaces and metaboxes keep their host's conventions.
-- Implement the affected states and responsive behavior, then look at the
-  rendered result and try the interactions.
 - Take blocked product decisions to whoever owns them. Where the visual
   direction is still open, stay within the framework's existing conventions.
+- Implement the affected states and responsive behavior, then look at the
+  rendered result and try the interactions.
 
 ## What it enforces
 
@@ -45,7 +42,8 @@ whatever the layout, the interaction or the error.
 - **Accessibility.** Reading order, names, relationships, contrast, focus and
   keyboard or touch behavior are checked.
 - **Visual checks.** Nothing is reported as working until the rendered
-  interface has been inspected and its interactions tested.
+  interface has been inspected and its interactions tested. Source checks
+  alone leave rendering and interaction unverified.
 - **WordPress conventions.** Each part of the page uses the appropriate
   WordPress components and design tokens. Existing PHP-rendered pages can stay
   in PHP.
@@ -56,8 +54,6 @@ The full instructions are in [SKILL.md](https://github.com/benjaminstelzer/scovi
 
 - Browser inspection, interaction checks and corrections take tokens and time.
 - WordPress tasks load extra platform guidance.
-- If only the source can be checked, rendering and interaction remain
-  unverified.
 
 ## How it was developed
 
@@ -100,11 +96,7 @@ report the incomplete installation rather than claiming the suite is ready.
 The host needs permission to write to its Skills directory. The
 [Codex Skills guide](https://learn.chatgpt.com/docs/build-skills) lists where to install it.
 
-### Install the complete Scoville suite
 
-The complete suite is in the
-[Scoville Suite monorepo](https://github.com/benjaminstelzer/scoville-suite-for-codex).
-Install its released Skill packages, not development templates.
 
 ## How to use
 
@@ -118,20 +110,18 @@ Audit the checkout interface for keyboard use, responsive behavior, accessibilit
 
 ### Checking the interface
 
+Use the styling options the component supports. If custom CSS is needed,
+explain why. Keep CSS values and the sizes actually rendered on screen apart.
+
 Make related edits together, then check the code and the rendered result,
 including spacing and alignment. If defects remain, collect the corrections
 and recheck the affected behavior once that batch is done.
-
-Use the styling options the component supports. If custom CSS is needed,
-explain why. Keep CSS values and the sizes actually rendered on screen apart.
 
 A consistency audit lists regions, variants and states, including content
 below the fold. Each finding points to the source, measurements and visual
 evidence, or explains what couldn't be checked. Look at alignment, text,
 whitespace, the inside of controls, icons, wrapping and clipping, and say
 which parts of the interface were checked.
-
-
 
 ## Sources
 

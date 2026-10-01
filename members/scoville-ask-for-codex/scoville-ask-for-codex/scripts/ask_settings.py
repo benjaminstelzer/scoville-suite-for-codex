@@ -52,7 +52,7 @@ def resolve_settings(defaults: Path, request: dict):
     config = merge_config_layer(config, request.get('overrides', {}))
     unknown = sorted(set(config) - {'schema_version', 'advisers', 'presets', 'claude', 'pin_threads'})
     require(not unknown, f'configuration keys {unknown} are unknown; use only schema_version, advisers, presets, claude and pin_threads')
-    require(type(config.get('pin_threads')) is bool,
+    require('pin_threads' not in config or type(config['pin_threads']) is bool,
             'ask.pin_threads must be a JSON boolean; use true or false')
     require(type(config.get('schema_version')) is int and config['schema_version'] == 1,
             f"schema_version={type(config.get('schema_version')).__name__} is unsupported; set it to integer 1")

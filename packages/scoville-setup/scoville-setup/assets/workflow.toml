@@ -8,40 +8,40 @@ coordinator_percent = 40
 worker_percent = 60
 
 [execute.ultra_low]
-model = "gpt-6-sol"
+model = "gpt-6-luna"
 reasoning = "medium"
 
 [review.ultra_low]
-model = "gpt-6-sol"
-reasoning = "high"
+model = "gpt-6.1-sol"
+reasoning = "low"
 
 [execute.low]
-model = "gpt-6-sol"
+model = "gpt-6-luna"
 reasoning = "high"
 
 [review.low]
-model = "gpt-6-sol"
-reasoning = "xhigh"
+model = "gpt-6.1-sol"
+reasoning = "medium"
 
 [execute.medium]
-model = "gpt-5.6-sol"
+model = "gpt-6.1-sol"
 reasoning = "medium"
 
 [review.medium]
-model = "gpt-5.6-sol"
-reasoning = "high"
-
-[execute.high]
 model = "gpt-6-astra"
 reasoning = "medium"
+
+[execute.high]
+model = "gpt-6.1-sol"
+reasoning = "high"
 
 [review.high]
 model = "gpt-6-astra"
 reasoning = "high"
 
 [execute.ultra_high]
-model = "gpt-6-astra"
-reasoning = "high"
+model = "gpt-6.1-sol"
+reasoning = "xhigh"
 
 [review.ultra_high]
 model = "gpt-6-astra"

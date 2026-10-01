@@ -1,8 +1,8 @@
 ### One recorded workflow sequence
 
-This is a shortened sequence from a real project run on 21 September 2026.
-The chat titles are the original ones, minus the coordinator IDs. It covers
-one real Step, not a made-up group of several.
+This is a historical sequence from the earlier chat-based Workflow on
+21 September 2026. The current Workflow uses native agents. The old chat titles
+are retained here, minus the coordinator IDs. It covers one real Step.
 
 ```text
 Scoville-Workflow-Codex G6 selects W-015/step-1.

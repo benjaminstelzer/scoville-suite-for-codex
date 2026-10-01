@@ -7,7 +7,7 @@ next session. Setup manages the project's model and Workflow settings.
 
 The Scoville scale originally measured chili heat through dilution. Here, the
 point is that the goal, the decisions and the verified results stay clear as
-work passes between coordinators, workers, reviewers and successor chats.
+work passes between manager, worker and reviewer agents and into later sessions.
 
 Using Claude Code or another Agent Skills host? Take
 [Scoville Suite](https://github.com/benjaminstelzer/scoville-suite).
@@ -17,10 +17,11 @@ which adds Workflow, Ask and Setup.
 
 | Skill | Purpose |
 | --- | --- |
-| [Workflow for Codex](#scoville-workflow-for-codex) | Runs a repository Plan through worker, reviewer and successor chats. |
+| [Workflow for Codex](#scoville-workflow-for-codex) | Runs a repository Plan through manager, worker and reviewer agents. |
 | [Code](#scoville-code) | Keeps implementation, risk assessment and checks focused on what you asked for. |
 | [Plan](#scoville-plan) | Keeps longer work, decisions and progress easy to pick up again. |
 | [UI](#scoville-ui) | Builds and checks interfaces with their framework and design system. |
 | [Handoff](#scoville-handoff) | Passes unfinished work to another session. |
 | [Ask for Codex](#scoville-ask-for-codex) | Asks the advisers you configured for an independent opinion. |
 | [Setup](#scoville-setup) | Manages the selected project's Scoville settings. |
+| [Project Context Cleanup](#scoville-project-context-cleanup) | Keeps requested project rules and index text clear without losing required context. |

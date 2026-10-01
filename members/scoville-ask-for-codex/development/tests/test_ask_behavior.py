@@ -199,7 +199,7 @@ for line in sys.stdin:
 
     def test_native_prepare_is_removed_without_fallback(self):
         for adviser in (ADVISERS[0], ADVISERS[2]):
-            with self.assertRaisesRegex(ValueError, 'create_thread directly'):
+            with self.assertRaisesRegex(ValueError, r'build_adviser_prompt.py and collaboration.spawn_agent'):
                 ask.prepare(prepare_request([adviser]))
         self.assertNotIn('followup', ask.OPERATIONS)
 

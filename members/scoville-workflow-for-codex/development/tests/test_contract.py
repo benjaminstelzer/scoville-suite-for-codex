@@ -21,10 +21,11 @@ _test_package = tempfile.TemporaryDirectory(prefix="workflow-tests-", ignore_cle
 PACKAGE = Path(_test_package.name) / "scoville-workflow-for-codex"
 _config = _builder.load(SUITE_ROOT, 'codex')
 _member = next(m for m in _config['members'] if m['name'] == PACKAGE.name)
-for _name, _data in _builder.payload(SUITE_ROOT, _member, _config).items():
-    _target = Path(_test_package.name) / _name
-    _target.parent.mkdir(parents=True, exist_ok=True)
-    _target.write_bytes(_data)
+for _package_member in (_member, next(m for m in _config['members'] if m['name'] == 'scoville-code')):
+    for _name, _data in _builder.payload(SUITE_ROOT, _package_member, _config).items():
+        _target = Path(_test_package.name) / _name
+        _target.parent.mkdir(parents=True, exist_ok=True)
+        _target.write_bytes(_data)
 MODEL_RESOLVER = PACKAGE / "scripts/resolve_model_pair.py"
 SELECTOR = SUITE_ROOT / "members/scoville-plan/scoville-plan/scripts/select_context.py"
 sys.path.insert(0, str(PACKAGE / "scripts"))
@@ -55,18 +56,31 @@ class NativeWorkflowContractTests(unittest.TestCase):
                 path = Path(directory) / "workflow.toml"
                 path.write_text(altered, encoding="utf-8")
                 with self.assertRaisesRegex(ValueError, diagnostic):
-                    model_resolver.load_config(path)
+                    model_resolver.load_config(path, Path(directory))
 
     def test_models_preserve_five_routes_and_executor_overrides(self):
         config = model_resolver.load_config(PACKAGE / 'assets/workflow.toml', PACKAGE)
         self.assertEqual(set(config), {'schema_version', 'context', 'execute', 'review', 'pin_threads'})
-        routes = ('ultra_low', 'low', 'medium', 'high', 'ultra_high')
-        for role, table in [('executor', 'execute'), ('reviewer', 'review')]:
-            self.assertEqual(set(config[table]), set(routes))
-            for route in routes:
-                pair = model_resolver.resolve(config, role, route)
-                self.assertEqual(pair['model'], config[table][route]['model'])
-                self.assertEqual(pair['thinking'], config[table][route]['reasoning'])
+        expected = {
+            'ultra_low': ('gpt-6-luna', 'medium', 'gpt-6.1-sol', 'low'),
+            'low': ('gpt-6-luna', 'high', 'gpt-6.1-sol', 'medium'),
+            'medium': ('gpt-6.1-sol', 'medium', 'gpt-6-astra', 'medium'),
+            'high': ('gpt-6.1-sol', 'high', 'gpt-6-astra', 'high'),
+            'ultra_high': ('gpt-6.1-sol', 'xhigh', 'gpt-6-astra', 'xhigh'),
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            for role, table, offset in [('executor', 'execute', 0), ('reviewer', 'review', 2)]:
+                self.assertEqual(set(config[table]), set(expected))
+                for route, values in expected.items():
+                    with self.subTest(role=role, route=route):
+                        pair = dict(model=values[offset], thinking=values[offset + 1], route=route)
+                        self.assertEqual(model_resolver.resolve(config, role, route), pair)
+                        result = subprocess.run(
+                            [sys.executable, str(MODEL_RESOLVER), '--project-root', directory,
+                             '--role', role, '--route', route],
+                            text=True, encoding='utf-8', capture_output=True)
+                        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                        self.assertEqual(json.loads(result.stdout), dict(valid=True, **pair, pin_threads=True))
         pair = model_resolver.resolve(config, 'executor', 'low', 'custom', 'high')
         self.assertEqual(pair, dict(model='custom', thinking='high', route='low'))
         self.assertEqual(model_resolver.resolve(config, 'reviewer', 'low', 'custom', 'medium'),
@@ -140,7 +154,7 @@ class NativeWorkflowContractTests(unittest.TestCase):
                     context = prompt_builder.select_unit(SELECTOR, root, unit)
                     completed = subprocess.run([sys.executable, '-B', str(PACKAGE / 'scripts/build_dispatch_prompt.py'),
                         '--unit', unit, '--role', 'executor', '--project-root', str(root),
-                        '--return-to-thread-id', 'manager'],
+                        '--manager-agent-id', 'manager'],
                         input='{}', text=True, encoding='utf-8', capture_output=True,
                         env={**os.environ, 'PYTHONIOENCODING': 'cp1252'})
                     self.assertEqual(completed.returncode, 0, completed.stderr)
@@ -173,22 +187,23 @@ class NativeWorkflowContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '--executor-result'):
             prompt_builder.build_prompt('reviewer', PACKAGE, 'manager', '', context, {})
 
-    def test_rollover_supplies_direct_receipt_recipient(self):
+    def test_authorized_recovery_supplies_manager_receipt_recipient(self):
         context = {'work_item': {'unit': 'W-001', 'source_text': 'Work', 'context_text': 'Work'}}
-        data = {'context_handoff': 'Checks A passed; B remains.', 'predecessor_thread_id': 'worker-a',
-                'supplemental_context': 'B must pass. Keep existing authorization and rollback limits.'}
+        data = {'context_handoff': 'Checks A passed; B remains.', 'predecessor_agent_id': 'worker-a',
+                'supplemental_context': 'User authorized this recovery transfer. B must pass. Keep rollback limits.'}
         for role in ('executor', 'reviewer'):
             inputs = dict(data)
             if role == 'reviewer': inputs['executor_result'] = 'Completed. See actual diff.'
             prompt = prompt_builder.build_prompt(role, PACKAGE, 'manager', '', context, inputs)
-            self.assertIn('## predecessor_thread_id\nworker-a', prompt)
+            self.assertIn('## predecessor_agent_id\nworker-a', prompt)
             self.assertTrue(prompt.startswith('FIRST ACTION'))
-            self.assertIn('call send_message_to_thread with threadId=worker-a', prompt)
-            self.assertLess(prompt.index('send_message_to_thread'), prompt.index('## Assigned unit'))
-            self.assertEqual(prompt.count('I have the information.'), 1)
+            self.assertIn('call send_message with target=manager and message=HANDOFF_ACCEPTED worker-a', prompt)
+            self.assertNotIn('target=worker-a', prompt)
+            self.assertLess(prompt.index('send_message'), prompt.index('## Assigned unit'))
+            self.assertEqual(prompt.count('HANDOFF_ACCEPTED'), 1)
             self.assertIn(data['context_handoff'], prompt)
-        del data['predecessor_thread_id']
-        with self.assertRaisesRegex(ValueError, '--predecessor-thread-id'):
+        del data['predecessor_agent_id']
+        with self.assertRaisesRegex(ValueError, '--predecessor-agent-id'):
             prompt_builder.build_prompt('executor', PACKAGE, 'manager', '', context, data)
 
     def test_continuation_cli_omits_completed_item_and_keeps_required_facts(self):
@@ -211,7 +226,7 @@ class NativeWorkflowContractTests(unittest.TestCase):
             for role in ('executor', 'reviewer'):
                 command = [sys.executable, '-B', str(PACKAGE / 'scripts/build_dispatch_prompt.py'),
                     '--unit', 'W-003/steps-1-2', '--role', role, '--project-root', str(root),
-                    '--return-to-thread-id', 'manager', '--predecessor-thread-id', 'previous',
+                    '--manager-agent-id', 'manager', '--predecessor-agent-id', 'previous',
                     '--context-handoff', str(root / 'handoff.txt')]
                 failed = subprocess.run(command, text=True, encoding='utf-8', capture_output=True)
                 self.assertNotEqual(failed.returncode, 0)
@@ -222,7 +237,7 @@ class NativeWorkflowContractTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn(handoff, result.stdout)
                 self.assertIn(facts, result.stdout)
-                self.assertIn('return_to_thread_id=manager', result.stdout)
+                self.assertIn('manager_agent_id=manager', result.stdout)
                 self.assertIn('## Assigned unit\nW-003/steps-1-2', result.stdout)
                 self.assertNotIn(selected['work_item']['context_text'].strip(), result.stdout)
                 self.assertNotIn(selected['work_item']['source_text'].strip(), result.stdout)

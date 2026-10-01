@@ -54,7 +54,7 @@ def prepare(request):
         ref = reference + ':' + adviser['id']
         entry = {'adviser': adviser, 'reference': ref, 'scope': scope, 'context_mode': 'fresh'}
         if adviser['route'] == 'native':
-            raise ValueError(f"adviser {type(adviser['id']).__name__}.route='native' cannot use prepare; create_thread directly for this native adviser or select a claude-cli adviser")
+            raise ValueError(f"adviser {type(adviser['id']).__name__}.route='native' cannot use prepare; use build_adviser_prompt.py and collaboration.spawn_agent for this native adviser or select a claude-cli adviser")
         else:
             entry['request'] = {'operation': 'claude', 'adviser': adviser, 'claude': settings['claude'],
                 'prompt': prompt, 'reference': ref, 'scope': scope, 'cwd': request.get('cwd')}

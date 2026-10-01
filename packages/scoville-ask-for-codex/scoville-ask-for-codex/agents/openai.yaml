@@ -1,4 +1,4 @@
 interface:
   display_name: "Scoville Ask"
-  short_description: "Independent advice in separate adviser chats"
-  default_prompt: "Use $scoville-ask-for-codex for independent advice on this task. Create the needed adviser chats and exchange questions and results with this chat."
+  short_description: "Independent advice from Codex agents or Claude"
+  default_prompt: "Use $scoville-ask-for-codex for independent advice on this task. Start the selected Codex subagents or Claude CLI advisers and collect their independent answers here."

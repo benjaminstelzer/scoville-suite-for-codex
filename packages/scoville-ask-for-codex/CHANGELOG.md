@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.2.0 - 2026-10-01
+
+- Use native Codex agents for independent advisers and collect their complete final answers in the caller. Separate sidebar chats are no longer required.
+- Retain the same adviser handle for necessary follow-ups. End completed turns without queued routine acknowledgements.
+- After a definite capacity refusal with no agent created, allow one bounded cleanup of eligible completed advisers and one unchanged retry. Preserve answers, pending questions and actual failure diagnostics.
+- Build directly usable native dispatch arguments and prompts with the packaged helpers. Claude CLI keeps its existing session route.
+
 ## v1.1.1 - 2026-09-29
 
 - Keep the calling chat waiting after native wait timeouts so completed reviews are collected without another user message.

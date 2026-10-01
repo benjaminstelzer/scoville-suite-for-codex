@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.3.0 - 2026-10-01
+
+- Add Project Context Cleanup for requested edits to project rules and index text, preserving their meaning and record ownership.
+- Record Step progress and additional instructions in Plan. Select the written position without guessing unknown progress, and repair proven progress from Evidence and actual results.
+- Ship Plan Viewer 1.4.0 for all four platforms with matching Step progress, active groups, Instructions and open Decisions.
+
+- Run Workflow and Ask through native agents, retaining exact handles for necessary follow-ups and ending completed turns without routine messages.
+- Show Workflow position only when it changes, preserve the assigned Scope and finish with the run report. The report retains user questions and problems needing attention, with an explicit clean-run result when none occurred.
+- Allow one bounded cleanup and unchanged retry after a definite native capacity refusal. Other errors and uncertain starts keep their existing blocked or pending state.
+- Update configured routing pairs and keep the runner within its coordination role.
+
+
 ## v2.2.1 - 2026-09-29
 
 - Check runtime and memory costs before and after code changes. Prefer simpler algorithms, use suitable existing caches correctly and obtain the user's decision before adding a new cache unless already authorized.

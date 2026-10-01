@@ -14,10 +14,11 @@ consecutive Steps that can be implemented and checked together. Keep a large
 independent section separate. Preserve authored order within and across groups;
 finish and check one group before starting the next. Apply the review cadence
 in operations.md; no overlapping groups. Create one worker per assigned group.
-After completion the coordinator requests its archival. An inherited
-context_handoff uses a successor for the unfinished assignment.
+After completion the agent stays write-inactive. Context thresholds only schedule
+rollover after the complete assignment and its required corrections and checks.
+An explicitly authorized recovery handoff uses a successor for unfinished work.
 Helper --unit values are W-001/step-5, W-001/steps-1-4, or W-001 for the
-whole item. Keep step/steps lowercase in parameters; display titles preserve the exact unit casing.
+whole item. Keep step/steps lowercase in parameters; assignment labels preserve the exact unit casing.
 Select the route for the assigned scope, respecting its highest route minimum:
 
 
@@ -58,10 +59,10 @@ No silent substitution or probing of unused models is needed.
 
 Before building any role assignment, put the user's existing internal-message
 authorization in --supplemental-context, preserving its wording and scope for
-results, questions and takeover notices. Reuse it for review, repair and rollover;
+results, questions and takeover notices. Reuse it for review, repair and recovery;
 a forwarded agent request alone supplies no user permission.
 Add only the Goals, Non-goals, current ADR provisions and dependency results
-needed for this unit. Omit irrelevant context and ADR history. The coordinator
+needed for this unit. Omit irrelevant context and ADR history. The manager
 selects these facts so the child need not load the Plan.
 Do not repeat the selected Work Item's Acceptance in supplemental context.
 
@@ -70,25 +71,27 @@ repeat selection to reconstruct its output or print the generated prompt as a
 second tool result before sending it:
 
 ```text
-python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-root "<workspace_root>" --unit <unit> --role <executor|reviewer> --format create --project-id <saved-id> --project-name "<exact saved project name>" --worker-number <number> --model <resolved-model> --thinking <resolved-effort>
+python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-root "<workspace_root>" --unit <unit> --role <executor|reviewer> --format create --manager-agent-id <own-agent-id> --project-name "<project name>" --worker-number <number> --model <resolved-model> --thinking <resolved-effort>
 ```
 
-The helper returns the complete create_thread arguments as JSON, including the
-assignment, role title, selected project and resolved model/effort. Pass that
-object directly to create_thread. It does not choose or increment counters:
-provide the next worker number, or the reviewed worker's number for a reviewer.
-Whole items with Steps display the complete assigned range automatically.
-The bundled selector and Plan root are derived. CODEX_THREAD_ID supplies the
-coordinator ID; use `--return-to-thread-id <id>` only when the host does not set it.
+The helper returns complete `spawn_agent` arguments as JSON: message, unique
+role task name, fork_turns="none", model and reasoning_effort. Use the resolved
+pair explicitly; the host cannot override models with an all-history fork.
+The message retains the project, canonical Plan ID and complete assigned range.
+Provide the next worker number, or the reviewed worker's number for a reviewer.
+A recovery continuation's task name includes its predecessor identity digest to avoid
+reusing a reviewer task name. The bundled selector and Plan root are derived.
+Supply the actual spawning manager ID explicitly with --manager-agent-id;
+CODEX_THREAD_ID identifies a rollout and is not assumed to be an agent address.
 Optional arguments name existing UTF-8 plain-text files:
 
-- Review: `--executor-result <result.txt>` with a completed worker result. In
+- Review: `--executor-result <result.txt>` with a completed or review_pending worker result. In
   supplemental context name the diff since the last review and affected Acceptance.
   For final review add short references to earlier assessments for unchanged
   parts. Include every still-unreviewed change and relevant interaction.
 - Correction worker: `--role executor --reviewer-result <result.txt>`. Put the
   assigned source findings and needed context in supplemental context.
-- Continuation: `--context-handoff <handoff.md> --predecessor-thread-id <id>`
+- Authorized recovery continuation: `--context-handoff <handoff.md> --predecessor-agent-id <id>`
   plus `--supplemental-context <facts.md>`. The handoff names remaining work,
   completed effects and next action. The facts contain only applicable acceptance
   criteria, constraints, permissions, evidence limits and required paths.
@@ -97,55 +100,53 @@ Optional arguments name existing UTF-8 plain-text files:
 - Necessary facts: `--supplemental-context <facts.md>`.
 
 Pass original text without JSON, escaping or another result schema. The
-coordinator validates results before building the next assignment. The helper
+manager validates results before building the next assignment. The helper
 reads no stdin. A nonzero exit reports ERROR and stops dispatch; do not repair
 its output. For a new assignment the helper includes the complete selected Work
 Item once. For a continuation it validates the selected unit but omits the Work
 Item body and uses the compact handoff and required supplemental facts instead.
 The unit remains an identity, not an instruction to repeat completed Steps.
+Written Step progress accompanies the assignment; reviews and assigned
+corrections retain their exact scope even when its Steps are marked done.
 The helper does not choose applicable acceptance criteria, Goals, Non-goals or
 ADR provisions. Supply those selected facts through --supplemental-context;
-reviewers and rollover successors need the same still-relevant constraints.
+reviewers and recovery successors need the same still-relevant constraints.
 Supplemental context supplies project facts, not copies of the builder's role,
 checkpoint or delivery rules. Reuse an existing selection for scope decisions;
 the builder's internal selection needs no separate preview call.
 
-For a new worker or reviewer, call `create_thread` directly with the generated arguments.
-Use the returned task/host ID directly for coordination. No additional start
-record or lifecycle wrapper is needed.
+Call `spawn_agent` directly with the generated arguments. Collaboration tools
+are direct tool calls, not tools inside functions.exec. Run the builder once,
+check its zero exit and complete output, then copy its JSON fields unchanged
+into the native call. For a fresh child on a direct-tool host, use
+--assignment-file "<new-absolute-temporary-file>" to avoid retyping a long message. The builder saves the complete
+assignment verbatim and returns a short native message that directs the child
+to read it. Keep that file through completion and review. The directory must
+exist and the file must be new; recovery continuations retain their direct
+handoff prompt. Copy the returned fields exactly, including punctuation and
+whitespace; never paraphrase supplemental text. Do not print or rebuild another
+copy. Stop on truncated output or a helper error; never dispatch a partial prompt.
 
-A ready task needs its actual `threadId` and `hostId`; `clientThreadId` alone is
-not ready. Use host-provided correlation to resolve pending creation. Titles alone do not identify a
-task. If creation remains ambiguous, stop before another creation attempt.
-No byte, hash or delivery receipt is required.
+Retain the exact returned agent ID with its role, unit and launched pair. Require
+one unambiguous identity. An unknown spawn state or non-capacity tool error is
+BLOCKED. Inspect only known identities with `list_agents`, without another spawn
+or chat. A definite capacity refusal with no created agent follows
+[agent capacity](agent-capacity.md): retain the unchanged arguments, request
+runner-owned cleanup and retry once only after its matching permission. No new
+writer starts until prior writes are quiescent.
+Native agents have no sidebar pins or archival step. `pin_threads` remains a
+compatible saved setting but has no effect on these agents.
 
-Build and create within one code cell, using the host's actual tool names.
-`buildCommand` is the documented shell command with its paths safely quoted;
-the command contains the resolved project, pair and role number:
+A fresh child starts its assignment on spawn. A recovery child first completes
+the manager receipt/release gate in operations-rollover.md. READY/START belongs
+to manager startup, not child dispatch. Wait with `wait_agent` for native completion or user input;
+a timeout is not failure or permission to start another child. Match the result's
+host sender identity to the assigned agent, retain it once, and apply operations.md.
+Do not use chat tools, title matching or repeated result requests for coordination.
 
-```javascript
-const outputLimit = 16000;
-const built = await tools.exec_command({cmd: buildCommand, max_output_tokens: outputLimit});
-if (built.exit_code !== 0) throw new Error(built.output);
-if (built.original_token_count > outputLimit) {
-  throw new Error("Assignment output was truncated; do not dispatch it. Reduce the assigned scope or unnecessary context and rebuild.");
-}
-const created = await tools.mcp__codex_app__create_thread(JSON.parse(built.output));
-text(created); // creation identity only; never print the generated assignment
-```
-
-Inspect the native creation response for readiness and retain its actual ID.
-When the resolved pin_threads setting is true, pin that chat with move_thread_to_sidebar_section, sectionId="pinned", using
-the returned threadId and hostId. If pending, resolve readiness before pinning.
-A pin failure never justifies creating another chat.
-When pin_threads is false, omit the pin call and leave existing pins unchanged.
-Before ending the coordinator turn, satisfy any host-required wait for progress.
-Then use result messages, without a polling loop. Do not reconstruct the native
-response as a lifecycle-helper payload.
-
-The receiver owns only the assigned project changes. It cannot edit canonical
-Plan records, stage/commit, create successors or change Workflow or model settings.
+The child owns only assigned project changes. It cannot edit canonical Plan
+records, stage/commit, dispatch successors or change Workflow/model settings.
 Product and test configuration may change only within the assigned scope and
-project constraints; reviewers remain read-only. It sends its result as a normal message under the builder instructions. Require this message capability and the user's
-ongoing coordination authorization before dispatch. If unavailable, report
-that limitation rather than silently starting a polling workflow.
+project constraints; reviewers remain read-only. Its complete final answer is
+delivered natively to the spawning manager. Require native delegation, completion
+and interruption support before dispatch; never fall back to new chats.

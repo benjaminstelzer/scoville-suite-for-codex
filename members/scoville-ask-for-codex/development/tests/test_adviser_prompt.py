@@ -21,102 +21,125 @@ for _name, _content in _builder.payload(SUITE, _member, _config).items():
     _target.write_bytes(_content)
 PACKAGE = Path(_package_temp.name) / 'scoville-ask-for-codex'
 SCRIPT = PACKAGE / "scripts/build_adviser_prompt.py"
-CALLER = "01a0e778-0c80-7660-b8b9-c8ce59a9fed4"
-OTHER = "01a0ebd5-922f-7ff0-88ba-bfe0699c8313"
 
 
 class AdviserPromptTests(unittest.TestCase):
-    def test_creation_arguments_and_corrected_missing_parameter(self):
-        extra = ['--format', 'create', '--project-id', 'saved-project',
-                 '--adviser-id', 'astra', '--caller-title', 'Review patch', '--model', 'gpt-6-astra']
-        invalid = self.run_prompt(extra=extra)
-        self.assertNotEqual(invalid.returncode, 0)
-        self.assertEqual(invalid.stdout, '')
-        self.assertIn('--thinking', invalid.stderr)
-        self.assertIn('usage:', invalid.stderr)
-        result = self.run_prompt(extra=extra + ['--thinking', 'medium'])
-        self.assertEqual(result.returncode, 0, result.stderr)
-        data = json.loads(result.stdout)
-        self.assertEqual(data['title'], 'SC-ASK-ASTRA: Review patch')
-        self.assertEqual(data['model'], 'gpt-6-astra')
-        self.assertEqual(data['target'], {'type': 'project', 'projectId': 'saved-project', 'environment': {'type': 'local'}})
-        self.assertIn('Prüfe café ✓', data['prompt'])
-        wrong_mode = self.run_prompt(extra=['--model', 'gpt-6-astra'])
-        self.assertNotEqual(wrong_mode.returncode, 0)
-        self.assertEqual(wrong_mode.stdout, '')
-        self.assertIn('use --format create', wrong_mode.stderr)
+    SPAWN = ['--format', 'spawn', '--task-name', 'ask_custom_sol_1',
+             '--model', 'gpt-6-sol', '--effort', 'high']
 
-    def test_short_label_uses_resolved_adviser_not_a_model_guess(self):
-        args = ['--format', 'create', '--project-id', 'saved-project', '--caller-title', 'Prüfe den Patch',
-                '--model', 'gpt-6-sol', '--thinking', 'high']
-        missing = self.run_prompt(extra=args)
-        self.assertNotEqual(missing.returncode, 0)
-        self.assertEqual(missing.stdout, '')
-        self.assertIn('--adviser-id', missing.stderr)
-        self.assertIn('usage:', missing.stderr)
-        corrected = self.run_prompt(extra=args + ['--adviser-id', 'Custom-Sol'])
-        self.assertEqual(corrected.returncode, 0, corrected.stderr)
-        data = json.loads(corrected.stdout)
-        self.assertEqual(data['title'], 'SC-ASK-CUSTOM-SOL: Prüfe den Patch')
-        self.assertEqual(data['model'], 'gpt-6-sol')
-
-    def run_prompt(self, question="Prüfe café ✓ ohne Änderungen.", extra=(), caller=CALLER):
+    def run_prompt(self, question="Prüfe café ✓ ohne Änderungen.", extra=()):
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "question.txt"
             source.write_text(question, encoding="utf-8")
             env = dict(os.environ)
-            env.pop("CODEX_THREAD_ID", None)
-            if caller is not None:
-                env["CODEX_THREAD_ID"] = caller
+            # Agent dispatch must not depend on a valid calling chat identity.
+            env["CODEX_THREAD_ID"] = "not-a-chat-uuid"
             return subprocess.run(
                 [sys.executable, str(SCRIPT), "--question-file", str(source),
+                 "--workspace-root", directory, "--adviser-id", "custom-sol",
                  "--mode", "review", "--scope", "Patch ä", "--reference", "review-1", *extra],
                 env=env, capture_output=True, text=True, encoding="utf-8", check=False,
             )
 
-    def test_complete_prompt_preserves_request_rules_and_recipient(self):
+    def test_spawn_arguments_preserve_settings_identity_and_read_only_contract(self):
+        result = self.run_prompt(extra=self.SPAWN)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        data = json.loads(result.stdout)
+        self.assertEqual(set(data), {'task_name', 'message', 'fork_turns', 'model', 'reasoning_effort'})
+        self.assertEqual(data['task_name'], 'ask_custom_sol_1')
+        self.assertEqual(data['fork_turns'], 'none')
+        self.assertEqual(data['model'], 'gpt-6-sol')
+        self.assertEqual(data['reasoning_effort'], 'high')
+        self.assertIn('adviser_id: custom-sol', data['message'])
+        self.assertIn('consultation_reference: review-1', data['message'])
+        self.assertIn('scope: Patch ä', data['message'])
+        self.assertIn('Prüfe café ✓', data['message'])
+        self.assertIn('Do not create, edit, move or delete', data['message'])
+        self.assertIn('collaboration.send_message', data['message'])
+        self.assertIn('complete answer as your final agent response', data['message'])
+        self.assertNotIn('calling_thread_id:', data['message'])
+        self.assertNotIn('not-a-chat-uuid', data['message'])
+
+    def test_missing_spawn_fields_name_argument_and_corrected_call_succeeds(self):
+        for flag in ('--task-name', '--model', '--effort'):
+            args = self.SPAWN.copy()
+            index = args.index(flag)
+            del args[index:index + 2]
+            with self.subTest(flag=flag):
+                invalid = self.run_prompt(extra=args)
+                self.assertNotEqual(invalid.returncode, 0)
+                self.assertEqual(invalid.stdout, '')
+                self.assertIn(flag, invalid.stderr)
+                self.assertIn('usage:', invalid.stderr)
+                corrected = self.run_prompt(extra=self.SPAWN)
+                self.assertEqual(corrected.returncode, 0, corrected.stderr)
+                self.assertEqual(json.loads(corrected.stdout)['fork_turns'], 'none')
+
+    def test_prompt_preserves_complete_request_and_each_packaged_rule_once(self):
         request = "Prüfe café ✓ ohne Änderungen.\nErhalt: [x] und `code`."
         result = self.run_prompt(request)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn(request, result.stdout)
-        self.assertIn(f"calling_thread_id: {CALLER}", result.stdout)
-        self.assertIn("scope: Patch ä", result.stdout)
-        for name in ("adviser.md", "native-delivery.md"):
-            rules = (PACKAGE / "references" / name).read_text(encoding="utf-8")
+        self.assertIn('workspace_root:', result.stdout)
+        for name in ('adviser.md', 'native-delivery.md'):
+            rules = (PACKAGE / 'references' / name).read_text(encoding='utf-8')
             self.assertEqual(result.stdout.count(rules), 1)
-        self.assertNotIn("creation_authorized:", result.stdout)
 
-    def test_optional_caller_provenance_and_override(self):
-        result = self.run_prompt(extra=("--caller-thread-id", OTHER))
+    def test_resolved_selected_advisers_feed_prompt_builder_without_repair(self):
+        with tempfile.TemporaryDirectory() as project:
+            resolved = subprocess.run([sys.executable, str(PACKAGE / 'scripts/ask.py'),
+                '--project-root', project, '--adviser', 'sol', '--adviser', 'astra'],
+                capture_output=True, text=True, encoding='utf-8')
+        self.assertEqual(resolved.returncode, 0, resolved.stderr)
+        advisers = json.loads(resolved.stdout)['config']['advisers']
+        self.assertEqual([a['id'] for a in advisers], ['sol', 'astra'])
+        for adviser in advisers:
+            with self.subTest(adviser=adviser['id']):
+                result = self.run_prompt(extra=['--format', 'spawn', '--task-name', 'ask_' + adviser['id'],
+                    '--adviser-id', adviser['id'], '--model', adviser['model'], '--effort', adviser['effort']])
+                self.assertEqual(result.returncode, 0, result.stderr)
+                arguments = json.loads(result.stdout)
+                self.assertEqual(arguments['model'], adviser['model'])
+                self.assertEqual(arguments['reasoning_effort'], adviser['effort'])
+                self.assertIn('adviser_id: ' + adviser['id'], arguments['message'])
+                self.assertEqual(arguments['fork_turns'], 'none')
+
+    def test_host_owns_model_availability_without_helper_substitution(self):
+        result = self.run_prompt(extra=self.SPAWN + ['--model', 'unavailable-host-model'])
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn(f"calling_thread_id: {OTHER}", result.stdout)
-        self.assertNotIn(CALLER, result.stdout)
-        without = self.run_prompt(caller=None)
-        self.assertEqual(without.returncode, 0, without.stderr)
-        self.assertNotIn('calling_thread_id:', without.stdout)
-        self.assertIn('final response in this adviser chat', without.stdout)
-        self.assertNotIn('RESULT NOT DELIVERED', without.stdout)
+        self.assertEqual(json.loads(result.stdout)['model'], 'unavailable-host-model')
 
-    def test_invalid_input_never_emits_a_partial_assignment(self):
+    def test_invalid_input_never_emits_partial_assignment_and_corrected_call_works(self):
         for kwargs, diagnostic in (
-            ({"caller": "review title"}, "calling chat's UUID"),
-            ({"question": "  "}, "must contain the request"),
-            ({"extra": ("--scope", "a\nb")}, "single-line"),
-            ({"extra": ("--reference", "")}, "single-line"),
-            ({"extra": ("--mode", "execute")}, "invalid choice"),
+            ({'question': '  '}, 'must contain the request'),
+            ({'extra': ['--scope', 'a\nb']}, 'single-line'),
+            ({'extra': ['--reference', '']}, 'single-line'),
+            ({'extra': ['--adviser-id', 'Custom-Sol']}, 'lowercase adviser ID'),
+            ({'extra': ['--workspace-root', 'relative-project']}, 'existing absolute directory'),
+            ({'extra': ['--mode', 'execute']}, 'invalid choice'),
+            ({'extra': self.SPAWN + ['--task-name', 'ask-wrong']}, '--task-name'),
+            ({'extra': self.SPAWN + ['--model', 'two words']}, '--model'),
+            ({'extra': self.SPAWN + ['--effort', 'unsupported']}, 'invalid choice'),
+            ({'extra': ['--model', 'gpt-6-sol']}, 'require --format spawn'),
         ):
             with self.subTest(kwargs=kwargs):
                 result = self.run_prompt(**kwargs)
                 self.assertNotEqual(result.returncode, 0)
-                self.assertEqual(result.stdout, "")
+                self.assertEqual(result.stdout, '')
                 self.assertIn(diagnostic, result.stderr)
+                self.assertIn('usage:', result.stderr)
+                corrected = self.run_prompt(extra=self.SPAWN)
+                self.assertEqual(corrected.returncode, 0, corrected.stderr)
+                self.assertEqual(json.loads(corrected.stdout)['task_name'], 'ask_custom_sol_1')
 
-    def test_missing_question_is_diagnostic(self):
-        result = self.run_prompt(extra=("--question-file", "nonexistent-plan0020-question.txt"))
+    def test_missing_question_is_diagnostic_then_corrected(self):
+        result = self.run_prompt(extra=['--question-file', 'nonexistent-w002-question.txt'])
         self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(result.stdout, "")
-        self.assertIn("cannot read required UTF-8 input", result.stderr)
+        self.assertEqual(result.stdout, '')
+        self.assertIn('cannot read required UTF-8 input', result.stderr)
+        corrected = self.run_prompt()
+        self.assertEqual(corrected.returncode, 0, corrected.stderr)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

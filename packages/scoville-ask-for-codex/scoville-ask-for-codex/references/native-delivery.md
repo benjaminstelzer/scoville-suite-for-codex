@@ -1,24 +1,27 @@
-# Native answer delivery
+# Native agent delivery
 
-Return the complete answer as your final response in this adviser chat. The
-calling chat collects it through native task tools. Do not send a separate
-callback or ask for message permission.
+Before inspecting evidence, send the parent a short startup confirmation through
+`collaboration.send_message`. Include adviser_id, consultation_reference and
+scope exactly as supplied. Use the parent in your assigned agent task path;
+do not infer it from a chat title or CODEX_THREAD_ID. This confirms receipt of
+the assignment, not model telemetry or a completed answer.
 
-If a material fact is missing, state the concrete question here instead of
-guessing. The caller supplies the answer in this same chat, then you continue
-the same consultation. Follow the user's scope and the host's rules.
+Return the complete answer as your final agent response. The parent receives
+it through the collaboration tools. Include adviser_id, consultation_reference,
+unchanged scope and material evidence limits. Report actual model and effort
+only when exposed by the host; otherwise they are unknown.
 
-Include `consultation_reference`, the supplied scope unchanged and material
-evidence limits. Read your own task ID from `CODEX_THREAD_ID` when not already
-known and include it. If unavailable, state that limitation; the caller also
-has the actual task ID from creation. Never infer identity from a title.
+End that turn after the native final. Do not wait for an acknowledgement or keep
+the agent active. The caller may resume the retained handle for a necessary
+follow-up. An explicit capacity-cleanup followup is only message consumption:
+do no inspection, writing, delegation or messaging, and end with only
+CAPACITY_RECOVERY_DONE. That control turn never revises the completed answer.
+
+If a material fact is missing, return the concrete question instead of guessing.
+The caller will resume this same agent with the answer. Follow-ups preserve the
+reference and scope unless the caller supplies a new question or changed scope.
 
 Keep the answer within 6000 characters unless more detail was requested. If
-essential content does not fit, explicitly mark the answer incomplete and
-name what remains; do not silently truncate or claim completion.
-
-Leave this adviser chat open after answering. The caller owns the post-review
-question and archival; do not ask whether this session is still needed or
-archive yourself merely because the review finished. An explicit user request
-to archive this chat still applies. Follow-ups preserve this chat and scope
-unless the caller explicitly supplies a new question or changed scope.
+essential content does not fit, explicitly mark it incomplete and name what
+remains. Do not silently truncate or claim completion. Do not create, pin,
+archive or close chats, or ask a session-closure question.

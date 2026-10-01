@@ -14,8 +14,8 @@ python -B -m unittest discover -s development/tests -v
 ```
 
 Run package validation against a generated build, and validate the planning
-profile at the suite root. The contract tests check source rules, not the
-live task lifecycle. The [development history](../../../docs/README.md)
+profile at the suite root. Contract tests cover source rules and actual helper
+consumers. Live host behavior needs separate evidence. The [development history](../../../docs/README.md)
 explains the runtime problems and the changes they led to.
 
 ## Installation identity
@@ -30,3 +30,9 @@ command alone doesn't prove the new version is in use.
 Current tests, Plans, Decisions and this summary are kept. Raw model reviews,
 transcripts, screenshots and one-off runtime evidence go to temporary storage,
 unless a published artifact depends on them.
+
+## Native agent capacity
+
+[Releasing agents without close_agent](../../../development/native-agent-capacity.md)
+explains native turn completion, queued-message cleanup, the one-retry boundary
+and the recorded host-test limits for Workflow and Ask.

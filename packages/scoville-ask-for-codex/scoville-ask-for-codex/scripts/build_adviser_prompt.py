@@ -1,72 +1,73 @@
 #!/usr/bin/env python3
-"""Compose a native Ask assignment from its packaged instructions."""
+"""Compose a read-only Ask assignment or direct collaboration.spawn_agent arguments."""
 from __future__ import annotations
 
 import argparse
 import json
-import os
 from pathlib import Path
+import re
 import sys
-from uuid import UUID
-from native_task_arguments import add_creation_options, creation_arguments, single_line, validate_creation_options
 
 
 ROOT = Path(__file__).resolve().parents[1]
+EFFORTS = ('none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max', 'ultra')
 
 
 def main() -> int:
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8")
-        sys.stderr.reconfigure(encoding="utf-8")
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, 'reconfigure'):
+            stream.reconfigure(encoding='utf-8')
     parser = argparse.ArgumentParser(description=__doc__)
-    add_creation_options(parser, project_name=False)
-    parser.add_argument('--caller-title')
-    parser.add_argument('--adviser-id', help='resolved adviser ID from ask.py resolve, used as the short title label')
-    parser.add_argument("--question-file", required=True, type=Path)
-    parser.add_argument("--mode", required=True, choices=("review", "consultation"))
-    parser.add_argument("--scope", required=True)
-    parser.add_argument("--reference", required=True)
-    parser.add_argument("--caller-thread-id", default=os.environ.get("CODEX_THREAD_ID"), help='optional caller identity for provenance, not a callback address')
+    parser.add_argument('--format', choices=('prompt', 'spawn'), default='prompt')
+    parser.add_argument('--task-name', help='unique agent task name: lowercase letters, digits and underscores')
+    parser.add_argument('--model')
+    parser.add_argument('--effort', choices=EFFORTS)
+    parser.add_argument('--adviser-id', required=True, help='resolved adviser ID from ask.py')
+    parser.add_argument('--workspace-root', required=True, type=Path)
+    parser.add_argument('--question-file', required=True, type=Path)
+    parser.add_argument('--mode', required=True, choices=('review', 'consultation'))
+    parser.add_argument('--scope', required=True)
+    parser.add_argument('--reference', required=True)
     args = parser.parse_args()
-    try:
-        validate_creation_options(args)
-        if args.format == 'create':
-            single_line(args.caller_title, '--caller-title')
-            single_line(args.adviser_id, '--adviser-id')
-    except ValueError as error:
-        parser.error(str(error))
-    try:
-        caller = str(UUID(args.caller_thread_id)) if args.caller_thread_id else None
-    except ValueError:
-        parser.error("CODEX_THREAD_ID or --caller-thread-id must contain the calling chat's UUID; omit it if unavailable")
-    for name in ("scope", "reference"):
+    for name in ('scope', 'reference', 'adviser_id'):
         value = getattr(args, name)
-        if not value.strip() or "\n" in value or "\r" in value:
-            parser.error(f"--{name} must be nonempty single-line text")
+        if not value.strip() or any(ord(c) < 32 for c in value):
+            parser.error(f"--{name.replace('_', '-')} must be nonempty single-line text without control characters")
+    if not re.fullmatch(r'[a-z0-9][a-z0-9-]*', args.adviser_id):
+        parser.error('--adviser-id must be a resolved lowercase adviser ID, for example astra')
+    if not args.workspace_root.is_absolute() or not args.workspace_root.is_dir():
+        parser.error('--workspace-root must be an existing absolute directory; pass the selected project root')
+    if args.format == 'spawn':
+        if not args.task_name or not re.fullmatch(r'[a-z0-9_]+', args.task_name):
+            parser.error('--task-name is required for --format spawn; use a unique name such as ask_astra_1')
+        if not args.model or not args.model.strip() or any(c.isspace() for c in args.model):
+            parser.error('--model is required for --format spawn; pass the resolved model ID such as gpt-6-astra')
+        if args.effort is None:
+            parser.error('--effort is required for --format spawn; pass the resolved effort, for example high')
+    elif any(value is not None for value in (args.task_name, args.model, args.effort)):
+        parser.error('--task-name, --model and --effort require --format spawn; omit them for prompt output')
     try:
-        question = args.question_file.read_text(encoding="utf-8")
+        question = args.question_file.read_text(encoding='utf-8')
         if not question.strip():
-            parser.error("--question-file must contain the request and necessary evidence")
-        rules = [
-            (ROOT / "references" / name).read_text(encoding="utf-8")
-            for name in ("adviser.md", "native-delivery.md")
-        ]
+            parser.error('--question-file must contain the request and necessary evidence')
+        rules = [(ROOT / 'references' / name).read_text(encoding='utf-8')
+                 for name in ('adviser.md', 'native-delivery.md')]
     except (OSError, UnicodeError) as error:
-        parser.error(f"cannot read required UTF-8 input: {error}")
-    prompt = ("\n\n".join(rules)
-          + f"\n\nmode: {args.mode}" + (f"\ncalling_thread_id: {caller}" if caller else "")
-          + f"\nconsultation_reference: {args.reference}\nscope: {args.scope}"
-          + "\n\n## User request and evidence\n\n" + question)
-    try:
-        if args.format == 'create':
-            title = f'SC-ASK-{args.adviser_id.upper()}: {single_line(args.caller_title, "caller title")}'
-            print(json.dumps(creation_arguments(prompt, title, args.project_id, args.model, args.thinking), ensure_ascii=False))
-        else:
-            print(prompt)
-    except ValueError as error:
-        parser.error(str(error))
+        parser.error(f'cannot read required UTF-8 input: {error}; provide a readable --question-file and intact packaged references')
+    prompt = ('\n\n'.join(rules)
+              + f'\n\nmode: {args.mode}\nadviser_id: {args.adviser_id}'
+              + f'\nworkspace_root: {args.workspace_root}'
+              + f'\nconsultation_reference: {args.reference}\nscope: {args.scope}'
+              + '\n\nInspect only the supplied scope in this workspace. Resolve relative evidence paths there.'
+              + '\n\n## User request and evidence\n\n' + question)
+    if args.format == 'spawn':
+        print(json.dumps({'task_name': args.task_name, 'message': prompt,
+                          'fork_turns': 'none', 'model': args.model,
+                          'reasoning_effort': args.effort}, ensure_ascii=False))
+    else:
+        print(prompt)
     return 0
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     raise SystemExit(main())

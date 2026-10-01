@@ -1,37 +1,44 @@
 ## What it enforces
 
-- **Explicit activation.** Workflow only starts when you ask for it by name.
-- **Separate responsibilities.** The coordinator handles Plan updates,
-  assignments and any authorized commits. Workers implement. Reviewers look
-  but don't edit.
-- **One writing worker.** All tasks share the existing checkout. The Plan
-  records progress, and messages carry the next action.
-- **Bounded context.** A new worker gets the Work Item and its assigned Step
-  range. A continuation only gets what's left: remaining work, applicable
-  criteria and constraints, completed effects and evidence. It doesn't need to
-  reopen the Plan or earlier chats.
-- **Configured models.** Risk decides model and effort. If a required pair
-  isn't available, Workflow says so instead of substituting another.
-- **Independent review.** The project's own review cadence comes first.
-  Otherwise, unreviewed product-code changes get an early review after a fix
-  to previously completed code, or before dependent work or extensive testing.
-  Other required reviews happen when a Work Item is complete and reuse earlier
-  assessments of unchanged parts. If the same failure survives two
-  corrections, the coordinator looks at its cause again before another
-  attempt.
-- **Context handoffs.** By default, the coordinator hands over at or above 40%
-  context, after a checked group, an accepted Work Item or a worker handoff.
-  Workers and reviewers hand over above 60%, at natural stopping points. Both
-  thresholds are configurable. If there's no measurement, Workflow doesn't
-  guess one.
-- **Retained results.** Results are saved before a task is archived. A
-  predecessor only retires after its successor has confirmed the takeover.
-  Archive errors are reported without confirmation loops. Decision requests
-  and the final coordinator stay open.
-- **Accepted commits.** If committing is allowed, the commit contains the
-  accepted changes and Plan updates, and required hooks and backups run.
-- **Defined scope.** Workflow follows the active Plan, or a narrower boundary
-  you set, and keeps its stops and open decisions.
+- **Explicit activation and checked startup.** The runner starts on a named
+  Workflow request or a successor request from its current manager. The exact
+  spawned manager must send READY and receive START before doing project work.
+- **Separate responsibilities.** Managers own Plan transitions and authorized
+  commits. Workers implement. Reviewers stay read-only. At most one worker
+  writes in the shared checkout.
+- **Bounded assignments.** A new child receives its Work Item and assigned
+  Step range. A continuation receives remaining work, applicable criteria,
+  constraints, checked effects and evidence limits.
+- **Configured models.** Risk selects model and effort. Missing support blocks
+  dispatch instead of silently substituting a pair.
+- **Independent review.** Project review rules come first. Otherwise, review
+  follows fixes to previously checked product code and precedes dependent work
+  or extensive tests. Final review reuses checked, unchanged parts. Repeated
+  failure after two corrections requires reassessing the cause.
+- **Measured handoffs.** By default, managers turn over at or above 40% context
+  after completing the selected Step or Step group, including required checks,
+  due review and corrections. Workers, reviewers and correction workers schedule
+  rollover strictly above 60%, finish their complete assignment and return the
+  normal result. Later assignments use fresh agents. Thresholds are configurable.
+  A handoff requires no active writer. Missing or stale telemetry is never counted
+  as a switch.
+- **Direct takeover.** The successor manager obtains the handoff from its
+  predecessor and verifies Plan, files and child state before writing. Results
+  remain retained, and predecessors stay write-inactive after handoff.
+- **Retained decisions and stops.** An unanswered question blocks dependent
+  work. A stop interrupts children and requires confirmed quiescence before
+  STOPPED is reported. Resumption preserves pending findings and decisions.
+- **Accepted commits and scope.** Authorized commits include accepted changes
+  and Plan updates, with required hooks and backups. Workflow respects the
+  requested scope and only reports completion when its acceptance is met.
+- **Visible work.** `Working on:` identifies the project, Plan and point.
+  `Scope:` gives the actual overall assignment as free text. Repeated events,
+  reviews, repairs and manager switches at the same point add no progress message.
+- **Targeted run report.** Every run gets its own Markdown file under `.scoville`,
+  with the full path shown before startup. User questions, requested pauses and
+  problems needing user review stay in it with their clarifications. Normal
+  progress and test results stay out. A clean completed run has the sentence
+  `No issues occurred during this run.`. Completion includes the report output.
 
 [Native Codex operations](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-workflow-for-codex/scoville-workflow-for-codex/references/operations.md)
 covers delivery, permissions and recovery.

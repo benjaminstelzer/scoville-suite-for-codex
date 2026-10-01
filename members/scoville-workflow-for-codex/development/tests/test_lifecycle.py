@@ -34,9 +34,9 @@ class LifecycleTests(unittest.TestCase):
                                 '--role','executor','--route','medium'))
             self.assertIn('model',pair);self.assertIn('thinking',pair)
             builder=PACKAGE/'scripts/build_dispatch_prompt.py'
-            args=['--project-root',root,'--unit','W-001/steps-1-2']
+            args=['--project-root',root,'--unit','W-001/steps-1-2', '--manager-agent-id', '/root/manager']
             executor=run(builder,*args,'--role','executor')
-            self.assertIn('return_to_thread_id='+env['CODEX_THREAD_ID'],executor)
+            self.assertIn('manager_agent_id=/root/manager',executor)
             result=file('worker.txt','completed: café ✓ changed; targeted checks passed; live use unverified.')
             scope=file('scope.txt','Review only the scoped change in example.py and its acceptance; read-only.')
             review=run(builder,*args,'--role','reviewer','--executor-result',result,'--supplemental-context',scope)
@@ -47,11 +47,11 @@ class LifecycleTests(unittest.TestCase):
             self.assertIn(finding.read_text(encoding='utf-8'),correction)
             handoff=file('handoff.txt','Finished implementation and checks of step 1. Only final adjacency test remains.')
             successor=run(builder,*args,'--role','executor','--context-handoff',handoff,
-                          '--predecessor-thread-id','01a0ebd5-922f-7ff0-88ba-bfe0699c8313',
+                          '--predecessor-agent-id','/root/previous_worker',
                           '--supplemental-context',scope)
             self.assertIn(handoff.read_text(encoding='utf-8'),successor)
             self.assertNotIn('## Work Item context',successor)
-            self.assertIn('01a0ebd5-922f-7ff0-88ba-bfe0699c8313',successor)
+            self.assertIn('/root/previous_worker',successor)
             # The Plan writer owns these transitions; helpers only inspect them.
             plan=root/'docs/plans/0001-validate-profile.md'
             text=plan.read_text(encoding='utf-8')

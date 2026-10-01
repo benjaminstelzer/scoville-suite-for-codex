@@ -3,9 +3,6 @@
 Setup keeps your project's Scoville settings in one file. It shows the values
 that actually apply and changes only what you ask it to save.
 
-The heat, in this case, is knowing and controlling which settings your
-project actually uses, defaults included.
-
 ## How it works
 
 - Read project settings from `.scoville/config.json`, using defaults for missing values.
@@ -30,8 +27,8 @@ project actually uses, defaults included.
 
 Requires Codex with Python 3.11+.
 
-A current Fable, Astra, SOL or Opus model is recommended. Luna was also used
-in testing.
+Requires a frontier model from the Fable, Astra, SOL or Opus families,
+version 5.0 or newer. Luna was also used in testing.
 
 ## Install
 
@@ -46,7 +43,8 @@ Ask Scoville Setup to show this project's settings, or tell it which values
 to save. For Ask, you can set the advisers, model and effort, Claude spending
 limits, timeouts, session storage, custom instructions and web access. For
 Workflow, you can set a model and reasoning pair per route and the context
-percentages at which coordinators and workers roll over.
+percentages at which manager and child agents schedule rollover. They finish
+their complete assigned unit before a context-driven change.
 
 Setup shows the values that apply to the project, defaults included. A
 one-off choice stays in the request or Plan Step unless you ask Setup to save
@@ -54,15 +52,11 @@ it. Setup saves the regular reasoning levels `low`, `medium`, `high` and
 `xhigh`. Other supported levels have to be configured by hand, and Setup
 leaves them unchanged when it saves other settings.
 
-Ask and Workflow each have a `pin_threads` switch, enabled by default. For
-example: "Use Scoville Setup to disable pinning for Workflow but keep it
-enabled for Ask." Setup then saves `workflow.pin_threads: false` and
-`ask.pin_threads: true` in the project's `.scoville/config.json`. Use the
-boolean values true and false, not strings. For Workflow, the switch covers
-the starting manager, workers, reviewers and rollover successors. Existing
-pins stay as they are, and Claude CLI sessions have no sidebar entry.
-
-
+Native Ask advisers and Workflow roles are subagents without sidebar chats.
+Existing `ask.pin_threads` and `workflow.pin_threads` values remain readable
+but have no effect. Setup explains those legacy fields, rejects new pin changes
+and preserves them when saving other choices. Claude CLI sessions also have
+no sidebar entry.
 
 ## Sources
 
