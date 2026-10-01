@@ -1,5 +1,11 @@
 # Changelog
 
+
+## v2.3.2 - 2026-10-01
+
+- Shorten the Workflow README by removing the recorded run sections. Keep the development account focused on what worked and what failed.
+
+
 ## v2.3.1 - 2026-10-01
 
 - Keep Handoff's observed Luna High test limit in its README, changelog and released package when replacing earlier releases.
