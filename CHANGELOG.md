@@ -1,6 +1,10 @@
 # Changelog
 
 
+## v2.3.3 - 2026-10-01
+
+- Explain Workflow through the user's progress, questions and completion report. Keep the flowchart focused on implementation, review, corrections and continuation.
+
 ## v2.3.2 - 2026-10-01
 
 - Shorten the Workflow README by removing the recorded run sections. Keep the development account focused on what worked and what failed.

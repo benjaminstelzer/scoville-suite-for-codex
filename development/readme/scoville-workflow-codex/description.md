@@ -1,35 +1,11 @@
 # Scoville Workflow for Codex
 
-Scoville Workflow makes sense when there is a substantial Plan to execute and
-software you intend to keep maintaining. Coordination, independent reviews and
-handoffs take time and tokens. For a small fix or a one-prompt experiment, that
-effort rarely pays off. For longer AI-assisted development, it gives the work a
-structure that holds across many assignments and conversations.
+Scoville Workflow takes a prepared Plan through implementation, independent
+review and corrections. It suits larger tasks and software you intend to
+maintain. Coordination costs time and tokens, so it rarely pays off for a small
+fix.
 
-Start from a Plan with settled requirements, dependencies and acceptance
-criteria. Scoville Plan and independent Ask reviews establish that direction
-before Workflow carries it through implementation.
+Use Scoville Plan and Ask to settle requirements, dependencies and acceptance
+criteria first. Then assign the whole Plan or a defined part to Workflow.
 
-Workers implement a defined piece of work, then fresh reviewers inspect the
-result. Reviewing at the relevant dependency boundaries helps catch mistakes
-before later Plan points build on faulty code. That makes longer sessions easier
-to manage. The manager records accepted progress in the Plan, so what is
-done, what remains and what was actually checked stay visible.
-
-Automatic context compaction can arrive right in the middle of ongoing work,
-without a completed work unit or a prepared handoff. Rollover moves that
-transition to a controlled work boundary. Results are checked and completed
-Plan points are recorded before the manager changes. The Plan is the
-backbone: the next agent knows where to continue, without reconstructing progress
-from the whole conversation. Crossing a context threshold schedules rollover.
-Workers finish their complete Step or Step group, including required corrections
-and checks, then return the normal result. Later assignments use fresh agents.
-
-The complete assignment can still reach automatic compaction before that boundary.
-Smaller assignments also keep unrelated history out of worker and reviewer
-contexts. Progress stays in the Plan, and each agent loads the relevant
-instructions. Rules, Decisions and open Steps have a stable place across
-sessions.
-
-Install it through the complete Codex Suite. It requires Codex desktop's native
-agent controls.
+Install it through the complete Codex Suite in Codex desktop.

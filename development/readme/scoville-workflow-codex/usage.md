@@ -85,9 +85,3 @@ time.
 The [dispatch rules](scoville-workflow-for-codex/references/operations-dispatch.md)
 explain how tasks are classified and how explicit model choices work.
 
-### Agent lifecycle
-
-Workflow uses nested agents. They do not create separate sidebar chats, and
-`workflow.pin_threads` does not pin them. The setting remains readable for
-compatibility. Agents keep their exact IDs for messages and handoffs. If the
-host cannot start the next agent, the run reports the limitation and stops.
