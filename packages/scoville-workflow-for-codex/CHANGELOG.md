@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.8.1 - 2026-10-01
+
+- Save active Work Item and Step progress before worker execution, including corrections and recovery.
+- Keep sequential assignments current through short write-inactive Step boundaries, resuming the same unfinished worker after Plan updates and due review.
+- Record authorized pauses without inventing progress on unstarted work, and select successors with accepted Plan progress.
+- Name the visible Workflow chat `SC-WFL PLAN-NNNN` at startup, preserving its title through manager changes and pauses.
+- Give new managers, workers and reviewers unique native names automatically. Repeated reviews no longer need permission to repair a name collision.
+
 ## v0.8.0 - 2026-09-29
 
 - Build native assignments and manager handoffs with consistent project titles, inherited manager settings and a validated report destination.

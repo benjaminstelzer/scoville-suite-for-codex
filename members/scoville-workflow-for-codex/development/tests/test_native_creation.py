@@ -25,7 +25,7 @@ class NativeCreationTests(unittest.TestCase):
         # Bind the generated payload unchanged to the exposed native schema.
         # Live host dispatch is a separate integration check.
         def spawn_agent(*, task_name, message, fork_turns, model, reasoning_effort):
-            self.assertRegex(task_name, r'^scoville_(executor|reviewer)_[0-9]+(?:_[0-9a-f]+)?$')
+            self.assertRegex(task_name, r'^scoville_(executor|reviewer)_[0-9]+(?:_[0-9a-f]+)+$')
             self.assertEqual(fork_turns, 'none')
             self.assertEqual(model, 'gpt-6-sol')
             self.assertEqual(reasoning_effort, 'high')
@@ -49,7 +49,7 @@ class NativeCreationTests(unittest.TestCase):
                                        ('executor', ['--reviewer-result', evidence], 'SC-WRK')]:
                 result = self.consume(self.run_builder('build_dispatch_prompt.py', *common, '--unit', 'W-001/step-1', '--role', role, *extra))
                 self.assertIn(f'Assignment: {label}-7: Änderung 中文 · PLAN-0001/W-001/step-1', result['message'])
-                self.assertEqual(result['task_name'], f'scoville_{role}_7')
+                self.assertRegex(result['task_name'], rf'^scoville_{role}_7_[0-9a-f]{{32}}$')
                 # These are generated instruction-contract checks, not proof
                 # that a live agent completes its assignment after crossing.
                 for rule in (
@@ -71,6 +71,26 @@ class NativeCreationTests(unittest.TestCase):
             self.assertEqual(invalid.stdout, '')
             self.assertIn('usage:', invalid.stderr)
             self.assertIn('--executor-result', invalid.stderr)
+
+    def test_repeated_reviews_of_one_worker_spawn_with_distinct_names(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / 'project'
+            shutil.copytree(SUITE_ROOT / 'members/scoville-plan/development/tests/fixtures/valid-profile', root)
+            evidence = root / 'result.txt'
+            evidence.write_text('progress_pending: first Step checked; second Step remains', encoding='utf-8')
+            arguments = ['--project-root', root, '--format', 'create', '--manager-agent-id', '/root/manager',
+                         '--project-name', 'fixture', '--worker-number', '2', '--model', 'gpt-6-sol',
+                         '--thinking', 'high', '--unit', 'W-001/step-1', '--role', 'reviewer',
+                         '--executor-result', evidence]
+            assigned = set()
+            payloads = []
+            for _ in range(2):
+                payload = self.consume(self.run_builder('build_dispatch_prompt.py', *arguments))
+                self.assertNotIn(payload['task_name'], assigned, 'Native task name already assigned')
+                assigned.add(payload['task_name'])
+                payloads.append(payload)
+            self.assertEqual({k: v for k, v in payloads[0].items() if k != 'task_name'},
+                             {k: v for k, v in payloads[1].items() if k != 'task_name'})
 
     def test_wrapped_release_assignment_loads_the_real_sibling_skill(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -168,8 +188,9 @@ class NativeCreationTests(unittest.TestCase):
                     self.assertIn(body, assignment.read_text(encoding='utf-8'))
                     self.assertIn(str(assignment), short['message'])
                     self.assertNotIn(body, short['message'])
-                    self.assertEqual({k: v for k, v in full.items() if k != 'message'},
-                                     {k: v for k, v in short.items() if k != 'message'})
+                    self.assertEqual({k: v for k, v in full.items() if k not in ('message', 'task_name')},
+                                     {k: v for k, v in short.items() if k not in ('message', 'task_name')})
+                    self.assertNotEqual(full['task_name'], short['task_name'])
                     if role == 'reviewer': self.assertIn('Stay read-only.', short['message'])
 
     def test_file_assignment_rejects_overwrite_and_invalid_mode_before_writing(self):
@@ -294,7 +315,7 @@ class NativeCreationTests(unittest.TestCase):
             common = ['--runner-id', '/root', '--manager-number', '1', '--report-file', report]
             start = self.consume_manager(self.run_builder('build_manager_handoff.py', *common,
                 '--mode', 'start', '--project-root', root, '--request-file', request))
-            self.assertEqual(start['task_name'], 'scoville_manager_1')
+            self.assertRegex(start['task_name'], r'^scoville_manager_1_[0-9a-f]{32}$')
             self.assertIn(body, start['message'])
             self.assertIn(str(root), start['message'])
             self.assertNotIn('model', start)

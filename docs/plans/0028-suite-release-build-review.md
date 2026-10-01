@@ -4,14 +4,14 @@ id: PLAN-0028
 status: active
 created: 2026-10-01
 updated: 2026-10-01
-current_item: W-003
+current_item: W-005
 ---
 
 # Aktualisierte Suiten prüfen, veröffentlichen und installieren
 
 ## Goal
 
-Aktuelle Suite- und Einzel-Skill-Builds einschließlich Plan und Viewer mit Astra Medium prüfen, Befunde automatisch korrigieren und im selben Review-Kontext nachprüfen. Erst danach auf GitHub veröffentlichen und die lokalen Codex-/Claude-Installationen ersetzen. ADR-0133 hält den Auftrag und die Grenzen fest.
+Aktuelle Suite- und Einzel-Skill-Builds einschließlich Plan und Viewer mit Astra Medium prüfen, Befunde automatisch korrigieren und im selben Review-Kontext nachprüfen. Die ergänzten Planpflege-, Viewer- und Workflow-Regeln umsetzen. Danach zuerst lokale Codex-/Claude-Skills aktualisieren und die laufenden Empco-/Fluid-Base-Sessions informieren; GitHub-Releases zuletzt. ADR-0133 hält den ursprünglichen Auftrag und die Grenzen fest.
 
 ## Non-goals
 
@@ -51,14 +51,45 @@ Evidence: Sieben Remote-Audits bestanden. Zwölf abgelöste Releases/Tags entfer
 
 ### W-003 Lokale Codex- und Claude-Suiten stimmen mit dem Release überein
 
-Status: in_progress
+Status: done
 Depends on: [W-002]
-Blocked by: [HOST-ACTIVE-USERS]
+Blocked by: []
 Decisions: [ADR-0133]
 Outcome: Beide bestehenden Installationspfade enthalten ihre aktuelle vollständige Suite.
 Acceptance: Aktive Leser sind beendet oder der Nutzer hat eine konkrete koordinierte Ausnahme genehmigt. Bestehende Einstellungen und fremde Skills bleiben erhalten, alte Suite-Pakete sind gesichert. Codex hat acht, Claude fünf aktuelle Mitglieder einschließlich Project Context Cleanup. Installationsinventar und Hashes stimmen mit den verifizierten Paketen überein. Feste öffentliche Workspace-Distributionen sind ebenfalls synchron.
 Instructions: []
 Steps:
-1. [status: in_progress] Schreibruhe prüfen, alte Pakete und Einstellungen sichern.
-2. [status: todo] Beide Suiten am bisherigen Installationspfad ersetzen und vollständig rückprüfen.
-Evidence: Workspace-Suiten per Hash synchron. Installer vorbereitet. Aktive Empco-Skillnutzer verhindern den Austausch. Abstimmungsfreigabe offen. Nachweis: temp/2026-10-01-suite-release-review/report.md.
+1. [status: done] Schreibruhe prüfen, alte Pakete und Einstellungen sichern.
+2. [status: done] Beide Suiten am bisherigen Installationspfad ersetzen und vollständig rückprüfen.
+Evidence: Alle 8 Codex-/5 Claude-Mitglieder hashgeprüft; öffentliche Kopien synchron. Empco und Fluid Base informiert. temp/2026-10-01-workflow-plan-state/installation-final.json.
+
+### W-004 Ergänzte Plan- und Workflow-Regeln sind umgesetzt und geprüft
+
+Status: done
+Depends on: []
+Blocked by: []
+Decisions: [ADR-0133]
+Outcome: Skills und Viewer zeigen den tatsächlichen Arbeitsstand und verhindern Namenskollisionen ohne Nutzerfrage.
+Acceptance: Plan bleibt standalone. Vor Schreibfreigabe sind Work Item und tatsächlich gestartete Steps gespeichert; sequenzielle Übergänge, Pausen, Wiederaufnahme und Nachfolger bleiben konsistent. Viewer bietet jeden Work-Status einschließlich Paused und Cancelled. Der Runner nennt seinen Chat SC-WFL PLAN-xxxx. Neue native Agenten erhalten automatisch eindeutige Namen; bekannte Kapazitätswiederholungen behalten identische Argumente, unklare Starts bleiben gesperrt. Astra Medium bestätigt die Korrekturen im selben Review-Kontext. Tests und verifizierte öffentliche Pakete bestehen; Viewer 1.4.1 stammt aus erfolgreicher Vier-Plattform-CI.
+Instructions: []
+Steps:
+1. [status: done] Planpflege und sequenzielle Step-Grenzen implementieren und mit Astra prüfen.
+2. [status: done] Viewer-Statusauswahl ergänzen, Frontend prüfen und native Downloads in CI bauen.
+3. [status: done] Runner-Titel und eindeutige Agentennamen implementieren, Regression prüfen und Astra-Findings korrigieren.
+4. [status: done] Geprüfte Quellen sichern und alle betroffenen Suite-/Einzelpakete neu bauen.
+Evidence: Astra bestätigt alle drei Ergänzungen. Workflow 50 Tests bestanden; Viewer-CI 36856214450 erfolgreich. Weitere Nachweise: temp/2026-10-01-workflow-plan-state/report.md.
+
+### W-005 Neue Skill-Releases folgen der lokalen Aktualisierung
+
+Status: in_progress
+Depends on: [W-003, W-004]
+Blocked by: []
+Decisions: [ADR-0133]
+Outcome: Plan und beide Suiten enthalten öffentlich die lokal installierten, geprüften Änderungen.
+Acceptance: Nur funktional geänderte Ziele erhalten neue Versionen. Vollständige Remote-Trees sowie Uploadstatus, Namen, Größen und GitHub-SHA-256-Digests entsprechen den freigegebenen Paketen. Release-Anhänge werden nach dem Upload nie erneut heruntergeladen; die Regel steht in AGENTS.md und gilt für Entwürfe und Endaudit. Alle drei Releases enthalten dieselben geprüften Viewer-1.4.1-Downloads. Abgelöste Releases und Versionstags werden erst nach Sicherung und Abnahme entfernt. Workflow bleibt ausschließlich Mitglied der öffentlichen Codex-Suite.
+Instructions: []
+Steps:
+1. [status: in_progress] Freigegebene Kandidaten und Viewer-Provenienz vor Veröffentlichung prüfen.
+2. [status: todo] Drei Releases veröffentlichen und Remote-Inhalte vollständig rückprüfen.
+3. [status: todo] Abgelöste Releases bereinigen und Plan samt Projektstatus abschließen.
+Evidence: []

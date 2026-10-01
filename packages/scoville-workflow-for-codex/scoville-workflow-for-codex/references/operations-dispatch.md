@@ -75,7 +75,12 @@ python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-r
 ```
 
 The helper returns complete `spawn_agent` arguments as JSON: message, unique
-role task name, fork_turns="none", model and reasoning_effort. Use the resolved
+role task name, fork_turns="none", model and reasoning_effort.
+Every newly built native assignment has an automatic unique name suffix,
+including repeated reviews of the same worker. This changes no role label,
+scope or model. Use that generated name without requesting user permission.
+Retain the complete arguments for a capacity retry; never rebuild them to retry
+an uncertain spawn. Use the resolved
 pair explicitly; the host cannot override models with an all-history fork.
 The message retains the project, canonical Plan ID and complete assigned range.
 Provide the next worker number, or the reviewed worker's number for a reviewer.
@@ -85,7 +90,7 @@ Supply the actual spawning manager ID explicitly with --manager-agent-id;
 CODEX_THREAD_ID identifies a rollout and is not assumed to be an agent address.
 Optional arguments name existing UTF-8 plain-text files:
 
-- Review: `--executor-result <result.txt>` with a completed or review_pending worker result. In
+- Review: `--executor-result <result.txt>` with a completed, progress_pending or review_pending worker result. In
   supplemental context name the diff since the last review and affected Acceptance.
   For final review add short references to earlier assessments for unchanged
   parts. Include every still-unreviewed change and relevant interaction.

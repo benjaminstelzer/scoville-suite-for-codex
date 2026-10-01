@@ -1,6 +1,16 @@
 # Changelog
 
 
+
+
+## v2.3.4 - 2026-10-01
+
+- Record active Work Items and Steps before worker execution, and keep progress current inside sequential assignments.
+- Preserve unstarted work on stop, record authorized pauses and resume from the actual remaining work.
+- Filter paused and cancelled Plan points directly in Plan Viewer 1.4.1.
+- Name the Workflow chat `SC-WFL PLAN-NNNN` at startup, using its actual Plan ID.
+- Give each new native agent a unique name automatically, including repeated reviews of one worker.
+
 ## v2.3.3 - 2026-10-01
 
 - Explain Workflow through the user's progress, questions and completion report. Keep the flowchart focused on implementation, review, corrections and continuation.

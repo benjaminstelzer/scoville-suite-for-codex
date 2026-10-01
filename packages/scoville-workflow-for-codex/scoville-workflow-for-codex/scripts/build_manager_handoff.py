@@ -8,7 +8,7 @@ from pathlib import Path
 
 from inspect_native_context import configure_utf8
 from run_feedback import report_path
-from native_task_arguments import EFFORTS, single_line
+from native_task_arguments import EFFORTS, single_line, unique_task_name
 
 
 def build_arguments(args: argparse.Namespace) -> dict:
@@ -81,7 +81,7 @@ def build_arguments(args: argparse.Namespace) -> dict:
         'Never transfer unfinished assignments merely because a threshold was crossed. '
         'A user stop remains immediate.\n'
         + context)
-    result = {'task_name': f'scoville_manager_{args.manager_number}', 'message': message, 'fork_turns': 'none'}
+    result = {'task_name': unique_task_name(f'scoville_manager_{args.manager_number}'), 'message': message, 'fork_turns': 'none'}
     if args.model:
         result.update(model=single_line(args.model, '--model'), reasoning_effort=args.thinking)
     return result

@@ -42,8 +42,19 @@ An existing goal is reported without changing it or adding another.
 Before startup, read Scoville Code's authority rules and **Scoville Workflow
 runner** section. Apply its Skill boundary without loading Code's other routes.
 
+At initial activation, rename the visible calling chat with `set_thread_title`
+to `SC-WFL <Plan-ID>`, for example `SC-WFL PLAN-0014`, when the activation
+explicitly names its one target Plan. Omit threadId to target this chat. If the
+target ID is not yet known, rename on the first accepted WORKING_ON using its
+canonical Plan ID, before displaying progress. Do not read the Plan or guess an
+ID for naming. Retain the named Plan ID; update the title only when an accepted
+WORKING_ON confirms a different Plan. Manager switches and stop/resume retain
+the title. Only the runner renames its visible chat; agent IDs remain unchanged.
+A failed rename is reported with its diagnostic, never claimed successful.
+
 Retain only the activation, workspace, runner ID, manager counter, exact manager
-IDs, any explicit manager pair, current control state, run-report path and last
+IDs, any explicit manager pair, current control state, run-report path, named
+Plan ID and last
 displayed progress key and accepted project/scope display values. The report is
 only for user-relevant issues, not a status log.
 Before the first manager start, create the report and display its returned full
@@ -75,6 +86,9 @@ python "<workflow-skill-directory>/scripts/build_manager_handoff.py" --mode succ
 ```
 
 The builder returns complete `spawn_agent` arguments with `fork_turns="none"`.
+Each new manager assignment has an automatic unique name suffix, even in a new
+run with the same manager number. Use that name without asking the user; retain
+the same complete arguments for a capacity retry and never rebuild an uncertain spawn.
 Parse complete successful stdout and pass the object unchanged to the native
 call; never spawn truncated or failed output. Use direct collaboration tool
 calls if the host does not expose them inside code cells. Default managers

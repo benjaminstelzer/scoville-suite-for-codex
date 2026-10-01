@@ -44,11 +44,34 @@ it. Carry counters and needed child identities directly to the next manager.
 Child assignment labels retain exact project name, canonical Plan ID and complete assigned
 Step range. Do not rename the visible runner to a manager title.
 
+## Plan progress before execution
+
+Before launching or resuming any writing child, including a correction or
+recovery worker, apply Scoville Plan's start/resume rules. The active Plan's
+`current_item` must name this Work Item, with `Status: in_progress` and written
+`in_progress` status on the actually started Step or jointly started group.
+Do not mark later Steps started merely because they appear in an assignment.
+For a confirmed correction in a nonterminal item, retain completed effects and
+the correction reason when returning an affected done Step to in_progress.
+Save and validate the Plan before building the assignment, sending WORKING_ON
+or releasing the child to write. Selection and progress messages do not update
+these records. A read-only reviewer does not restart completed Steps.
+
+Within a sequential multi-Step assignment, the worker returns progress_pending
+before starting a Step outside the recorded jointly started group. It stops
+writes and names observed completed Steps, checks and the next Step/group.
+Confirm quiescence, update and validate those Plan records, then resume the same
+unfinished worker with `followup_task`, supplying the recorded progress and
+released next Step/group. Apply due review under points 4-6 before resumption.
+This progress boundary completes no assignment and triggers no manager rollover.
+Keep the full assignment and any measured crossing; repeat no completed work.
+
 ## One unit through acceptance
 
 1. Select the next unfinished Step, consecutive Step group or whole Work Item
    under [dispatch](operations-dispatch.md). Preserve order and prerequisites.
-   Before dispatch, send WORKING_ON for the selected project, Plan and assigned
+   Apply Plan progress before execution, then send WORKING_ON for the selected
+   project, Plan and assigned
    point/range under run-feedback.md. Its Scope is the actual overall assignment,
    not this child's narrower task. Spawn a nested worker with the complete assignment. Retain its exact agent ID
    for results, messages, resumption and interruption.
@@ -68,7 +91,8 @@ Step range. Do not rename the visible runner to a manager title.
 3. Assess the result from the assigned agent by meaning, not formatting. Match
    the host sender identity to the retained spawn ID before accepting it. Use
    `followup_task` on an idle worker only for a necessary missing fact or to
-   resume the same unfinished assignment after a user decision or accepted review
+   resume the same unfinished assignment after a validated progress boundary,
+   user decision or accepted review
    under point 6. Use `send_message`
    for steering a running worker. Never restart a completed assignment for a
    correction. A reviewer returns one complete assessment with evidence limits;
@@ -77,7 +101,9 @@ Step range. Do not rename the visible runner to a manager title.
    review with the user's answer. A repeated
    notification does not start another action. For context_handoff follow
    [rollover](operations-rollover.md). For blocked or needs_user_decision, retain
-   the actual limitation and continue only independent eligible work. Send the
+   the actual limitation. After writes stop, record the blocker or outstanding
+   decision in the canonical Plan before selecting independent eligible work;
+   follow Plan's authorized pause and return rules. Send the
    runner only BLOCKED with the concrete limitation or NEEDS_USER_DECISION with
    the exact necessary question. Record a question and its paused point in the
    run report before relay, and append the actual clarification before dependent
@@ -109,7 +135,8 @@ Step range. Do not rename the visible runner to a manager title.
    Change the approach or model when justified; ask the user only for a material
    decision or a blocker that cannot be resolved within the assignment.
    Once the paused fix and required corrections are accepted and all other
-   children are write-inactive, resume that exact worker with `followup_task`.
+   children are write-inactive, apply Plan progress before execution, then
+   resume that exact worker with `followup_task`.
    Supply the review acceptance, correction effects, remaining scope and evidence
    limits. Retain any measured rollover_pending and finish the same full assignment
    before point 7 closure and point 8 rollover. Open findings, a user stop or an
@@ -120,6 +147,10 @@ Step range. Do not rename the visible runner to a manager title.
    during review, correction and continuation. Record checked intermediate results without claiming final acceptance. Mark
    the Work Item done only when its Acceptance and required review pass. Evidence
    contains the outcome and decisive report reference, not agent IDs or attempts.
+   Complete the Work Item and select its eligible successor in the same prepared
+   Plan change under Scoville Plan, honoring dependencies and recorded returns.
+   Keep `current_item` aligned with that selection; start the successor only
+   through Plan progress before execution. Use Plan/index closure for the final item.
    Run the Plan validator and follow its concrete diagnostics. When committing
    is authorized, inspect the staged diff and commit accepted changes with their
    Plan records, respecting backups and hooks.
@@ -153,7 +184,7 @@ assess or continue: completed effects, relevant changed paths, decisive checks,
 unverified behavior and next action if work remains. No marker, fixed field order,
 JSON or change flags are required.
 
-Worker statuses: completed, review_pending, blocked, needs_user_decision, context_handoff.
+Worker statuses: completed, progress_pending, review_pending, blocked, needs_user_decision, context_handoff.
 Use completed when the worker's implementation and checks are done, including
 when only manager review or Plan closure remains. Review_pending requires a
 checked prior-code fix and named work still assigned to that same worker.
@@ -168,8 +199,10 @@ unfinished work; never turn unavailable evidence into success.
 Retain the complete native result and confirm the child is no longer writing
 before Plan changes, review or another writer. A completed role result ends that
 assignment; review_pending leaves the same assignment paused and unfinished.
+Progress_pending likewise leaves that assignment unfinished at a Step boundary.
 Corrections and later assignments use new agents; necessary worker questions,
-user-decision and accepted-review resumptions use `followup_task` on the same ID. Do not reapply
+progress-boundary, user-decision and accepted-review resumptions use
+`followup_task` on the same ID. Do not reapply
 an already retained result after a duplicate notification. A context handoff
 keeps the predecessor write-inactive while its successor handles the remaining
 work. Native agents require no archival or invented close tool. If host capacity
@@ -205,7 +238,12 @@ point and user request, stop writes first, then record the pause under
 run-feedback.md. Send the stop to
 any running child and call `interrupt_agent` on its exact ID. The returned
 previous status alone is not proof of termination: use the native final event
-or `list_agents` for that exact child to establish quiescence. Report STOPPED to
+or `list_agents` for that exact child to establish quiescence. Then record the
+authorized `in_progress` to `paused` transition on the current Work Item;
+preserve an already `todo` or `paused` item without inventing start history.
+Reconcile observed Step status,
+completed effects and outstanding checks/reviews. Save and validate the Plan.
+Report STOPPED to
 the runner only once all children and writes have stopped. If interruption fails
 or state remains uncertain, report BLOCKED with the exact ID and diagnostic;
 never start another writer. An interrupt does not roll back existing changes.
@@ -217,5 +255,6 @@ state never authorizes a second dispatch. Continue from the first unfinished
 action, preserving open findings and user decisions. Resume an interrupted
 unfinished assignment with `followup_task` only after its writer state is known
 and the user has resumed the run; otherwise keep it stopped. Append the
-actual resume clarification to the pause entry before resuming dependent work.
+actual resume clarification to the pause entry and apply Plan progress before
+execution before resuming dependent work.
 Keep the same report and progress point; resumption alone repeats no display.
