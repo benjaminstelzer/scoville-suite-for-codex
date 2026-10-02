@@ -74,8 +74,6 @@ use of Codex's own agent tools. Handoffs also needed recorded progress so the
 next manager could continue without reconstructing the conversation.
 Coordination should help finish the work, not become the next work item.
 
-- Development links: [Source](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex) | [Tests](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex/development/tests) | [Notes](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/members/scoville-workflow-for-codex/development/README.md)
-
 ## Compatibility
 
 Requires the complete Codex Suite, Python 3.11+ and native agent tools in a shared workspace. Use a host-supported Fable, Astra, SOL or Opus model (5.0+) with the configured reasoning level.
@@ -92,41 +90,9 @@ from the individual repositories, and don't continue if members are missing.
 Use the suite's prompt for a new installation, or its upgrade prompt if you
 already have one installed.
 
-### Agent capacity
-
-For longer Workflow runs, we recommend raising the session's agent limit to
-256 in `~/.codex/config.toml`. Add or update the setting in its existing
-`[agents]` section:
-
-```toml
-[agents]
-max_concurrent_threads_per_session = 256
-```
-
-The limit leaves room for agent threads retained during longer runs. See the [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
-for the setting.
 
 
-
-## How to use
-
-With the suite installed in Codex, start Workflow in your saved project:
-
-```text
-Use $scoville-workflow-for-codex to execute the active Scoville Plan in this saved project.
-```
-
-To limit the run, name a Work Item or the point where it should stop.
-Otherwise the manager works through the active Plan.
-
-You can ask questions or pause during the run. The chat shows the current
-project, Plan point and started Step. The run report under `.scoville` keeps
-questions, requested pauses and problems with their later resolutions.
-Completion includes that report. A stop or blocker is not reported as finished.
-
-"Start Scoville Workflow" also activates it. "Execute the Plan" alone does not.
-
-### Configuration
+## Configuration
 
 To change the defaults, use Scoville Setup to view or save the project
 settings in `.scoville/config.json`. Under `workflow`, `manager` sets the
@@ -146,12 +112,54 @@ before handing over. Setup can change these thresholds.
 The [dispatch rules](scoville-workflow-for-codex/references/operations-dispatch.md)
 explain how tasks are classified and how explicit model choices work.
 
+## Limitations
+
+### Agent capacity
+
+Codex retains native agent threads from earlier assignments, so longer
+Workflow runs and Ask consultations can reach the host's agent limit.
+To give these runs more room, raise the limit to 256 in
+`~/.codex/config.toml` under `[agents]`. Add the section if it is missing:
+
+```toml
+[agents]
+max_concurrent_threads_per_session = 256
+```
+
+This is the suite's recommendation for longer runs. The
+[Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
+describes the setting. If a start or necessary message still fails, the
+affected operation stops and reports the problem with its progress preserved
+for continuation.
+
+## How to use
+
+With the suite installed in Codex, start Workflow in your saved project:
+
+```text
+Use $scoville-workflow-for-codex to execute the active Scoville Plan in this saved project.
+```
+
+To limit the run, name a Work Item or the point where it should stop.
+Otherwise the manager works through the active Plan.
+
+You can ask questions or pause during the run. The chat shows the current
+project, Plan point and started Step. The run report under `.scoville` keeps
+questions, requested pauses and problems with their later resolutions.
+Completion includes that report. A stop or blocker is not reported as finished.
+
+"Start Scoville Workflow" also activates it. "Execute the Plan" alone does not.
+
 ## Sources
 
 - [Agent Skills specification](https://agentskills.io/specification) for the
   portable package and progressive disclosure model.
 - [OpenAI coding-agent best practices](https://developers.openai.com/codex/learn/best-practices)
   for explicit outcomes, constraints, planning, and completion evidence.
+
+## Developer links
+
+[Source](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex) | [Tests](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-workflow-for-codex/development/tests) | [Notes](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/members/scoville-workflow-for-codex/development/README.md)
 
 ## License
 

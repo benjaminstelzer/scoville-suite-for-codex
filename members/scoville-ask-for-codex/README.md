@@ -37,8 +37,6 @@ more complicated than the question warranted. Native adviser handles and
 saved Claude sessions gave each conversation a clear continuation path.
 Missing answers still have to remain visible: a partial panel is not a consensus.
 
-- Development links: [Source](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-ask-for-codex) | [Tests](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-ask-for-codex/development/tests) | [Notes](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/members/scoville-ask-for-codex/development/README.md)
-
 ## Compatibility
 
 Requires Codex's native collaboration tools, Python 3.11 or newer, network access and a Fable, Astra, SOL or Opus model (5.0+). Claude consultations also need a signed-in Claude Code CLI, version 2.1.280+ for Opus 5.5.
@@ -64,29 +62,7 @@ The host needs permission to write to its Skills directory. The
 2. Run `claude --version`. Opus 5.5 needs **2.1.280 or newer**. For an older version, run `claude update`, then check again. Keep running Claude sessions open.
 3. Run `claude auth login` and complete sign-in in your browser. Run `claude auth status` to check that you are signed in.
 
-If Ask reports an expired OAuth session, repeat step 3 and try again. An
-outdated CLI can reject the correct model ID. In that case, repeat step 2
-rather than switching to another model.
-
-## How to use
-
-Ask naturally, for example:
-
-```text
-Use scoville-ask-for-codex to review this patch with SOL.
-```
-
-```text
-Ask Fable and Claude independently how they would approach this problem, then return and compare their answers here.
-```
-
-Ask handles the consultation and necessary follow-ups without asking you to
-approve each exchange. Request a follow-up when you need one. Native agents
-keep their context, and Claude can resume its saved session.
-
-To consult Claude, ask: **“Ask Claude to review this change.”**
-
-### Configure defaults
+## Configuration
 
 The defaults are in `config.default.json` next to the installed `SKILL.md`.
 Project choices go under `ask` in `.scoville/config.json` at the project
@@ -115,10 +91,58 @@ adviser. For a custom adviser, add an ID, route, exact model and effort to
 `advisers`. The installed configuration reference covers helper
 inputs and migration.
 
+## Limitations
+
+### Agent capacity
+
+Codex retains native agent threads from earlier assignments, so longer
+Workflow runs and Ask consultations can reach the host's agent limit.
+To give these runs more room, raise the limit to 256 in
+`~/.codex/config.toml` under `[agents]`. Add the section if it is missing:
+
+```toml
+[agents]
+max_concurrent_threads_per_session = 256
+```
+
+This is the suite's recommendation for longer runs. The
+[Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
+describes the setting. If a start or necessary message still fails, the
+affected operation stops and reports the problem with its progress preserved
+for continuation.
+
+### Claude sessions
+
+If Ask reports an expired OAuth session, run `claude auth login` again and
+check the result with `claude auth status`. If an outdated CLI rejects a
+supported model, run `claude update` and check `claude --version` before retrying.
+
+## How to use
+
+Ask naturally, for example:
+
+```text
+Use scoville-ask-for-codex to review this patch with SOL.
+```
+
+```text
+Ask Fable and Claude independently how they would approach this problem, then return and compare their answers here.
+```
+
+Ask handles the consultation and necessary follow-ups without asking you to
+approve each exchange. Request a follow-up when you need one. Native agents
+keep their context, and Claude can resume its saved session.
+
+To consult Claude, ask: **“Ask Claude to review this change.”**
+
 ## Sources
 
 - [Codex Skills](https://learn.chatgpt.com/docs/build-skills).
 - [Claude Code CLI reference](https://code.claude.com/docs/en/cli-reference).
+
+## Developer links
+
+[Source](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-ask-for-codex) | [Tests](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-ask-for-codex/development/tests) | [Notes](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/members/scoville-ask-for-codex/development/README.md)
 
 ## License
 

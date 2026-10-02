@@ -1,6 +1,10 @@
 # Changelog
 
 
+## v2.3.9 - 2026-10-03
+
+- Keep configuration and workarounds in the right place when building Skill READMEs. Preserve shared fragments needed by the suite so filtered exports build on their own.
+
 ## v2.3.8 - 2026-10-02
 
 - Let Workflow correct a known dispatch-argument mistake once before raising a blocker. Missing evidence and uncertain agent starts still stop the operation.

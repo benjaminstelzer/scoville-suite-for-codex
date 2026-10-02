@@ -26,14 +26,6 @@ which adds Workflow, Ask and Setup.
 | [Setup](#scoville-setup) | Manages the selected project's Scoville settings. |
 | [Project Context Cleanup](#scoville-project-context-cleanup) | Keeps requested project rules and index text clear without losing required context. |
 
-## Suite requirements
-
-Install and enable every Skill in the suite. For individual Skills available
-on their own, use the standalone packages instead.
-
-The agent picks the Skills that fit your request. Workflow only starts when
-you ask for it. Codex needs Python 3.11 or newer for the included tools.
-
 ## Scoville Workflow for Codex
 
 Scoville Workflow takes a prepared Plan through implementation, independent
@@ -353,20 +345,14 @@ ingredients that made the rules useful.
 
 [How to use Scoville Project Context Cleanup](members/scoville-project-context-cleanup/README.md#how-to-use).
 
-## Codex limitations
+## Compatibility
 
-Workflow and native Ask advisers run inside the calling chat. Longer runs can
-reach the host's agent limit, including threads retained from completed work.
-If a start or necessary message fails, the affected operation stops and reports
-the problem with its progress preserved for continuation.
+Requires Codex desktop with native agents, Python 3.11+ and a Fable, Astra, SOL or Opus model (5.0+). Claude consultations also need a signed-in Claude Code CLI, version 2.1.280+ for Opus 5.5.
 
 ## Install the suite
 
 Install the suite once in your agent host and it's available in all your
 projects. Workflow starts directly in a saved Codex project.
-
-Before running Workflow, [raise the agent limit in `config.toml`](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/packages/scoville-workflow-for-codex#agent-capacity)
-as described in its installation instructions.
 
 ### New installation
 
@@ -375,6 +361,12 @@ Use this request in your agent host:
 ```text
 Install and enable the complete suite for all my projects directly from https://github.com/benjaminstelzer/scoville-suite-for-codex.
 ```
+
+Don't mix standalone and suite copies of the same Skill.
+
+If your host can't install directly from GitHub, download this repository and
+copy all the package directories inside it to the host's Skills folder. You
+end up with the same complete suite and the same requirements.
 
 <details>
 <summary>Upgrade from an earlier Scoville or Ask suite</summary>
@@ -398,13 +390,39 @@ Skip absent entries, leave unrelated Skills untouched, and keep no backup or set
 
 </details>
 
-Don't mix standalone and suite copies of the same Skill.
-
-If your host can't install directly from GitHub, download this repository and
-copy all the package directories inside it to the host's Skills folder. You
-end up with the same complete suite and the same requirements.
 
 
+## Configuration
+
+Use Scoville Setup to view or save model choices and Workflow settings in
+`.scoville/config.json`. Missing values use the bundled defaults. See the
+[Workflow configuration](members/scoville-workflow-for-codex/README.md#configuration)
+and [Ask configuration](members/scoville-ask-for-codex/README.md#configuration)
+for their settings.
+
+## Limitations
+
+### Agent capacity
+
+Codex retains native agent threads from earlier assignments, so longer
+Workflow runs and Ask consultations can reach the host's agent limit.
+To give these runs more room, raise the limit to 256 in
+`~/.codex/config.toml` under `[agents]`. Add the section if it is missing:
+
+```toml
+[agents]
+max_concurrent_threads_per_session = 256
+```
+
+This is the suite's recommendation for longer runs. The
+[Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
+describes the setting. If a start or necessary message still fails, the
+affected operation stops and reports the problem with its progress preserved
+for continuation.
+
+
+
+## Developer links
 
 <details>
 <summary>Development and builds</summary>
@@ -420,8 +438,6 @@ runtime checks and Viewer assets. Installed Skills need only their own packages.
 
 </details>
 
-### Developer links
-
 Sources, tests and notes live in this suite. Individual packages leave out
 this block and the development files.
 
@@ -434,5 +450,7 @@ this block and the development files.
 - **scoville-setup**: [Source](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-setup) | [Tests](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-setup/development/tests) | [Notes](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/members/scoville-setup/development/README.md)
 - **scoville-project-context-cleanup**: [Source](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-project-context-cleanup) | [Tests](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/development/tests/test_build_suite.py) | [Notes](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/members/scoville-project-context-cleanup/development/README.md)
 
+## License
 
+The bundled Skills use the MIT license. Each package includes its `LICENSE` file.
 

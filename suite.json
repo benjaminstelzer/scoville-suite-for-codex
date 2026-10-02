@@ -19,17 +19,18 @@
         "development/readme/scoville-code/requirements.md",
         "development/readme/scoville-code/costs.md",
         "development/readme/scoville-code/development.md",
-        {
-          "source": "shared:member-development-inline.md",
-          "audience": "suite"
-        },
         "development/readme/scoville-code/compatibility-4055f96f435388ed.md",
         "shared:skill-installation-contract.md",
         "shared:scoville-install.md",
         "shared:scoville-suite-install.md",
+        "development/readme/scoville-code/configuration.md",
         "development/readme/scoville-code/usage.md",
         "development/readme/scoville-code/sources.md",
         "shared:family.md",
+        {
+          "source": "shared:member-development-inline.md",
+          "audience": "suite"
+        },
         "shared:license.md"
       ],
       "files": [
@@ -111,10 +112,6 @@
         "development/readme/scoville-handoff/requirements.md",
         "development/readme/scoville-handoff/costs.md",
         "development/readme/scoville-handoff/development.md",
-        {
-          "source": "shared:member-development-inline.md",
-          "audience": "suite"
-        },
         "development/readme/scoville-handoff/compatibility-f77ff2edbfe28893.md",
         "shared:skill-installation-contract.md",
         "shared:scoville-install.md",
@@ -122,6 +119,10 @@
         "development/readme/scoville-handoff/usage.md",
         "development/readme/scoville-handoff/sources.md",
         "shared:family.md",
+        {
+          "source": "shared:member-development-inline.md",
+          "audience": "suite"
+        },
         "shared:license.md"
       ],
       "files": [
@@ -191,17 +192,18 @@
         "development/readme/scoville-plan/requirements.md",
         "development/readme/scoville-plan/costs.md",
         "development/readme/scoville-plan/development.md",
-        {
-          "source": "shared:member-development-inline.md",
-          "audience": "suite"
-        },
         "development/readme/scoville-plan/compatibility-16ef3bbbbcff0431.md",
         "shared:skill-installation-contract.md",
         "shared:scoville-install.md",
         "shared:scoville-suite-install.md",
+        "development/readme/scoville-plan/configuration.md",
         "development/readme/scoville-plan/usage.md",
         "development/readme/scoville-plan/sources.md",
         "shared:family.md",
+        {
+          "source": "shared:member-development-inline.md",
+          "audience": "suite"
+        },
         "shared:license.md"
       ],
       "files": [
@@ -328,10 +330,6 @@
         "development/readme/scoville-ui/requirements.md",
         "development/readme/scoville-ui/costs.md",
         "development/readme/scoville-ui/development.md",
-        {
-          "source": "shared:member-development-inline.md",
-          "audience": "suite"
-        },
         "development/readme/scoville-ui/compatibility-221fa1eaa338cb20.md",
         "shared:skill-installation-contract.md",
         "shared:scoville-install.md",
@@ -339,6 +337,10 @@
         "development/readme/scoville-ui/usage.md",
         "development/readme/scoville-ui/sources.md",
         "shared:family.md",
+        {
+          "source": "shared:member-development-inline.md",
+          "audience": "suite"
+        },
         "shared:license.md"
       ],
       "files": [
@@ -488,17 +490,19 @@
         "development/readme/scoville-workflow-codex/requirements.md",
         "development/readme/scoville-workflow-codex/costs.md",
         "development/readme/scoville-workflow-codex/development.md",
-        {
-          "source": "shared:member-development-inline.md",
-          "audience": "suite"
-        },
         "development/readme/scoville-workflow-codex/compatibility-3248926e0f8a0db5.md",
         "shared:skill-installation-contract.md",
         "development/readme/scoville-workflow-codex/install-94174f7bf19c6c42.md",
         "shared:scoville-suite-install.md",
+        "development/readme/scoville-workflow-codex/configuration.md",
+        "development/readme/codex-limitations.md",
         "development/readme/scoville-workflow-codex/usage.md",
         "development/readme/scoville-workflow-codex/sources.md",
         "shared:family.md",
+        {
+          "source": "shared:member-development-inline.md",
+          "audience": "suite"
+        },
         "shared:license.md"
       ],
       "files": [
@@ -662,17 +666,21 @@
         "development/readme/scoville-ask-for-codex/requirements.md",
         "development/readme/scoville-ask-for-codex/costs.md",
         "development/readme/scoville-ask-for-codex/development.md",
-        {
-          "source": "shared:member-development-inline.md",
-          "audience": "suite"
-        },
         "development/readme/scoville-ask-for-codex/compatibility.md",
         "shared:skill-installation-contract.md",
         "shared:scoville-install.md",
         "shared:scoville-suite-install.md",
+        "development/readme/scoville-ask-for-codex/install.md",
+        "development/readme/scoville-ask-for-codex/configuration.md",
+        "development/readme/codex-limitations.md",
+        "development/readme/scoville-ask-for-codex/limitations.md",
         "development/readme/scoville-ask-for-codex/usage.md",
         "development/readme/scoville-ask-for-codex/sources.md",
         "shared:family.md",
+        {
+          "source": "shared:member-development-inline.md",
+          "audience": "suite"
+        },
         "shared:license.md"
       ],
       "description_fragments": [
@@ -801,15 +809,17 @@
         "development/readme/scoville-setup/requirements.md",
         "development/readme/scoville-setup/costs.md",
         "development/readme/scoville-setup/development.md",
+        "development/readme/scoville-setup/compatibility.md",
+        "development/readme/scoville-setup/install.md",
+        "development/readme/scoville-setup/configuration.md",
+        "development/readme/scoville-setup/limitations.md",
+        "development/readme/scoville-setup/usage.md",
+        "development/readme/scoville-setup/sources.md",
+        "shared:family.md",
         {
           "source": "shared:member-development-inline.md",
           "audience": "suite"
         },
-        "development/readme/scoville-setup/compatibility.md",
-        "development/readme/scoville-setup/install.md",
-        "development/readme/scoville-setup/usage.md",
-        "development/readme/scoville-setup/sources.md",
-        "shared:family.md",
         "shared:license.md"
       ],
       "description_fragments": [
@@ -900,16 +910,16 @@
         "development/readme/scoville-project-context-cleanup/requirements.md",
         "development/readme/scoville-project-context-cleanup/costs.md",
         "development/readme/scoville-project-context-cleanup/development.md",
-        {
-          "source": "shared:member-development-inline.md",
-          "audience": "suite"
-        },
         "development/readme/scoville-project-context-cleanup/compatibility.md",
         "shared:skill-installation-contract.md",
         "development/readme/scoville-project-context-cleanup/install.md",
         "development/readme/scoville-project-context-cleanup/usage.md",
         "development/readme/scoville-project-context-cleanup/sources.md",
         "shared:family.md",
+        {
+          "source": "shared:member-development-inline.md",
+          "audience": "suite"
+        },
         "shared:license.md"
       ],
       "files": [
@@ -965,14 +975,16 @@
   ],
   "readme": [
     "development/readme/suite-intro.md",
-    "shared:suite-requirements.md",
     "shared:suite-descriptions.md",
-    "development/readme/codex-limitations.md",
+    "shared:suite-requirements.md",
     "development/readme/suite-install.md",
     "shared:suite-catalog.md",
+    "development/readme/suite-configuration.md",
+    "development/readme/codex-limitations.md",
+    "development/readme/suite-deprecated.md",
     "development/readme/suite-development.md",
     "shared:suite-development-links.md",
-    "development/readme/suite-deprecated.md"
+    "development/readme/suite-license.md"
   ],
   "repository": "benjaminstelzer/scoville-suite-for-codex",
   "profile": "codex",
