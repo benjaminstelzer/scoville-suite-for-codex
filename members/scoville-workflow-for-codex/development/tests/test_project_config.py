@@ -17,6 +17,7 @@ class ProjectConfigTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             original = load_config(defaults, root)
+            self.assertEqual(original['manager'], {'model': 'gpt-6.1-sol', 'reasoning': 'medium'})
             self.assertFalse((root / ".scoville").exists())
             (root / ".scoville").mkdir()
             path = root / ".scoville/config.json"
@@ -83,6 +84,22 @@ class ProjectConfigTests(unittest.TestCase):
             path.write_text('{}', encoding='utf-8')
             corrected = subprocess.run(cmd, text=True, encoding='utf-8', capture_output=True)
             self.assertEqual(corrected.returncode, 0, corrected.stdout)
+
+    def test_manager_pair_validation_and_partial_manual_overrides(self):
+        defaults = PACKAGE / 'assets/workflow.toml'
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / '.scoville').mkdir()
+            path = root / '.scoville/config.json'
+            for pair in (None, [], {'model': False}, {'model': '  '},
+                         {'model': 'one\ntwo'}, {'reasoning': 'bad'},
+                         {'reasoning': False}, {'token': 'private-value'}):
+                path.write_text(json.dumps({'workflow': {'manager': pair}}), encoding='utf-8')
+                with self.subTest(pair=pair), self.assertRaisesRegex(ValueError, 'workflow.manager'):
+                    load_config(defaults, root)
+            path.write_text(json.dumps({'workflow': {'manager': {'reasoning': 'ultra'}}}), encoding='utf-8')
+            self.assertEqual(load_config(defaults, root)['manager'],
+                             {'model': 'gpt-6.1-sol', 'reasoning': 'ultra'})
 
 
 if __name__ == "__main__":

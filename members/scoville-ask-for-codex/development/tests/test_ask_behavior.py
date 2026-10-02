@@ -18,7 +18,6 @@ SPEC = importlib.util.spec_from_file_location("ask_under_test", SCRIPTS / "ask.p
 assert SPEC and SPEC.loader
 ask = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(ask)
-import list_models as model_catalog
 
 CATALOG = {"source": "model/list", "models": [
     {"model": "gpt-5.6-sol", "efforts": ["low", "medium", "high", "xhigh"]},
@@ -56,7 +55,7 @@ class AskBehaviorTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_invalid_adviser_fields_name_the_path_and_corrected_resolve_works(self):
-        with self.assertRaisesRegex(ValueError, r"advisers\[0\]\.route=str .*'native' or 'claude-cli'"):
+        with self.assertRaisesRegex(ValueError, r"request\.overrides\.advisers\[0\]\.route \(adviser sol\)='cloud' .*'native' or 'claude-cli'"):
             ask.resolve({"overrides": {"advisers": [{
                 "id": "sol", "route": "cloud", "model": "gpt-6-sol", "effort": "medium"
             }]}})
@@ -66,14 +65,14 @@ class AskBehaviorTests(unittest.TestCase):
         self.assertEqual(result["config"]["advisers"][0]["route"], "native")
 
     def test_bad_claude_timeout_names_field_and_corrected_resolve_works(self):
-        with self.assertRaisesRegex(ValueError, r"claude\.timeout_seconds=int .*positive finite number"):
+        with self.assertRaisesRegex(ValueError, r"request\.overrides\.claude\.timeout_seconds=0 .*positive finite number"):
             ask.resolve({"overrides": {"claude": {"timeout_seconds": 0}}})
         result = ask.resolve({"overrides": {"claude": {"timeout_seconds": 2400}}})
         self.assertEqual(result["config"]["claude"]["timeout_seconds"], 2400)
 
     def test_prepare_mode_diagnostic_and_corrected_claude_request(self):
         request = prepare_request([ADVISERS[1]])
-        with self.assertRaisesRegex(ValueError, r"request\.mode=NoneType .*'review' or 'consultation'"):
+        with self.assertRaisesRegex(ValueError, r"request\.mode=None .*'review' or 'consultation'"):
             ask.prepare({**request, "mode": None})
         prepared = ask.prepare({**request, "mode": "consultation"})
         self.assertEqual(prepared["entries"][0]["request"]["operation"], "claude")
@@ -132,52 +131,7 @@ class AskBehaviorTests(unittest.TestCase):
         self.assertEqual([(a["id"], a["model"], a["effort"]) for a in explicit],
                          [("fable", "claude-fable-5-1", "high")])
 
-    def test_model_list_protocol_pages_and_preserves_model_efforts(self):
-        fake_server = '''import json, sys
-for line in sys.stdin:
-    request = json.loads(line)
-    if "id" not in request:
-        continue
-    if request["method"] == "initialize":
-        result = {}
-    elif request["params"]["cursor"] is None:
-        result = {"data": [{"model": "gpt-6-astra", "supportedReasoningEfforts":
-            [{"reasoningEffort": "medium"}, {"reasoningEffort": "high"}],
-            "defaultReasoningEffort": "high"}], "nextCursor": "page-2"}
-    else:
-        result = {"data": [{"model": "third-party-model", "supportedReasoningEfforts":
-            [{"reasoningEffort": "low"}], "defaultReasoningEffort": "low"}],
-            "nextCursor": None}
-    print(json.dumps({"id": request["id"], "result": result}), flush=True)
-'''
-        with tempfile.TemporaryDirectory() as temporary:
-            script = Path(temporary) / "fake_app_server.py"
-            script.write_text(fake_server, encoding="utf-8")
-            catalog = model_catalog.list_models([sys.executable, str(script)], timeout=5)
-        self.assertEqual(catalog, {"source": "model/list", "models": [
-            {"model": "gpt-6-astra", "efforts": ["medium", "high"], "default_effort": "high"},
-            {"model": "third-party-model", "efforts": ["low"], "default_effort": "low"},
-        ]})
 
-    def test_model_catalog_timeout_diagnostic_and_corrected_helper_call(self):
-        with self.assertRaisesRegex(ValueError, r"--timeout=int must be a positive finite number"):
-            model_catalog.list_models(timeout=0)
-        server = '''import json, sys
-for line in sys.stdin:
-    request = json.loads(line)
-    if "id" not in request:
-        continue
-    result = {} if request["method"] == "initialize" else {
-        "data": [{"model": "gpt-6-sol", "supportedReasoningEfforts": [
-            {"reasoningEffort": "medium"}], "defaultReasoningEffort": "medium"}],
-        "nextCursor": None}
-    print(json.dumps({"id": request["id"], "result": result}), flush=True)
-'''
-        with tempfile.TemporaryDirectory() as temporary:
-            script = Path(temporary) / "fake_app_server.py"
-            script.write_text(server, encoding="utf-8")
-            corrected = model_catalog.list_models([sys.executable, str(script)], timeout=5)
-        self.assertEqual(corrected["models"][0]["default_effort"], "medium")
 
     def test_json_cli_uses_utf8_for_unicode_question_without_environment_override(self):
         request = prepare_request([ADVISERS[1]], question="Prüfe Änderung äöü 😀")

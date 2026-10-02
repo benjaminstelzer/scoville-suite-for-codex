@@ -1,3 +1,3 @@
 ## What it costs
 
-- Inspecting and changing settings takes an additional interaction with your agent.
+- Viewing or changing settings takes an agent interaction. Saved project settings spare you from repeating the same choices in later runs.

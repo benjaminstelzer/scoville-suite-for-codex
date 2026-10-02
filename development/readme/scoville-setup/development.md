@@ -1,3 +1,4 @@
 ## How it was developed
 
-- Tests cover displaying and saving settings, rejecting invalid inputs, and using the saved values in Ask and Workflow.
+Setup reuses Ask and Workflow validation. Tests follow saved settings into
+those consumers, because a successful save alone says little about the next run.

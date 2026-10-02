@@ -30,8 +30,9 @@ Setup is optional and a missing config does not require setup confirmation.
 The checkpoint validates those later; invalid thresholds block that checkpoint
 with its diagnostic. Startup success does not establish valid thresholds.
 Managers and children have no sidebar chat to rename or pin. Never pass an agent ID
-to sidebar tools. Preserve any existing explicit manager model/effort and include
-it as control metadata in a successor request; never substitute a worker pair.
+to sidebar tools. The launched manager pair in the assignment remains fixed for
+this run. A later configuration change applies to the next run. Include the
+launched pair as control metadata in a successor request, never a worker pair.
 
 The manager owns Plan, Decision and index edits, staging and authorized commits.
 It delegates implementation and stays idle with respect to project files while
@@ -193,9 +194,12 @@ when only manager review or Plan closure remains. Review_pending requires a
 checked prior-code fix and named work still assigned to that same worker.
 Reviewer statuses: pass, changes_requested, blocked, needs_user_decision,
 context_handoff. Context_handoff requires an explicitly authorized transfer of
-unfinished work, never a context threshold alone. A pass has no unresolved findings.
-Findings identify the defect, location, effect and smallest correction. A handoff distinguishes finished and
-unfinished work; never turn unavailable evidence into success.
+unfinished work, never a context threshold alone. A pass has no unresolved defects.
+Findings identify the defect, location, effect and smallest correction. Optional
+ideas do not block pass and are not assigned for correction without explicit
+authorization; omit them unless they inform a relevant decision. A handoff
+distinguishes finished and unfinished work; never turn unavailable evidence
+into success.
 
 ## End an assignment
 

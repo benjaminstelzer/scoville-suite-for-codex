@@ -42,8 +42,12 @@ python "<setup-skill-directory>/scripts/setup.py" set --project-root "<project-r
 The object uses `ask` and/or `workflow` sections. Ask supports `advisers`,
 `presets` (model, effort, route and optional name) and `claude`
 (`max_budget_usd`, `session_persistence`, `customizations`, `timeout_seconds`,
-`web_tools`). Workflow supports `execute` and `review` model/reasoning pairs
-per route and `context.coordinator_percent` / `context.worker_percent`.
+`web_tools`). Workflow supports the `manager` model/reasoning pair, `execute`
+and `review` pairs per route, and
+`context.coordinator_percent` / `context.worker_percent`. `workflow.manager`
+sets the manager independently of the runner. Missing fields use the bundled
+defaults. A one-time manager pair overrides saved settings for that run;
+successors retain the launched pair.
 Legacy `ask.pin_threads` and `workflow.pin_threads` remain readable but have
 no effect: native advisers and Workflow roles are subagents without sidebar rows.
 Explain this when showing those fields; do not offer to save pin settings.

@@ -19,16 +19,15 @@ The object contains operation=resolve, project_root and optional overrides.
 The JSON response config.advisers supplies id, route, model and effort directly.
 These are technical settings, not a dispatch prompt. Use model and effort as
 spawn_agent model and reasoning_effort. Dispatch questions and adviser answers remain
-plain text. No model/list call or output repair is required. A nonzero exit or
-ok:false stops the operation with its diagnostic. Existing stdin JSON requests
-remain supported, including the unchanged Ask Claude interface.
+plain text. A nonzero exit or ok:false stops the operation with its diagnostic.
+Stdin JSON requests remain supported, including Ask Claude.
 
 ask_settings.py, scoville_config.py and ask_claude.py are imported modules, not
 separate commands. Use the bundled ask.py from this installed package.
 
 Legacy ask.pin_threads booleans remain readable and are preserved when other
 settings change, but have no effect. Native advisers are subagents without
-sidebar chats. Setup explains this and does not offer to save new Ask pin settings.
+sidebar chats. Use Scoville Setup for configuration changes.
 
 The selected project root owns `.scoville/config.json`. Its `ask` section
 overrides this Skill's defaults. Missing files or fields use those defaults.
@@ -50,19 +49,15 @@ Shipped settings, generated from their canonical file:
 
 Save only changed values, for example:
 `{"ask":{"advisers":["sol","fable"],"presets":{"sol":{"effort":"medium"}}}}`.
-Request overrides use the fields inside `ask`. Retained follow-up
-settings take precedence over new defaults unless explicitly changed.
+Request overrides use the fields inside `ask`.
 
 `resolve` accepts `project_root` and optional unsaved `overrides`. Pass the
 selected project's absolute root. When omitted, `cwd` supplies the root, or
 the process working directory if neither was supplied. `project_config` is
 rejected with migration guidance. Keep settings unchanged during a run.
-Native availability is checked by spawn_agent on the actual host, not by a
-separate CLI catalog. Display resolved settings when configuration is requested.
+Display resolved settings when configuration is requested.
 
-Claude-only prepare takes mode=review|consultation, question, scope, reference,
-and an absolute cwd, with overrides selecting only Claude
-advisers. It returns entries[].request unchanged for operation=claude. The Claude
-adapter, deadlines and follow-up session rules are unchanged. No separate
-authorization field is required: the explicit Ask request commissions the call.
-Native prepare and followup operations are removed; use collaboration tools directly.
+Claude-only `prepare` takes mode=review|consultation, question, scope, reference
+and an existing absolute cwd, with overrides selecting only Claude advisers.
+It returns entries[].request for operation=claude. Use the helper commands
+in [Claude operation](claude.md) for fresh requests and follow-ups.

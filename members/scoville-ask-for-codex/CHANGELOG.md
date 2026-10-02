@@ -1,9 +1,15 @@
 # Changelog
 
+## v1.3.0 - 2026-10-02
+
+- Prepare Claude questions and follow-ups directly from text files, retaining saved settings and explicit overrides.
+- Catch invalid workspaces and adviser settings before starting a consultation, with the bad value and its source in the diagnostic.
+- Check native adviser availability through the host. The unused model-catalog helper has been removed.
+
 ## v1.2.1 - 2026-10-01
 
 - Accept a complete native adviser final without a separate startup acknowledgement. Keep incomplete results open and route necessary follow-ups to the same exact handle.
-- Remove automatic capacity cleanup and retry; keep completed answers, pending advisers and the actual failure diagnostic.
+- Remove automatic capacity cleanup and retry. Keep completed answers, pending advisers and the actual failure diagnostic.
 - Keep Claude consultations available for an explicitly requested follow-up without an automatic closing question.
 
 ## v1.2.0 - 2026-10-01
@@ -44,7 +50,7 @@
 
 - Make separate adviser chats explicit in the Skill invocation so host task rules do not redirect Ask into subagents.
 - Carry existing user authorization into native adviser assignments instead of treating the dispatch as permission to reply.
-- Report undelivered answers with their destination and retain the complete answer for recovery; respect host-required progress waits.
+- Report undelivered answers with their destination and retain the complete answer for recovery. Respect host-required progress waits.
 
 ## v1.0.0 - 2026-09-25
 

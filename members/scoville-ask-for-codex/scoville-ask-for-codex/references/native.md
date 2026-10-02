@@ -2,13 +2,13 @@
 
 The calling Ask chat spawns selected Codex advisers directly with the
 collaboration tools. Each adviser receives fresh context, its configured model
-and effort, and a read-only assignment. No saved project, caller chat identity,
-sidebar title, pin or archive operation is needed.
+and effort, and a read-only assignment.
 
 ## Spawn and collect
 
-Put the question, raw evidence and explicit limits in a UTF-8 file. Exclude the
-caller’s verdict, unrelated history and other advisers’ answers. Build one
+Put the question, raw evidence and explicit limits in a UTF-8 file outside the
+reviewed working tree, using the workspace temporary area or system temporary
+directory. Exclude the caller’s verdict, unrelated history and other advisers’ answers. Build one
 assignment per selected adviser:
 
 ```text
@@ -46,8 +46,9 @@ not the wait summary as an answer. Require the exact adviser's actual native fin
 and completion. A substantive send_message is partial information, not its final.
 Match the complete native final to the exact retained handle and its latest
 question. Missing/incomplete finals remain unresolved. Retain complete answers
-once. Reconcile harmless repeated labels from the retained assignment; a
-substantive reference or scope conflict still needs clarification. Do not accept
+once. If a label repeats without changing identity, reference or scope, use
+the retained assignment to identify the answer. A different reference or scope
+still needs clarification. Do not accept
 an earlier answer as the result of a later same-handle follow-up.
 
 A timeout ends only the wait. Continue waiting for active advisers; keep
@@ -60,7 +61,8 @@ closure message or keepalive to the completed adviser. It has ended its turn.
 Retaining a handle does not keep the turn active or prove a host slot is free.
 Necessary follow-ups use the targeted route below, not queued send_message.
 If a necessary message targets an agent whose state is unclear, check its exact
-handle once first. A completion race remains possible; add no polling loop.
+handle with `collaboration.list_agents` once first. A completion race remains
+possible; add no polling loop.
 
 For a necessary clarification or authorized follow-up, use
 `collaboration.followup_task` with the retained agent ID or canonical task name.
@@ -72,5 +74,4 @@ uncertain result instead of resending blindly. Keep each adviser independent.
 Follow-ups use the same agent and its settings. The follow-up tool has no model
 override. If the user requests different settings, explain that this requires
 a fresh adviser and obtain that choice unless already authorized. Never replace
-an unavailable handle silently. Retain handles for follow-ups. Native advisers
-need no post-review closure question, chat archival or assumed close operation.
+an unavailable handle silently.

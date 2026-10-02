@@ -9,6 +9,8 @@ import subprocess
 import sys
 from pathlib import Path
 from native_task_arguments import add_creation_options, creation_arguments, workflow_title, validate_creation_options, takeover_instruction, single_line
+from resolve_model_pair import resolve
+from workflow_settings import ROUTES, load_config
 
 
 
@@ -38,7 +40,7 @@ def result_contract(role: str) -> list[str]:
         "Return a concise normal message with an explicit status: " + statuses + ". No version marker, fixed field syntax, JSON or change flags are required.",
         "State completed effects, relevant changed paths, decisive checks and unverified behavior. For an authorized context_handoff, add unfinished work, needed constraints and the next action. Keep only facts needed to assess or continue correctly.",
         *(["Use completed when your assigned implementation and checks are finished, even if manager review or Plan closure remains. Use review_pending only after a checked prior-code fix with specific work still assigned to you after review; name that remaining work."] if role == "executor" else []),
-        "Findings name the actual unresolved defect, location, effect and smallest correction. A reviewer pass has no unresolved findings. Do not count characters or include a work log.",
+        "Findings name the actual unresolved defect, location, effect and smallest correction. A reviewer pass has no unresolved defects. Optional ideas do not block pass and are not correction assignments; omit them unless they inform a relevant decision. Do not count characters or include a work log.",
     ]
 
 
@@ -93,7 +95,7 @@ def build_prompt(role: str, workspace: Path, coordinator: str, reference: str,
              *([] if role == "reviewer" else ["Execute only the Step or jointly started group whose start the manager has recorded and released. Before advancing to another Step/group in this same assignment, stop all writes and return progress_pending with observed completed Steps, checks, remaining scope and the proposed next Step/group. This ends the turn, not the assignment; do not roll over or edit the Plan. Resume only through followup_task on your exact ID after the manager records and validates progress and releases the next Step/group, including any due review acceptance. Preserve completed effects and any measured crossing. A required prior-code review pause uses review_pending instead."]),
              ("Stay read-only. Review the unreviewed diff and affected Acceptance identified in supplemental_context, including relevant interactions. Reuse supplied earlier assessments for unchanged parts; do not review those parts again. Report a missing review boundary instead of assuming a whole-tree review." if role == "reviewer" else
               "Implement only the assigned work and its proportionate checks. Preserve unrelated changes. Follow repository instructions, including required backups. After fixing product code that was complete or checked before this assignment, run focused checks. If assigned work remains, stop writing and return review_pending with the checked fix, remaining work and any retained threshold measurement, before further tests or work, including after rollover_pending. This pauses the same assignment for independent review; it does not complete or transfer it. Resume its remaining scope only after the manager confirms review acceptance through followup_task on your exact ID. Preserve completed effects and the retained crossing; finish the full assigned Step or Step group. If no assigned work remains, return completed for the manager's due review. Correct intermediate errors in code you are implementing in this assignment and continue normally."),
-             "When reviewer_result is supplied, correct the assigned source findings and verify them. Reviewers give one complete assessment without a question round.",
+             "When reviewer_result is supplied, correct the assigned source defects and verify them. Do not implement optional ideas without explicit authorization. Reviewers give one complete assessment without a question round.",
              "After a bounded implementation-and-check, review, or UI-check batch, checkpoint only if assigned work, a correction or a required check remains. A threshold crossing only schedules rollover: rollover_pending does not stop or shorten your assignment. Retain the measured crossing across compaction and finish the complete assigned Step or Step group, review or repair, including required corrections and checks. After your last required check, return completed for executor or pass/changes_requested for reviewer without another checkpoint, even above the threshold. Include the retained measurement when needed for rollover evidence. The manager's later review and Plan closure are not your unfinished work. Failed checks also end a batch. Finish any running operation first. While work remains, checkpoint before commands expected to add substantial context unless just checked with no material context growth since. Save large output to a file with the exit status; read failures and a summary first, then relevant details as needed.",
              f'"{sys.executable}" "{checkpoint}" --role {role} --project-root "{workspace}"',
              "Do not return context_handoff with unfinished assigned work merely because a threshold was crossed. It requires an explicitly authorized recovery transfer and a quiescent boundary with no active writer. Each later assignment already uses a fresh child. The manager retains the handoff and confirms quiescence before creating a successor.",
@@ -118,12 +120,31 @@ def build_prompt(role: str, workspace: Path, coordinator: str, reference: str,
     return first_action + "\n".join(lines) + "\n"
 
 
+def resolve_creation_pair(args: argparse.Namespace) -> None:
+    """Resolve fresh routes; retained pairs never read changed configuration."""
+    if args.format != 'create':
+        if args.route:
+            raise ValueError('--route requires --format create; omit it for prompt-only output')
+        return
+    retained = args.context_handoff or args.reviewer_result
+    if retained and (args.model is None or args.thinking is None):
+        raise ValueError('recovery/correction requires both --model and --thinking from the original launched pair; --route cannot replace it')
+    if args.model is not None and args.thinking is not None:
+        return
+    if not args.route:
+        raise ValueError('--format create requires --route CLASS or both --model and --thinking; e.g. --route medium (optional --model/--thinking override)')
+    config = load_config(Path(__file__).resolve().parents[1] / 'assets' / 'workflow.toml', args.workspace_root)
+    pair = resolve(config, args.role, args.route, args.model, args.thinking)
+    args.model, args.thinking = pair['model'], pair['thinking']
+
+
 def main() -> int:
     for stream in (sys.stdin, sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="strict")
     parser = argparse.ArgumentParser(description=__doc__)
     add_creation_options(parser)
+    parser.add_argument('--route', choices=ROUTES, help='resolve the role pair internally; --model and --thinking override its fields')
     parser.add_argument('--worker-number', type=int, help='worker number, also for its reviewer')
     parser.add_argument("--selector", type=Path, default=Path(__file__).with_name("select_context.py"))
     parser.add_argument("--plan-root", type=Path)
@@ -137,6 +158,7 @@ def main() -> int:
         parser.add_argument("--" + name, type=Path, help="UTF-8 plain-text file")
     args = parser.parse_args()
     try:
+        resolve_creation_pair(args)
         validate_creation_options(args)
         if args.format == 'create' and (args.worker_number is None or args.worker_number < 1):
             raise ValueError('--worker-number must be a positive integer; for review use the reviewed worker number')

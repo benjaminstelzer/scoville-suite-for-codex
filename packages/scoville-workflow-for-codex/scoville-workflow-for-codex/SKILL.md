@@ -39,6 +39,10 @@ An existing goal is reported without changing it or adding another.
 
 ## Runner start contract
 
+Before the first startup helper, obtain the actual calling project display name
+from the activation or host project metadata. Retain it for all status messages
+and manager starts, including early startup failures.
+
 Before startup, read Scoville Code's authority rules and **Scoville Workflow
 runner** section. Apply its Skill boundary without loading Code's other routes.
 
@@ -52,11 +56,13 @@ WORKING_ON confirms a different Plan. Manager switches and stop/resume retain
 the title. Only the runner renames its visible chat; agent IDs remain unchanged.
 A failed rename is reported with its diagnostic, never claimed successful.
 
-Retain only the activation, workspace, runner ID, manager counter, exact manager
-IDs with current/pending ownership, any explicit manager pair, control state
+Retain only the initial request-file path, workspace, runner ID, manager counter, exact manager
+IDs with current/pending ownership, the launched manager pair, control state
 including pending issues with source identity and answer/delivery state, queued
 transition steering, run-report path, named Plan ID, last displayed progress key
-and accepted project/scope display values. The report is
+and accepted project display name. Managers own the substantive scope after
+startup; the runner neither retains another scope copy nor receives it in progress.
+The report is
 only for user-relevant issues, not a status log.
 Before the first manager start, create the report and display its returned full
 path as `Run report: <absolute-path>`:
@@ -76,14 +82,14 @@ Do not inspect Plan content to compose it. Absent a narrower scope the manager
 executes the whole active Plan.
 
 ```text
-python "<workflow-skill-directory>/scripts/build_manager_handoff.py" --mode start --runner-id <actual-runner-id> --manager-number 1 --project-root "<workspace_root>" --request-file "<request.txt>" --report-file "<run-report.md>"
+python "<workflow-skill-directory>/scripts/build_manager_handoff.py" --mode start --runner-id <actual-runner-id> --project-name "<project-name>" --manager-number 1 --project-root "<workspace_root>" --request-file "<request.txt>" --report-file "<run-report.md>"
 ```
 
 For a successor use only the requesting manager's identity as work context.
 The unchanged report path is short run-control metadata:
 
 ```text
-python "<workflow-skill-directory>/scripts/build_manager_handoff.py" --mode successor --runner-id <actual-runner-id> --manager-number <next-number> --predecessor-id <actual-manager-id> --report-file "<same-run-report.md>"
+python "<workflow-skill-directory>/scripts/build_manager_handoff.py" --mode successor --runner-id <actual-runner-id> --project-name "<project-name>" --manager-number <next-number> --predecessor-id <actual-manager-id> --model <launched-model> --thinking <launched-effort> --report-file "<same-run-report.md>"
 ```
 
 The builder returns complete `spawn_agent` arguments with `fork_turns="none"`.
@@ -92,101 +98,40 @@ run with the same manager number. Use that name without asking the user.
 Retain the returned arguments and never repeat a failed or uncertain spawn automatically.
 Parse complete successful stdout and pass the object unchanged to the native
 call; never spawn truncated or failed output. Use direct collaboration tool
-calls if the host does not expose them inside code cells. Default managers
-inherit the runner's model/effort. Preserve an explicit manager pair through
-paired `--model` and `--thinking` arguments at every successor start; never use
-a worker route. Validate an explicit pair against the exposed host capabilities.
-Keep the manager's launched pair across rollover. If the runner's own settings
-changed meanwhile, obtain the predecessor's exact pair as short control metadata
-and pass both arguments; unavailable settings halt the start rather than guess.
+calls if the host does not expose them inside code cells. Initial starts resolve
+`workflow.manager` from the project configuration and bundled defaults.
+An explicit pair in the user's request overrides both through paired `--model`
+and `--thinking` arguments. Retain the returned model/effort and validate it
+against exposed host capabilities before spawning. Every successor uses that
+launched pair through both arguments, regardless of later runner or saved
+settings. Never use a worker route. A missing retained pair halts the start
+rather than guessing.
 The runner alone increments the manager number for each new manager start.
 
-```text
-runner --spawn--> manager --READY--> runner --START--> manager
-                                  (matching host sender only)
-old manager --SUCCESSOR_REQUEST--> runner --spawn/READY/START--> new manager
-old manager <---HANDOFF_REQUEST / handoff / HANDOFF_ACCEPTED---> new manager
-old manager --HANDOFF_DELIVERED/final after receipt--> runner <--RUNNING-- new manager
-runner --TAKEOVER_COMPLETE after both--> new manager --work--> children
-```
-
-1. Accept one successor request from the current manager only, after its children
-   and writes are quiescent. Ignore duplicate requests already handled. Never
-   infer a request from a timeout or context estimate.
-2. Call `spawn_agent` once. Require one unique returned manager ID and retain its
-   host-provided canonical name/ID mapping. An unknown spawn state or other tool
-   error, including a capacity refusal, halts the start with its diagnostic and
-   retained continuation state. Do not wake completed agents for capacity or
-   retry automatically. Essential predecessor clarification follows the exception below.
-3. Wait at most 60 seconds for `READY` from that exact spawned manager. Validate
-   the host sender identity, not an ID claimed inside message text. A wrong,
-   missing or ambiguous confirmation halts startup with a user message. If a
-   manager is known, send STOP; do not send START or create another manager.
-4. On successor startup, send `SUCCESSOR <new-id>` to the old manager so it can
-   authenticate the direct request. Only after that succeeds, send `START` to
-   the ready manager. Any send failure halts with the diagnostic; do not infer
-   delivery or repeat a spawn. If START delivery failed or is uncertain, stop the
-   known manager and establish child/writer quiescence under Stop below before
-   any resume. Before START the manager may only send READY and
-   wait. The successor requests and verifies its handoff before writing.
-5. The initial manager becomes current after successful START delivery. A
-   successor stays pending through takeover. Accept READY and startup/takeover
-   controls, BLOCKED and NEEDS_USER_DECISION from that exact pending identity;
-   accept ordinary progress only from the current STARTed manager.
-   `HANDOFF_DELIVERED`
-   confirms delivery. The predecessor stays active until the exact successor's
-   receipt, then ends with that same control-only final response. Require both
-   its native completion and the successor's `RUNNING` before sending
-   `TAKEOVER_COMPLETE` to the successor. First forward retained transition input
-   as described below. On successful release delivery, make that successor
-   current and retire the predecessor. Only then may it write or dispatch.
-   Missing confirmation or uncertain delivery blocks takeover with both exact
-   identities retained. Retired managers remain write-inactive.
+Before spawning, read [manager protocol](references/manager-protocol.md).
+It owns startup, authenticated takeover, queued input and retired-manager
+clarification. Use its runner column; managers follow their own column.
 
 While active, use native waits for control messages. Do not poll files or read
 agent results for progress. Accept WORKING_ON only from the current STARTed
-manager. Display exactly its generated Working on/Scope lines when its key differs
+manager. Display its complete generated progress text unchanged when its key differs
 from the last displayed key, retaining the key across manager switches and
 stop/resume. Do not print READY, RUNNING or repeated unit/review notifications.
 For completion, follow run-feedback.md before announcing success. Relay other
-actionable states under run-feedback.md: display the Plan ID and affected Step/group, exact
-question or blocker, why it prevents progress and that the affected work is
-waiting. This relay is independent of WORKING_ON deduplication. Only the visible
-runner presents user questions; manager-only commentary does not notify the user.
-Retain the first accepted project and user scope; only user steering changes
-them. Handle display drift under run-feedback.md.
+actionable states as generated under run-feedback.md, independently of WORKING_ON
+deduplication. Only the visible runner presents user questions; manager-only
+commentary does not notify the user.
+Retain the project name; only user steering changes it.
+WORKING_ON displays only its status line. Handle display drift under run-feedback.md.
 Never request or relay substantive work results, evidence or handoffs. The
 manager's final response contains only its control status. The authorized final
 run-report read is the exception, under run-feedback.md. The durable Plan owns
 progress and evidence.
 
-Send no routine receipt or closure message after a manager's native completion.
-If its state is unclear before necessary steering, check that exact handle once.
-This does not eliminate a completion race between checking and sending.
-Accept `CLARIFICATION_REQUEST <predecessor-id>` only from the current manager,
-for its retained retired predecessor. Use `followup_task` on that exact predecessor
-for direct read-only clarification to the current manager. Keep it retired and
-write-inactive; this permits no project work or routine cleanup.
-
 ## Steering, stop and resume
 
-Forward ordinary user steering unchanged to the current manager. From an accepted
-successor request until the release gate, retain new steering for the successor
-instead of sending it only to the predecessor. Forward it once, in received
-order, to the exact pending successor before TAKEOVER_COMPLETE. Preserve this
-queue on a failed takeover; no failed or uncertain send licenses a duplicate.
-During that transition, queue new answers to predecessor-owned issues for the
-successor alongside steering. Retain the issue's original source identity and
-answer/delivery state; deliver once to the authenticated pending successor before
-release, in received order. This transfers the answer; do not also send it to
-the predecessor. Preserve the queue and uncertain delivery across a failed
-takeover. Answers to a pending successor's own issues go directly to that exact
-identity, even before release. Outside takeover, forward once to the originating
-manager, or its verified current successor if retired. Never broadcast an answer
-or treat elapsed time as an answer. The successor applies input received after its handoff snapshot
-before writing or dispatching and reports any resulting decision or blocker.
-Use `followup_task` for an idle manager: `send_message` does not wake it. During
-READY/START and handoff waits managers remain active with `wait_agent`.
+Forward steering and answers under the manager protocol, preserving their
+original text and received order.
 A pending decision is not permission; resume its dependent work only on the
 user's answer. On STOP, stop further starts, tell all known managers (including
 both sides of an incomplete takeover) to stop their children, then use native

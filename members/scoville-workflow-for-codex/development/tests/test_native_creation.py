@@ -312,13 +312,14 @@ class NativeCreationTests(unittest.TestCase):
             body = 'Start Scoville Workflow for the active Plan. Internal coordination authorized.'
             request.write_text(body, encoding='utf-8')
             report = self.create_report(root)
-            common = ['--runner-id', '/root', '--manager-number', '1', '--report-file', report]
+            common = ['--runner-id', '/root', '--project-name', 'Test 中文', '--manager-number', '1', '--report-file', report]
             start = self.consume_manager(self.run_builder('build_manager_handoff.py', *common,
                 '--mode', 'start', '--project-root', root, '--request-file', request))
             self.assertRegex(start['task_name'], r'^scoville_manager_1_[0-9a-f]{32}$')
             self.assertIn(body, start['message'])
             self.assertIn(str(root), start['message'])
-            self.assertNotIn('model', start)
+            self.assertEqual(start['model'], 'gpt-6.1-sol')
+            self.assertEqual(start['reasoning_effort'], 'medium')
             successor = self.consume_manager(self.run_builder('build_manager_handoff.py', *common,
                 '--mode', 'successor', '--predecessor-id', 'manager-exact-id',
                 '--model', 'gpt-6-astra', '--thinking', 'high'))
@@ -331,15 +332,13 @@ class NativeCreationTests(unittest.TestCase):
             self.assertNotIn('User activation and scope:', successor['message'])
             self.assertNotIn('create_thread', successor['message'])
             for data in (start, successor):
+                self.assertIn('Project display name: Test 中文.', data['message'])
                 self.assertIn('send READY', data['message'])
-                self.assertIn('Wait for START from that exact runner', data['message'])
+                self.assertIn('for START from that exact host sender', data['message'])
                 self.assertIn('including in your final answer', data['message'])
-                self.assertIn('Context thresholds only schedule rollover', data['message'])
-                self.assertIn('including required checks, due review, repairs, Plan updates and authorized commits', data['message'])
-                self.assertIn('confirm all children and writes are quiescent before requesting a successor', data['message'])
-                self.assertIn('A user stop remains immediate', data['message'])
-                self.assertIn('Report rejected or pending takeover as BLOCKED', data['message'])
-                self.assertIn('never use RUNNING CONTROL', data['message'])
+                protocol = PACKAGE / 'references/manager-protocol.md'
+                self.assertIn(str(protocol), data['message'])
+                self.assertTrue(protocol.is_file())
 
     def test_manager_invalid_calls_then_corrected_calls(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -347,14 +346,16 @@ class NativeCreationTests(unittest.TestCase):
             request = root / 'request.txt'
             request.write_text('Start Scoville Workflow.', encoding='utf-8')
             report = self.create_report(root)
-            common = ['--runner-id', '/root', '--manager-number', '2', '--report-file', report]
-            successor = ['--mode', 'successor', '--predecessor-id', 'old-manager']
+            common = ['--runner-id', '/root', '--project-name', 'Test', '--manager-number', '2', '--report-file', report]
+            successor = ['--mode', 'successor', '--predecessor-id', 'old-manager',
+                         '--model', 'gpt-6.1-sol', '--thinking', 'medium']
             cases = [
                 (['--mode', 'successor'], '--predecessor-id', successor),
                 (successor + ['--request-file', request], 'omit --request-file', successor),
                 (successor + ['--project-root', root], 'omit --request-file', successor),
-                (successor + ['--model', 'gpt-6-astra'], 'both --model and --thinking',
+                (['--mode', 'successor', '--predecessor-id', 'old-manager', '--model', 'gpt-6-astra'], 'both --model and --thinking',
                  successor + ['--model', 'gpt-6-astra', '--thinking', 'high']),
+                (['--mode', 'successor', '--predecessor-id', 'old-manager'], 'launched pair', successor),
                 (['--mode', 'successor', '--predecessor-id', '/root'], 'not --runner-id', successor),
                 (['--mode', 'start'], '--project-root',
                  ['--mode', 'start', '--project-root', root, '--request-file', request]),
@@ -362,6 +363,7 @@ class NativeCreationTests(unittest.TestCase):
                  ['--mode', 'start', '--project-root', root, '--request-file', request]),
                 (successor + ['--manager-number', '0'], 'positive integer', successor),
                 (successor + ['--runner-id', 'bad\nID'], '--runner-id', successor),
+                (successor + ['--project-name', 'bad\nName'], '--project-name', successor),
             ]
             for bad, diagnostic, corrected in cases:
                 with self.subTest(arguments=bad):
@@ -377,7 +379,7 @@ class NativeCreationTests(unittest.TestCase):
             root = Path(directory)
             request = root / 'activation.txt'
             report = self.create_report(root)
-            common = ['--runner-id', '/root', '--manager-number', '1', '--report-file', report, '--mode', 'start',
+            common = ['--runner-id', '/root', '--project-name', 'Test', '--manager-number', '1', '--report-file', report, '--mode', 'start',
                       '--project-root', root, '--request-file', request]
             for contents, diagnostic in ((None, 'activation.txt'), (b' \r\n', 'empty'),
                                          (b'\xff', 'utf-8')):
@@ -396,7 +398,7 @@ class NativeCreationTests(unittest.TestCase):
     def test_successor_rejects_empty_or_multiline_predecessor(self):
         with tempfile.TemporaryDirectory() as directory:
             report = self.create_report(Path(directory))
-            common = ['--runner-id', '/root', '--manager-number', '2', '--mode', 'successor', '--report-file', report]
+            common = ['--runner-id', '/root', '--project-name', 'Test', '--manager-number', '2', '--mode', 'successor', '--report-file', report]
             for identity in ('', '  ', 'old\nother', 'old\rother'):
                 with self.subTest(identity=identity):
                     failed = self.run_builder('build_manager_handoff.py', *common,
@@ -406,7 +408,47 @@ class NativeCreationTests(unittest.TestCase):
                     self.assertIn('--predecessor-id', failed.stderr)
                     self.assertIn('usage:', failed.stderr)
             self.consume_manager(self.run_builder('build_manager_handoff.py', *common,
-                                 '--predecessor-id', '/root/old_manager'))
+                                 '--predecessor-id', '/root/old_manager',
+                                 '--model', 'gpt-6.1-sol', '--thinking', 'medium'))
+
+    def test_runner_and_report_stay_bound_to_each_project(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            runs = []
+            for name in ('fluid', 'empco'):
+                root = base / name
+                shutil.copytree(SUITE_ROOT / 'members/scoville-plan/development/tests/fixtures/valid-profile', root)
+                request = root / 'request.txt'
+                request.write_text('Start Workflow for PLAN-0001.', encoding='utf-8')
+                report = self.create_report(root)
+                runner = '/root/' + name
+                common = ['--runner-id', runner, '--project-name', name, '--manager-number', '1', '--report-file', report]
+                start = self.consume_manager(self.run_builder('build_manager_handoff.py', *common,
+                    '--mode', 'start', '--project-root', root, '--request-file', request))
+                successor = self.consume_manager(self.run_builder('build_manager_handoff.py', *common,
+                    '--mode', 'successor', '--predecessor-id', runner + '/manager',
+                    '--model', start['model'], '--thinking', start['reasoning_effort']))
+                for data in (start, successor):
+                    self.assertIn('Project display name: ' + name + '.', data['message'])
+                    self.assertIn('Runner agent: ' + runner + '.', data['message'])
+                    self.assertIn('Run report (same file for all managers): ' + str(report), data['message'])
+                    self.assertNotIn('/root/' + ('empco' if name == 'fluid' else 'fluid'), data['message'])
+                child_result = self.run_builder('build_dispatch_prompt.py', '--project-root', root,
+                    '--unit', 'W-001', '--role', 'executor', '--format', 'create',
+                    '--manager-agent-id', runner + '/manager', '--project-name', name,
+                    '--worker-number', '1', '--model', 'gpt-6-luna', '--thinking', 'medium')
+                self.assertEqual(child_result.returncode, 0, child_result.stderr)
+                child = json.loads(child_result.stdout)
+                self.assertIn('manager_agent_id=' + runner + '/manager', child['message'])
+                self.assertIn('Do not write the report or message the runner.', child['message'])
+                self.assertNotIn('/root/' + ('empco' if name == 'fluid' else 'fluid'), child['message'])
+                runs.append((root, request, report, common))
+            root, request, _, common = runs[0]
+            failed = self.run_builder('build_manager_handoff.py', *common, '--report-file', runs[1][2],
+                '--mode', 'start', '--project-root', root, '--request-file', request)
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertEqual(failed.stdout, '')
+            self.assertIn('this project', failed.stderr)
 
     def test_child_rejects_missing_handoff_and_empty_constraints(self):
         with tempfile.TemporaryDirectory() as directory:

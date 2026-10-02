@@ -10,15 +10,9 @@ Use scoville-ask-for-codex to review this patch with SOL.
 Ask Fable and Claude independently how they would approach this problem, then return and compare their answers here.
 ```
 
-Asking covers starting the selected advisers and exchanging the questions and
-answers needed for the consultation. You don't approve those steps one by one.
-Native advisers use subagents, and follow-ups keep their handles.
-
-After a Claude CLI review, your chat asks whether you still need those review
-sessions. Say yes, or ask a follow-up, and they stay. Say no, or move on to
-another topic without answering, and it closes them for further use. Silence
-alone does nothing. Saved Claude history is neither archived nor deleted.
-Native advisers need no closing question or chat archival.
+Ask handles the consultation and necessary follow-ups without asking you to
+approve each exchange. Request a follow-up when you need one. Native agents
+keep their context, and Claude can resume its saved session.
 
 ### How to Ask with Claude Code
 
@@ -39,17 +33,8 @@ root. Anything missing falls back to the shipped defaults.
 Reading settings creates no file. If you name something explicitly in a
 request, it overrides these values for that call only, without saving them.
 
-Native advisers have no separate sidebar chats to title, pin or archive.
-Existing `ask.pin_threads` values remain readable but have no effect. Scoville
-Setup explains this obsolete setting and rejects new changes to it.
-
-The `astra`, `sol`, `claude` and `fable` presets are what a named request
-resolves to. If you don't name an adviser, the shipped `advisers` list
-applies. Model, effort and route are configurable for every preset. Current
-defaults:
-```json
-{{ include: member.defaults }}
-```
+Use Scoville Setup to inspect or save adviser choices. A model or effort named
+in one request applies to that call without changing saved defaults.
 
 For example, this `.scoville/config.json` selects SOL and Fable by default and
 changes only SOL's effort:

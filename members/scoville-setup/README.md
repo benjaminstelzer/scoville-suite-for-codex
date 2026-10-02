@@ -1,7 +1,11 @@
 # Scoville Setup
 
-Setup keeps your project's Scoville settings in one file. It shows the values
-that actually apply and changes only what you ask it to save.
+Setup shows the Scoville settings your project actually uses and saves the
+changes you request. Models, reasoning levels and Workflow settings stay in
+one project file, with defaults filling the gaps.
+
+Scoville measures chili heat. Setup lets you choose the seasoning instead of
+discovering it halfway through the meal.
 
 ## How it works
 
@@ -17,11 +21,12 @@ that actually apply and changes only what you ask it to save.
 
 ## What it costs
 
-- Inspecting and changing settings takes an additional interaction with your agent.
+- Viewing or changing settings takes an agent interaction. Saved project settings spare you from repeating the same choices in later runs.
 
 ## How it was developed
 
-- Tests cover displaying and saving settings, rejecting invalid inputs, and using the saved values in Ask and Workflow.
+Setup reuses Ask and Workflow validation. Tests follow saved settings into
+those consumers, because a successful save alone says little about the next run.
 
 - Development links: [Source](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-setup) | [Tests](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/members/scoville-setup/development/tests) | [Notes](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/members/scoville-setup/development/README.md)
 
@@ -44,9 +49,15 @@ enabled.
 Ask Scoville Setup to show this project's settings, or tell it which values
 to save. For Ask, you can set the advisers, model and effort, Claude spending
 limits, timeouts, session storage, custom instructions and web access. For
-Workflow, you can set a model and reasoning pair per route and the context
+Workflow, you can set the manager's model and reasoning, the worker and review
+pairs per route, and the context
 percentages at which manager and child agents schedule rollover. They finish
 their complete assigned unit before a context-driven change.
+
+The manager defaults to `gpt-6.1-sol` with `medium` reasoning. Save another pair
+under `workflow.manager.model` and `workflow.manager.reasoning`, through Setup
+or directly in `.scoville/config.json`. An explicit pair for one run takes
+precedence. Manager successors keep the pair that started the run.
 
 Setup shows the values that apply to the project, defaults included. A
 one-off choice stays in the request or Plan Step unless you ask Setup to save

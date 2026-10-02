@@ -30,10 +30,11 @@ class AskBuildProfileTests(unittest.TestCase):
             invocation = (package / "agents" / "openai.yaml").read_text(encoding="utf-8")
             self.assertIn("$scoville-ask-for-codex", invocation)
             self.assertIn("Codex subagents", invocation)
-            for script in ("ask.py", "list_models.py", "ask_claude.py", "ask_settings.py"):
+            for script in ("ask.py", "ask_claude.py", "ask_settings.py"):
                 self.assertTrue((package / "scripts" / script).is_file(), script)
             self.assertEqual([package / "SKILL.md"], list(output.rglob("SKILL.md")))
             self.assertFalse((package / 'scripts/task_lifecycle.py').exists())
+            self.assertFalse((package / 'scripts/list_models.py').exists())
             request = {"operation": "resolve", "project_root": temporary,
                        "overrides": {"advisers": ["astra"]}}
             result = subprocess.run([sys.executable, str(package / "scripts" / "ask.py")],

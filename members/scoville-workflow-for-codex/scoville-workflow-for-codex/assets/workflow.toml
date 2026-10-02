@@ -3,6 +3,10 @@ schema_version = 1
 # Compatibility field. Native Workflow does not pin chats.
 pin_threads = true
 
+[manager]
+model = "gpt-6.1-sol"
+reasoning = "medium"
+
 [context]
 # Coordinator: at or above; workers: strictly above. Percent of context window.
 coordinator_percent = 40

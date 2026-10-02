@@ -40,8 +40,10 @@ def main() -> int:
     if args.format == 'spawn':
         if not args.task_name or not re.fullmatch(r'[a-z0-9_]+', args.task_name):
             parser.error('--task-name is required for --format spawn; use a unique name such as ask_astra_1')
-        if not args.model or not args.model.strip() or any(c.isspace() for c in args.model):
+        if args.model is None:
             parser.error('--model is required for --format spawn; pass the resolved model ID such as gpt-6-astra')
+        if not args.model.strip() or any(c.isspace() for c in args.model):
+            parser.error(f'--model={args.model!r} must be a nonempty model ID without whitespace; pass the resolved identifier such as gpt-6-astra')
         if args.effort is None:
             parser.error('--effort is required for --format spawn; pass the resolved effort, for example high')
     elif any(value is not None for value in (args.task_name, args.model, args.effort)):

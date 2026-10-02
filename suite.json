@@ -238,6 +238,10 @@
           "target": "scoville-plan/scripts/select_context.py"
         },
         {
+          "source": "members/scoville-plan/scoville-plan/scripts/markdown_structure.py",
+          "target": "scoville-plan/scripts/markdown_structure.py"
+        },
+        {
           "source": "members/scoville-plan/scoville-plan/scripts/validate_profile.py",
           "target": "scoville-plan/scripts/validate_profile.py"
         },
@@ -298,6 +302,9 @@
       "helper_contracts": {
         "scripts/select_context.py": {
           "kind": "helper"
+        },
+        "scripts/markdown_structure.py": {
+          "kind": "library"
         },
         "scripts/validate_profile.py": {
           "kind": "helper"
@@ -548,6 +555,10 @@
           "target": "scoville-workflow-for-codex/references/operations-dispatch.md"
         },
         {
+          "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/references/manager-protocol.md",
+          "target": "scoville-workflow-for-codex/references/manager-protocol.md"
+        },
+        {
           "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/references/operations-rollover.md",
           "target": "scoville-workflow-for-codex/references/operations-rollover.md"
         },
@@ -558,6 +569,10 @@
         {
           "source": "members/scoville-plan/scoville-plan/scripts/select_context.py",
           "target": "scoville-workflow-for-codex/scripts/select_context.py"
+        },
+        {
+          "source": "members/scoville-plan/scoville-plan/scripts/markdown_structure.py",
+          "target": "scoville-workflow-for-codex/scripts/markdown_structure.py"
         },
         {
           "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/build_manager_handoff.py",
@@ -603,6 +618,9 @@
         },
         "scripts/select_context.py": {
           "kind": "helper"
+        },
+        "scripts/markdown_structure.py": {
+          "kind": "library"
         },
         "scripts/build_manager_handoff.py": {
           "kind": "helper"
@@ -709,10 +727,6 @@
           "target": "scoville-ask-for-codex/scripts/ask_claude.py"
         },
         {
-          "source": "members/scoville-ask-for-codex/scoville-ask-for-codex/scripts/list_models.py",
-          "target": "scoville-ask-for-codex/scripts/list_models.py"
-        },
-        {
           "source": "members/scoville-ask-for-codex/scoville-ask-for-codex/SKILL.md",
           "target": "scoville-ask-for-codex/SKILL.md"
         },
@@ -760,9 +774,6 @@
         },
         "scripts/ask_claude.py": {
           "kind": "library"
-        },
-        "scripts/list_models.py": {
-          "kind": "helper"
         },
         "scripts/ask_settings.py": {
           "kind": "library"

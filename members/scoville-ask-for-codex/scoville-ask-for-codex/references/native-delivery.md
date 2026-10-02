@@ -15,4 +15,4 @@ reference and scope unless the caller supplies a new question or changed scope.
 
 Keep the answer within 6000 characters unless more detail was requested. If
 essential content does not fit, explicitly mark it incomplete and name what
-remains. Do not silently truncate or claim completion. Do not create, pin, archive or close chats.
+remains. Do not silently truncate or claim completion.

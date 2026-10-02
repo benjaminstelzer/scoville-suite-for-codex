@@ -49,8 +49,10 @@ class NativeWorkflowContractTests(unittest.TestCase):
         source = (PACKAGE / "assets" / "workflow.toml").read_text(encoding="utf-8")
         for altered, diagnostic in (
             (source.replace('schema_version = 1', 'schema_version = true', 1), "schema_version"),
-            (source.replace('reasoning = "medium"', 'reasoning = []', 1), "invalid execute.ultra_low values"),
-            (source.replace('reasoning = "medium"', 'reasoning = { bad = true }', 1), "invalid execute.ultra_low values"),
+            (source.replace('reasoning = "medium"', 'reasoning = []', 1), "invalid workflow.manager values"),
+            (source.replace('reasoning = "medium"', 'reasoning = { bad = true }', 1), "invalid workflow.manager values"),
+            (source.replace('[execute.ultra_low]\nmodel = "gpt-6-luna"\nreasoning = "medium"',
+                            '[execute.ultra_low]\nmodel = "gpt-6-luna"\nreasoning = []', 1), "invalid execute.ultra_low values"),
         ):
             with self.subTest(diagnostic=diagnostic), tempfile.TemporaryDirectory() as directory:
                 path = Path(directory) / "workflow.toml"
@@ -60,7 +62,7 @@ class NativeWorkflowContractTests(unittest.TestCase):
 
     def test_models_preserve_five_routes_and_executor_overrides(self):
         config = model_resolver.load_config(PACKAGE / 'assets/workflow.toml', PACKAGE)
-        self.assertEqual(set(config), {'schema_version', 'context', 'execute', 'review', 'pin_threads'})
+        self.assertEqual(set(config), {'schema_version', 'context', 'manager', 'execute', 'review', 'pin_threads'})
         expected = {
             'ultra_low': ('gpt-6-luna', 'medium', 'gpt-6.1-sol', 'low'),
             'low': ('gpt-6-luna', 'high', 'gpt-6.1-sol', 'medium'),

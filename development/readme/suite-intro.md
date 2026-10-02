@@ -5,9 +5,9 @@ conversation. Workflow runs the work step by step in the Plan's order, Ask
 brings in independent advice, and Handoff carries unfinished tasks into the
 next session. Setup manages the project's model and Workflow settings.
 
-The Scoville scale originally measured chili heat through dilution. Here, the
-point is that the goal, the decisions and the verified results stay clear as
-work passes between manager, worker and reviewer agents and into later sessions.
+Scoville is the scale for chili heat. These Skills aim for sharper work and
+less diluted context. Adding more instructions is easy. Keeping the useful
+ones is the point.
 
 Using Claude Code or another Agent Skills host? Take
 [Scoville Suite](https://github.com/benjaminstelzer/scoville-suite).

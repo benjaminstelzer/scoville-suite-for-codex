@@ -1,7 +1,11 @@
 # Changelog
 
 
+## v2.3.7 - 2026-10-02
 
+- Configure Workflow's manager and reasoning through Setup, retaining the chosen pair across handoffs. Keep progress and questions clear in the original chat.
+- Prepare Claude questions and follow-ups from text files with retained settings and clearer input errors.
+- Improve Code, Plan, UI, Handoff and project-rule cleanup with the same changes as the general edition.
 
 ## v2.3.6 - 2026-10-02
 
@@ -11,7 +15,7 @@
 ## v2.3.5 - 2026-10-01
 
 - Keep Workflow progress and verified manager handoffs tied to the actual Plan state.
-- Remove automatic capacity cleanup and retry from Workflow and Ask. Preserve diagnostics, results and continuation; recommend a Codex per-session limit of 256 for multiple Workflows.
+- Remove automatic capacity cleanup and retry from Workflow and Ask. Preserve diagnostics, results and continuation. Recommend a Codex per-session limit of 256 for multiple Workflows.
 - Accept complete Ask adviser finals without startup acknowledgements and keep incomplete answers available for exact-handle follow-up.
 - Show Plan Viewer 1.4.2 progress and current work in a compact, collapsible overview. Clarify Code, Cleanup and UI checks at their existing owners.
 
@@ -27,7 +31,8 @@
 
 ## v2.3.1 - 2026-10-01
 
-- Keep Handoff's observed Luna High test limit in its README, changelog and released package when replacing earlier releases.
+Known limit: a targeted Handoff test promoted a preference to a requirement.
+Check that distinction when resuming from a generated prompt.
 
 ## v2.3.0 - 2026-10-01
 
@@ -158,8 +163,8 @@
 
 ## v1.1.0 - 2026-09-24
 
-- Build general and Codex suites from one manifest; keep Python replacement procedures only in the general edition.
-- Require complete suite installations from their own packages; standalone Skills remain independent.
+- Build general and Codex suites from one manifest. Keep Python replacement procedures only in the general edition.
+- Require complete suite installations from their own packages. Standalone Skills remain independent.
 - Add shared writing profiles with independent Plan and Workflow configuration.
 - Preserve exact plan-point text and bind additional context and writing rules into Workflow dispatches.
 - Bundle the compatible Plan v1.8.0 and Workflow v0.5.0 pair. Plan Viewer v1.3.2 remains unchanged.
@@ -198,7 +203,7 @@
 
 ## v1.0.2 - 2026-09-23
 
-- Route new Workflow tasks through Luna 6, SOL 6, and Astra 6; remove Terra from the default routing table.
+- Route new Workflow tasks through Luna 6, SOL 6, and Astra 6. Remove Terra from the default routing table.
 - Verify builder assignments after the native task envelope escapes HTML characters or removes the final newline.
 
 ## v1.0.1 - 2026-09-23

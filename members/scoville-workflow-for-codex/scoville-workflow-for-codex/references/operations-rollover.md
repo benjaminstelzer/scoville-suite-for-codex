@@ -81,55 +81,17 @@ Retain a measured crossing across compaction. A decision or blocker that prevent
 the current unit's completion also prevents its threshold-driven handoff.
 
 Retain a compact substantive handoff locally: exact workspace and Plan path,
-requested scope and its display wording, exact project display name and saved
-scope-file path, unchanged run-report path and open issue IDs/answer states,
+requested scope, exact project display name, unchanged run-report path and open issue IDs/answer states,
 checked effects and evidence limits, pending review/findings,
 child IDs and write/stop states, next worker number, recovery context if any,
 constraints, coordination authority and next action. Include any pending
 user question, answer state and source identity. Keep a received answer; never
 repeat a question solely because of takeover. The consumed checkpoint boundary
 must be named so the successor resumes its pending action rather than rechecking.
-Send the runner only `SUCCESSOR_REQUEST <own-agent-id>` plus the explicit manager
-model/effort if one is in force. If the runner needs your launched pair because
-its own settings changed, return that pair from known host metadata, never a
-worker default. Request once, then stop writing and wait with `wait_agent`. The
-runner alone builds and spawns the successor under SKILL.md. Never send the
-handoff file, Plan state or worker result to the runner. No new chat, self-spawn,
-model guess, assumed agent capacity or invented close tool is permitted.
-
-The runner sends `SUCCESSOR <new-id>`. Accept HANDOFF_REQUEST only from that exact
-host sender identity. Send the substantive handoff directly with `send_message`
-to the successor. After successful delivery send only `HANDOFF_DELIVERED` to the
-runner. Stay active and write-inactive with `wait_agent` until HANDOFF_ACCEPTED
-arrives from that exact successor, handling necessary direct clarifications first.
-Wait at most 60 seconds for the receipt. Only after that receipt end with the
-control-only final `HANDOFF_DELIVERED`. Native completion exposes this response
-to the runner. Keep substantive details in the direct handoff. A failed delivery,
-missing receipt or user stop blocks the transition with its concrete control
-status. Never end successfully before receipt or claim failed delivery as success.
-
-After its matching START, the successor requests this handoff directly. It must
-receive it, compare it against the canonical Plan and actual relevant files,
-and verify that the handoff report path matches the supplied run-control
-path. Preserve issue entries and received clarifications. Resolve missing or
-conflicting facts with the predecessor before its first
-write or child dispatch. Confirm children are quiescent, preserve review/commit
-boundaries, user stops and unanswered questions. Do not redo completed checks.
-Only after verification send HANDOFF_ACCEPTED directly to the predecessor and
-RUNNING to the runner. Remain active with `wait_agent` until TAKEOVER_COMPLETE
-from the exact runner, at most 60 seconds. Do no writes or child dispatch before
-that gate. It confirms the predecessor's native completion as well as your
-verified receipt. Apply runner-forwarded steering and answers received after the
-handoff snapshot before any write or dispatch; relay any resulting question or
-blocker under run-feedback.md. A rejection, missing fact or uncertain child state is BLOCKED,
-even if START was received. Retired predecessors stay write-inactive. No archival
-or close tool is required, and routine acknowledgements never go to a completed
-predecessor. For a later essential question send the runner
-`CLARIFICATION_REQUEST <retained-predecessor-id>` for direct read-only
-clarification under its runner exception, preserving these roles.
-
-Tool failure, a missing/mismatched handoff, uncertain writer state or conflicting
-facts blocks takeover. Send only the concrete BLOCKED control to the runner and
-do no project work. Resolve recoverable missing facts directly, not through the
-runner. On stop, both managers stop their children and report their actual state.
-No replacement manager starts while a prior spawn or writer state is unknown.
+Follow [manager protocol](manager-protocol.md) for the successor request,
+direct handoff, verification, receipt and release. Read it before requesting
+rollover; the successor reads it at entry. The predecessor's first action is
+SUCCESSOR_REQUEST with its own ID and launched pair, then an active write-inactive
+wait. The successor requests the direct handoff only after authenticated START.
+Keep substantive facts out of the runner. The shared protocol owns all gates,
+post-snapshot input and later read-only predecessor clarification.

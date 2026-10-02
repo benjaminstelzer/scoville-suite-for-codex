@@ -11,25 +11,31 @@ ROUTES = ("ultra_low", "low", "medium", "high", "ultra_high")
 EFFORTS = {"none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"}
 
 
+def validate_pair(pair: dict, field: str) -> None:
+    if not isinstance(pair, dict) or set(pair) != {"model", "reasoning"}:
+        raise ValueError(f"invalid {field} pair: {type(pair).__name__}; use an object with exactly model and reasoning, e.g. model='gpt-6.1-sol', reasoning='medium'")
+    if (not isinstance(pair["model"], str) or not pair["model"].strip()
+            or '\n' in pair["model"] or '\r' in pair["model"]
+            or not isinstance(pair["reasoning"], str) or pair["reasoning"] not in EFFORTS):
+        raise ValueError(f"invalid {field} values: {type(pair).__name__}; model must be a nonempty single-line string and reasoning one of {', '.join(sorted(EFFORTS))}")
+
+
 def load_config(path: Path, project_root: Path | str | None = None) -> dict:
     with path.open("rb") as stream:
         config = merge(tomllib.load(stream), config_section('workflow', project_root))
     if type(config.get("schema_version")) is not int or config["schema_version"] != 1:
         raise ValueError(f"workflow.schema_version={type(config.get('schema_version')).__name__} is unsupported; use integer 1 for this configuration format")
-    if set(config) - {"schema_version", "context", "execute", "review", "pin_threads"}:
-        raise ValueError(f"unknown workflow configuration keys: {sorted(set(config) - {'schema_version', 'context', 'execute', 'review', 'pin_threads'})}; use only schema_version, context, execute, review and pin_threads")
+    if set(config) - {"schema_version", "context", "manager", "execute", "review", "pin_threads"}:
+        raise ValueError(f"unknown workflow configuration keys: {sorted(set(config) - {'schema_version', 'context', 'manager', 'execute', 'review', 'pin_threads'})}; use only schema_version, context, manager, execute, review and pin_threads")
     if type(config.get('pin_threads')) is not bool:
         raise ValueError('workflow.pin_threads must be a JSON boolean; use true or false')
+    validate_pair(config.get('manager'), 'workflow.manager')
     for section in ("execute", "review"):
         table = config.get(section)
         if not isinstance(table, dict) or set(table) != set(ROUTES):
             raise ValueError(f"{section} must contain exactly the five routes: {', '.join(ROUTES)}; supply an object with those keys, or omit the project override to retain defaults")
         for route, pair in table.items():
-            if not isinstance(pair, dict) or set(pair) != {"model", "reasoning"}:
-                raise ValueError(f"invalid {section}.{route} pair: {type(pair).__name__}; use an object with exactly model and reasoning, e.g. model='gpt-6-astra', reasoning='medium'")
-            if (not isinstance(pair["model"], str) or not pair["model"]
-                    or not isinstance(pair["reasoning"], str) or pair["reasoning"] not in EFFORTS):
-                raise ValueError(f"invalid {section}.{route} values: {type(pair).__name__}; model must be a nonempty string and reasoning one of {', '.join(sorted(EFFORTS))}")
+            validate_pair(pair, f'{section}.{route}')
     return config
 
 

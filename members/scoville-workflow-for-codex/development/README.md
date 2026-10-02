@@ -1,37 +1,11 @@
 # Development
 
-The [member source](../scoville-workflow-for-codex/) is part of
-[Scoville Suite](../../../README.md#development-and-builds). Build before you
-install. Development files stay in the suite, and current work is tracked in
-the suite's root Plan. The Plans in this member are historical.
+Early coordination put too much effort into passing instructions through
+helpers, message records and polling. Using the host's native agent operations
+removed layers that did little for the actual work. Context exhaustion and
+delivery failures then showed why handoffs need explicit ownership and retained
+progress. Simpler coordination helped, but it did not make host failures disappear.
 
-## Validate
+The [source](../scoville-workflow-for-codex/) and tests live in the suite. Install the built package.
 
-Run the focused contract tests from `members/scoville-workflow-for-codex/`:
-
-```text
-python -B -m unittest discover -s development/tests -v
-```
-
-Run package validation against a generated build, and validate the planning
-profile at the suite root. Contract tests cover source rules and actual helper
-consumers. Live host behavior needs separate evidence. The [development history](../../../docs/README.md)
-explains the runtime problems and the changes they led to.
-
-## Installation identity
-
-Install only the generated package. Before you replace an existing
-installation, wait until every workflow using it has finished. Then compare
-the complete build and installed file lists and their contents. A copy
-command alone doesn't prove the new version is in use.
-
-## Retention
-
-Current tests, Plans, Decisions and this summary are kept. Raw model reviews,
-transcripts, screenshots and one-off runtime evidence go to temporary storage,
-unless a published artifact depends on them.
-
-## Native agent capacity
-
-[Native agent capacity](../../../development/native-agent-capacity.md)
-explains completion, necessary follow-ups and preserving work when a start fails.
+From this member directory, run `python -B -m unittest discover -s development/tests`.

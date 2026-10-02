@@ -1,13 +1,11 @@
-# Scoville Ask development
+# Development
 
-Canonical sources are in the nested `scoville-ask-for-codex/` directory. README
-fragments live in `development/readme/scoville-ask-for-codex/` at the suite root.
-Shared configuration code is generated from `shared/runtime/`. Edit its source,
-then regenerate the bundled copy.
+Independent advice needed to return reliably to the original task. Earlier
+message handling made collection and follow-ups more complicated than the
+question warranted. Native adviser handles and saved Claude sessions gave those
+conversations a clear continuation path. Failed starts and missing answers still
+need to remain visible: a partial panel is not a consensus.
 
-Run `python -m unittest discover -s members/scoville-ask-for-codex/development/tests` from the suite root. Provider and host simulations are not live consultation evidence.
+The [source](../scoville-ask-for-codex/) and tests live in the suite. Install the built package.
 
-## Native agent capacity
-
-[Native agent capacity](../../../development/native-agent-capacity.md)
-explains completion, necessary follow-ups and preserving work when a start fails.
+From this member directory, run `python -B -m unittest discover -s development/tests`.

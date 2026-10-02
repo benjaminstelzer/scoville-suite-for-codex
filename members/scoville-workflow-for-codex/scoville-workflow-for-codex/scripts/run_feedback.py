@@ -7,7 +7,9 @@ import hashlib
 import json
 import os
 import re
+import stat
 import sys
+import subprocess
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -20,6 +22,19 @@ CLEAN = 'No issues occurred during this run.\n'
 KINDS = {'question': 'User question', 'pause': 'Paused for user request', 'problem': 'Needs user review'}
 NAME = re.compile(r'workflow-run-\d{8}T\d{6}Z-[a-f0-9]{32}\.md')
 ISSUE_ID = re.compile(r'[A-Za-z0-9_-]{1,80}')
+STATUS_LABELS = {'working': 'Working on', 'decision': 'Decision needed',
+                 'blocked': 'Blocked', 'paused': 'Paused', 'completed': 'Completed'}
+STATUS_CONTROLS = {'working': 'WORKING_ON', 'decision': 'NEEDS_USER_DECISION',
+                   'blocked': 'BLOCKED', 'paused': 'STOPPED', 'completed': 'COMPLETED'}
+
+
+def is_redirect(path: Path) -> bool:
+    try:
+        info = path.lstat()
+    except FileNotFoundError:
+        return False
+    return stat.S_ISLNK(info.st_mode) or bool(
+        getattr(info, 'st_file_attributes', 0) & stat.FILE_ATTRIBUTE_REPARSE_POINT)
 
 
 def report_directory(project_root: Path) -> Path:
@@ -27,7 +42,7 @@ def report_directory(project_root: Path) -> Path:
     if not root.is_dir():
         raise ValueError('--project-root must be an existing project directory')
     folder = root / '.scoville'
-    if folder.is_symlink() or (hasattr(folder, 'is_junction') and folder.is_junction()):
+    if is_redirect(folder):
         raise ValueError('project .scoville must be a direct directory, not a redirected path')
     if folder.exists() and not folder.is_dir():
         raise ValueError('project .scoville must be a directory; move the conflicting file before retrying')
@@ -37,7 +52,7 @@ def report_directory(project_root: Path) -> Path:
 def report_path(path: Path, project_root: Path | None = None) -> Path:
     if not path.is_absolute() or not NAME.fullmatch(path.name):
         raise ValueError('--report-file must be the absolute workflow-run-...md path returned by create')
-    if path.is_symlink() or (hasattr(path, 'is_junction') and path.is_junction()):
+    if is_redirect(path):
         raise ValueError('--report-file must not redirect to another file')
     folder = report_directory(project_root or path.parent.parent)
     if path.parent != folder or not path.is_file():
@@ -134,7 +149,9 @@ def resolve_issue(path: Path, issue_id: str, text: str) -> dict:
 
 def read_report(path: Path) -> dict:
     path = report_path(path)
-    return {'report_file': str(path), 'text': path.read_text(encoding='utf-8')}
+    text = path.read_text(encoding='utf-8')
+    display = re.sub(r'^<!-- /?scoville-issue: [A-Za-z0-9_-]{1,80} -->\n?', '', text, flags=re.M)
+    return {'report_file': str(path), 'text': text, 'display_text': display}
 
 
 def finish_report(path: Path) -> dict:
@@ -145,8 +162,7 @@ def finish_report(path: Path) -> dict:
     return read_report(path)
 
 
-def progress(project: str, plan: str, point: str, scope: str, previous_key: str | None = None) -> dict:
-    project = single_line(project, '--project (the actual project name)')
+def validate_location(plan: str, point: str) -> None:
     if not re.fullmatch(r'PLAN-\d{4}', plan):
         raise ValueError('--plan must be the actual PLAN-NNNN ID, e.g. PLAN-0025')
     if not re.fullmatch(r'W-\d{3}(?:/step-[1-9]\d*|/steps-[1-9]\d*-[1-9]\d*)?', point):
@@ -155,14 +171,62 @@ def progress(project: str, plan: str, point: str, scope: str, previous_key: str 
         first, last = map(int, point.split('/steps-')[1].split('-'))
         if first >= last:
             raise ValueError('--point Step range must be ascending and contain at least two Steps, e.g. W-001/steps-1-3')
-    if not scope.strip():
-        raise ValueError('--scope-file must retain the actual assigned overall goal as nonempty free text')
+
+
+def status(kind: str, project: str, plan: str | None, point: str | None, body: str) -> dict:
+    project = single_line(project, '--project (the actual project name)')
+    if plan is None and point is None:
+        if kind in ('working', 'completed'):
+            raise ValueError('--plan and --point are required for working/completed; use the actual PLAN-NNNN and W-NNN/step-N')
+        location = 'Startup'
+    elif plan is None or point is None:
+        raise ValueError('--plan and --point must be supplied together, e.g. --plan PLAN-0025 --point W-001/step-2; omit both only before startup location is known')
+    else:
+        validate_location(plan, point)
+        location = f'{plan} → {point}'
+    if not body.strip():
+        raise ValueError('--text or --text-file must supply the actual question, reason, waiting work or completion scope as nonempty text')
+    # Project names are literal text inside a Markdown status heading.
+    escaped = re.sub(r'([\\`*_\[\]<>])', r'\\\1', project)
+    text = f'**{STATUS_LABELS[kind]}: {escaped} → {location}**\n\n{body.strip()}'
+    return {'text': text, 'message': f'{STATUS_CONTROLS[kind]}\n{text}'}
+
+
+def progress(project: str, plan: str, point: str, previous_key: str | None = None) -> dict:
+    project = single_line(project, '--project (the actual project name)')
+    validate_location(plan, point)
     if previous_key is not None and not re.fullmatch('[a-f0-9]{64}', previous_key):
         raise ValueError('--previous-key must be the exact key returned by the preceding progress call')
     key = hashlib.sha256(json.dumps([project, plan, point], ensure_ascii=False).encode('utf-8')).hexdigest()
     changed = previous_key != key
-    text = f'Working on: {project} → {plan} → {point}\nScope: {" ".join(scope.split())}' if changed else ''
-    return {'key': key, 'changed': changed, 'text': text}
+    escaped = re.sub(r'([\\`*_\[\]<>])', r'\\\1', project)
+    text = f'**Working on: {escaped} → {plan} → {point}**' if changed else ''
+    return {'key': key, 'changed': changed, 'text': text,
+            'message': f'WORKING_ON {key}\n{text}' if changed else ''}
+
+
+def recorded_progress(project_root: Path, selector: Path) -> tuple[str, str]:
+    """Project saved position only. Never select or start work."""
+    if not selector.is_file():
+        raise ValueError(f'Plan position helper missing: {selector}; install the complete matching Workflow package')
+    result = subprocess.run([sys.executable, '-B', str(selector), '--root', str(project_root),
+                             '--position', '--format', 'json'],
+                            capture_output=True, text=True, encoding='utf-8')
+    if result.returncode:
+        raise ValueError('Plan position failed; correct its diagnostic before progress: ' + result.stdout + result.stderr)
+    position = json.loads(result.stdout)
+    if position.get('plan_status') != 'active' or position.get('work_status') != 'in_progress':
+        raise ValueError('Plan position has no started current Work Item; save and validate Status: in_progress before progress --project-root PATH')
+    units = position.get('current_units', [])
+    if position.get('untracked_steps'):
+        raise ValueError('Plan position contains unmarked Steps with unknown start state; establish their observed status and save/validate before progress --project-root PATH')
+    if len(units) == 1:
+        point = units[0]
+    elif not units and position.get('reason') == 'whole_work_item':
+        point = position['work_item']
+    else:
+        raise ValueError(f'Plan position needs exactly one saved in_progress Step/group; found {len(units)}: {units}. Record the actually started consecutive group, validate, then rerun progress --project-root PATH; do not start work from this projection')
+    return position['plan'], point
 
 
 def main() -> int:
@@ -183,16 +247,38 @@ def main() -> int:
             child.add_argument('--completed', action='store_true', required=True, help='only after requested scope passes acceptance and closure')
     child = sub.add_parser('progress')
     child.add_argument('--project', required=True)
-    child.add_argument('--plan', required=True)
-    child.add_argument('--point', required=True)
-    child.add_argument('--scope-file', required=True, type=Path)
+    source = child.add_mutually_exclusive_group(required=True)
+    source.add_argument('--project-root', type=Path, help='manager only: derive progress from saved Plan position')
+    source.add_argument('--plan', help='explicit display-only Plan ID; requires --point')
+    child.add_argument('--point')
+    child.add_argument('--selector', type=Path, default=Path(__file__).with_name('select_context.py'))
+    child.add_argument('--scope-file', type=Path, help='legacy argument, ignored; progress displays only project and Plan point')
     child.add_argument('--previous-key')
+    child = sub.add_parser('status', help='render one status heading and its unchanged explanatory text')
+    child.add_argument('--kind', choices=('decision', 'blocked', 'paused', 'completed'), required=True)
+    child.add_argument('--project', required=True)
+    child.add_argument('--plan')
+    child.add_argument('--point')
+    text_input = child.add_mutually_exclusive_group(required=True)
+    text_input.add_argument('--text-file', type=Path, help='UTF-8 message body')
+    text_input.add_argument('--text', help='plain message body; usable without file writes')
     args = parser.parse_args()
     try:
         if args.command == 'create':
             result = create_report(args.project_root)
         elif args.command == 'progress':
-            result = progress(args.project, args.plan, args.point, args.scope_file.read_text(encoding='utf-8'), args.previous_key)
+            if args.project_root:
+                if args.point:
+                    raise ValueError('--point cannot override saved progress; omit it with --project-root')
+                plan, point = recorded_progress(args.project_root, args.selector)
+            else:
+                if not args.point:
+                    raise ValueError('--plan requires --point W-NNN/step-N; managers use --project-root PATH instead')
+                plan, point = args.plan, args.point
+            result = progress(args.project, plan, point, args.previous_key)
+        elif args.command == 'status':
+            body = args.text_file.read_text(encoding='utf-8') if args.text_file is not None else args.text
+            result = status(args.kind, args.project, args.plan, args.point, body)
         elif args.command == 'add':
             result = add_issue(args.report_file, args.kind, args.location, args.text_file.read_text(encoding='utf-8'), args.issue_id)
         elif args.command == 'resolve':

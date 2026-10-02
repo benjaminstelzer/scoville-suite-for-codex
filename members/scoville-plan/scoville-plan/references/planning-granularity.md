@@ -18,7 +18,6 @@
   path in Evidence without rewriting started Steps.
 - Include enough context to execute without chat history. Acceptance owns proof
   criteria, Evidence owns observations, and Step status owns progression.
-  Every new Work Item has at least one marked Step; preserve legacy forms.
   Do not create duplicate testing or bookkeeping Steps.
 
 Separate Steps with materially different consequence or reasoning demand.

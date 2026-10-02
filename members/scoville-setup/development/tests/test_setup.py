@@ -14,6 +14,88 @@ spec.loader.exec_module(builder)
 
 
 class SetupTests(unittest.TestCase):
+    def test_saved_manager_pair_reaches_start_and_survives_successor(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            config = builder.load(ROOT, 'codex', 'suite')
+            for name in ('scoville-setup', 'scoville-workflow-for-codex'):
+                member = next(m for m in config['members'] if m['name'] == name)
+                for relative, data in builder.payload(ROOT, member, config).items():
+                    target = base / name / relative
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_bytes(data)
+            project = base / 'Projekt ä 中文'
+            project.mkdir()
+            setup = base / 'scoville-setup/scoville-setup/scripts/setup.py'
+            scripts = base / 'scoville-workflow-for-codex/scoville-workflow-for-codex/scripts'
+
+            def run(script, *args, patch=None):
+                result = subprocess.run([sys.executable, '-B', str(script), *map(str, args)],
+                    input=json.dumps(patch, ensure_ascii=False), capture_output=True, text=True, encoding='utf-8')
+                return result, json.loads(result.stdout) if result.stdout else None
+
+            result, report = run(scripts / 'run_feedback.py', 'create', '--project-root', project)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            request = project / 'request.txt'
+            request.write_text('Start Workflow; internal coordination authorized.', encoding='utf-8')
+            common = ['--runner-id', '/root/runner', '--manager-number', '1', '--report-file', report['report_file']]
+
+            def start(*overrides):
+                return run(scripts / 'build_manager_handoff.py', *common, '--mode', 'start',
+                           '--project-root', project, '--request-file', request, *overrides)
+
+            result, initial = start()
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual((initial['model'], initial['reasoning_effort']), ('gpt-6.1-sol', 'medium'))
+            result, saved = run(setup, 'set', '--project-root', project,
+                                patch={'workflow': {'manager': {'model': 'gpt-6-luna'}}})
+            self.assertEqual(result.returncode, 0, result.stdout)
+            self.assertEqual(saved['effective']['workflow']['manager'], {'model': 'gpt-6-luna', 'reasoning': 'medium'})
+            result, saved = run(setup, 'set', '--project-root', project,
+                                patch={'workflow': {'manager': {'reasoning': 'high'}}})
+            self.assertEqual(result.returncode, 0, result.stdout)
+            result, launched = start()
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual((launched['model'], launched['reasoning_effort']), ('gpt-6-luna', 'high'))
+            result, explicit = start('--model', 'gpt-6.1-sol', '--thinking', 'medium')
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual((explicit['model'], explicit['reasoning_effort']), ('gpt-6.1-sol', 'medium'))
+            path = project / '.scoville/config.json'
+            before = path.read_bytes()
+            for pair in ({'model': False}, {'model': '  '}, {'reasoning': 'bad'},
+                         {'reasoning': 'ultra'}, {'secret': 'DO_NOT_ECHO'}):
+                result, failed = run(setup, 'set', '--project-root', project,
+                                     patch={'workflow': {'manager': pair}})
+                self.assertNotEqual(result.returncode, 0)
+                self.assertFalse(failed['ok'])
+                self.assertIn('manager', failed['diagnostic'])
+                self.assertNotIn('DO_NOT_ECHO', failed['diagnostic'])
+                self.assertEqual(path.read_bytes(), before)
+            result, saved = run(setup, 'set', '--project-root', project,
+                                patch={'workflow': {'manager': {'model': 'gpt-6-astra', 'reasoning': 'medium'}}})
+            self.assertEqual(result.returncode, 0, result.stdout)
+            result, successor = run(scripts / 'build_manager_handoff.py', *common, '--mode', 'successor',
+                '--predecessor-id', '/root/manager', '--model', launched['model'],
+                '--thinking', launched['reasoning_effort'])
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual((successor['model'], successor['reasoning_effort']), ('gpt-6-luna', 'high'))
+            # Same consumer signature as native spawn_agent; no live agent is started.
+            def consume(*, task_name, message, fork_turns, model, reasoning_effort):
+                self.assertEqual(fork_turns, 'none')
+                self.assertTrue(task_name)
+                self.assertIn(f'model={model}, reasoning={reasoning_effort}', message)
+            for arguments in (initial, launched, explicit, successor):
+                consume(**arguments)
+            path.write_text(json.dumps({'workflow': {'manager': {'model': False}}}), encoding='utf-8')
+            result, failed = start()
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIsNone(failed)
+            self.assertIn('workflow.manager', result.stderr)
+            path.write_text('{}', encoding='utf-8')
+            result, corrected = start()
+            self.assertEqual(result.returncode, 0, result.stderr)
+            consume(**corrected)
+
     def test_built_setup_saves_only_valid_explicit_changes(self):
         with tempfile.TemporaryDirectory() as temporary:
             base = Path(temporary)

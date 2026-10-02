@@ -1,17 +1,11 @@
 ## How it works
 
-- At the start, you see the path of the run report so you can open it at any time.
-- Workflow carries out the assigned work, arranges independent reviews and
-  corrects findings. Accepted progress and checks stay recorded in the Plan,
-  so work can continue across sessions.
-- The chat shows the current project, Plan point, started Step and your assigned Scope when
-  the position changes.
-- Necessary questions and blockers appear in the visible chat with their Plan,
-  Step, reason and waiting work. You can ask questions or pause work during the run. Open questions, requested
-  pauses and problems needing your attention stay in the report, with later
-  resolutions added.
-- Once the requested work is complete and checked, Workflow says so and shows
-  the report. A run without issues ends with an explicit confirmation.
+- Start from a prepared Plan and choose the whole Plan or a bounded part.
+- Let the manager arrange implementation, checks, review and corrections.
+- Follow progress in the chat and Plan. Questions and problems stay in the run
+  report, whose location is shown at startup.
+- Continue across context handoffs and finish when the requested work meets
+  its acceptance criteria.
 
 ```mermaid
 %%{init: {'flowchart': {'nodeSpacing': 20, 'rankSpacing': 18}}}%%

@@ -1,11 +1,13 @@
 # Scoville Workflow for Codex
 
 Scoville Workflow takes a prepared Plan through implementation, independent
-review and corrections. It suits larger tasks and software you intend to
-maintain. Coordination costs time and tokens, so it rarely pays off for a small
-fix.
+review and corrections. A manager assigns bounded work, workers implement it
+and reviewers check the result. Progress stays in the Plan across sessions.
 
-Use Scoville Plan and Ask to settle requirements, dependencies and acceptance
-criteria first. Then assign the whole Plan or a defined part to Workflow.
+Use Plan and Ask to settle requirements and acceptance first, then assign the
+whole Plan or a defined part. Workflow suits larger tasks and software you
+intend to maintain. For a tiny fix, the coordination is usually more work
+than the fix. Install it through the complete Codex Suite in Codex desktop.
 
-Install it through the complete Codex Suite in Codex desktop.
+Scoville measures chili heat. Workflow keeps the goal sharp as agents take
+turns. Adding more cooks is only useful if dinner still arrives.

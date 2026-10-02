@@ -34,18 +34,12 @@ Choose the highest applicable class. Unknown low-eligibility facts mean at least
 medium. File count, generated files and test volume alone do not raise a route.
 Keep canonical source unchanged and do not write inferred routes into the Plan.
 
-Resolve the executor/reviewer pair using the selected project root:
-
-```text
-python "<workflow-skill-directory>/scripts/resolve_model_pair.py" --project-root "<workspace_root>" --role executor --route <class>
-```
-
-Use `--role reviewer` for review. Apply compatible explicit model/effort choices
-to the assigned scope. Keep Steps with conflicting explicit model choices in
-separate ordered groups rather than discarding those choices.
-For a correction assignment, use a new executor with the original worker pair
-unless the cause warrants another configured route. Resolve that route normally;
-there is no separate repair role or automatic escalation by attempt count.
+The builder resolves the selected route internally for executor or reviewer.
+Use --model and/or --thinking for explicit overrides on a new route. Keep
+conflicting Step choices in separate ordered groups. A complete explicit pair
+bypasses configuration. Recovery and correction require both arguments with
+the original launched pair; never silently re-resolve them after settings change.
+Only a justified, explicitly chosen replacement pair changes a correction's model.
 When findings share a state distinction or cause, assign that distinction and
 its directly affected consumers together, including decisive negative cases.
 The worker diagnoses the cause; do not prescribe only the reported line fix.
@@ -73,7 +67,7 @@ repeat selection to reconstruct its output or print the generated prompt as a
 second tool result before sending it:
 
 ```text
-python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-root "<workspace_root>" --unit <unit> --role <executor|reviewer> --format create --manager-agent-id <own-agent-id> --project-name "<project name>" --worker-number <number> --model <resolved-model> --thinking <resolved-effort>
+python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-root "<workspace_root>" --unit <unit> --role <executor|reviewer> --format create --manager-agent-id <own-agent-id> --project-name "<project name>" --worker-number <number> --route <class>
 ```
 
 The helper returns complete `spawn_agent` arguments as JSON: message, unique
@@ -82,15 +76,16 @@ Every newly built native assignment has an automatic unique name suffix,
 including repeated reviews of the same worker. This changes no role label,
 scope or model. Use that generated name without requesting user permission.
 Retain the complete arguments; do not repeat a failed or uncertain spawn
-automatically. Use the resolved
-pair explicitly; the host cannot override models with an all-history fork.
+automatically. Validate and retain its actual model/reasoning_effort against
+the host capabilities before spawning; no separate resolver or copy step is needed.
 The message retains the project, canonical Plan ID and complete assigned range.
 Provide the next worker number, or the reviewed worker's number for a reviewer.
 A recovery continuation's task name includes its predecessor identity digest to avoid
 reusing a reviewer task name. The bundled selector and Plan root are derived.
 Supply the actual spawning manager ID explicitly with --manager-agent-id;
 CODEX_THREAD_ID identifies a rollout and is not assumed to be an agent address.
-Optional arguments name existing UTF-8 plain-text files:
+Recovery/correction also supply --model <launched-model> --thinking <launched-effort>.
+Optional context arguments name existing UTF-8 plain-text files:
 
 - Review: `--executor-result <result.txt>` with a completed, progress_pending or review_pending worker result. In
   supplemental context name the diff since the last review and affected Acceptance.
