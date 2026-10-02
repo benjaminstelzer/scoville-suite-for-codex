@@ -16,9 +16,10 @@ Install it through the complete Codex Suite in Codex desktop.
 - Workflow carries out the assigned work, arranges independent reviews and
   corrects findings. Accepted progress and checks stay recorded in the Plan,
   so work can continue across sessions.
-- The chat shows the current project, Plan point and your assigned Scope when
+- The chat shows the current project, Plan point, started Step and your assigned Scope when
   the position changes.
-- You can ask questions or pause work during the run. Open questions, requested
+- Necessary questions and blockers appear in the visible chat with their Plan,
+  Step, reason and waiting work. You can ask questions or pause work during the run. Open questions, requested
   pauses and problems needing your attention stay in the report, with later
   resolutions added.
 - Once the requested work is complete and checked, Workflow says so and shows
@@ -81,7 +82,8 @@ flowchart TD
 - **Accepted commits and scope.** Authorized commits include accepted changes
   and Plan updates, with required hooks and backups. Workflow respects the
   requested scope and only reports completion when its acceptance is met.
-- **Visible work.** `Working on:` identifies the project, Plan and point.
+- **Visible work.** `Working on:` identifies the project, Plan and actually started
+  Step or jointly started group before dispatch or resumption.
   `Scope:` gives the actual overall assignment as free text. Repeated events,
   reviews, repairs and manager switches at the same point add no progress message.
 - **Targeted run report.** Every run gets its own Markdown file under `.scoville`,

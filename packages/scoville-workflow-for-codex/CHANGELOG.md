@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.8.3 - 2026-10-02
+
+- Relay necessary user questions and blockers promptly to the visible runner, including their Plan, Step, reason and waiting work. A report-save failure keeps the issue visible.
+- Show the actually started Step before dispatch or resumption, including within sequential assignments.
+- Preserve steering and decision answers during manager takeover, with explicit current and pending manager ownership.
+
 ## v0.8.2 - 2026-10-01
 
 - Remove automatic capacity cleanup and retry. Retain the actual diagnostic and continuation state; preserve necessary follow-ups and verified handoffs.

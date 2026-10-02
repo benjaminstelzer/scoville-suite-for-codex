@@ -31,7 +31,8 @@
 - **Accepted commits and scope.** Authorized commits include accepted changes
   and Plan updates, with required hooks and backups. Workflow respects the
   requested scope and only reports completion when its acceptance is met.
-- **Visible work.** `Working on:` identifies the project, Plan and point.
+- **Visible work.** `Working on:` identifies the project, Plan and actually started
+  Step or jointly started group before dispatch or resumption.
   `Scope:` gives the actual overall assignment as free text. Repeated events,
   reviews, repairs and manager switches at the same point add no progress message.
 - **Targeted run report.** Every run gets its own Markdown file under `.scoville`,

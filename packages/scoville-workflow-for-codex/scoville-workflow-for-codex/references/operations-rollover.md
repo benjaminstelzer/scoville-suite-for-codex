@@ -119,11 +119,14 @@ Only after verification send HANDOFF_ACCEPTED directly to the predecessor and
 RUNNING to the runner. Remain active with `wait_agent` until TAKEOVER_COMPLETE
 from the exact runner, at most 60 seconds. Do no writes or child dispatch before
 that gate. It confirms the predecessor's native completion as well as your
-verified receipt. A rejection, missing fact or uncertain child state is BLOCKED,
+verified receipt. Apply runner-forwarded steering and answers received after the
+handoff snapshot before any write or dispatch; relay any resulting question or
+blocker under run-feedback.md. A rejection, missing fact or uncertain child state is BLOCKED,
 even if START was received. Retired predecessors stay write-inactive. No archival
 or close tool is required, and routine acknowledgements never go to a completed
-predecessor. For a later essential question ask the runner to wake that known
-predecessor with `followup_task` for direct clarification, preserving these roles.
+predecessor. For a later essential question send the runner
+`CLARIFICATION_REQUEST <retained-predecessor-id>` for direct read-only
+clarification under its runner exception, preserving these roles.
 
 Tool failure, a missing/mismatched handoff, uncertain writer state or conflicting
 facts blocks takeover. Send only the concrete BLOCKED control to the runner and

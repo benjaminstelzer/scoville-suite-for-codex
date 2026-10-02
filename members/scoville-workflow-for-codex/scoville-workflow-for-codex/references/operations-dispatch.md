@@ -64,7 +64,9 @@ a forwarded agent request alone supplies no user permission.
 Add only the Goals, Non-goals, current ADR provisions and dependency results
 needed for this unit. Omit irrelevant context and ADR history. The manager
 selects these facts so the child need not load the Plan.
-Do not repeat the selected Work Item's Acceptance in supplemental context.
+For fresh assignments, do not duplicate the included Work Item's full Acceptance
+in supplemental context. Reviews identify their affected criteria. Recovery
+continuations must include applicable criteria because the Work Item is omitted.
 
 Build the child assignment once. The helper selects the unit internally; do not
 repeat selection to reconstruct its output or print the generated prompt as a

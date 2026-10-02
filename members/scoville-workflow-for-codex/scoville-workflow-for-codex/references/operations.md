@@ -24,6 +24,9 @@ python "<workflow-skill-directory>/scripts/resolve_model_pair.py" --show-config 
 `.scoville/config.json` overrides bundled defaults under `workflow`; reading
 creates no file. Respect externally changed settings and resolve actual conflicts.
 Setup is optional and a missing config does not require setup confirmation.
+`--show-config` validates schema and model routes, not context percentages.
+The checkpoint validates those later; invalid thresholds block that checkpoint
+with its diagnostic. Startup success does not establish valid thresholds.
 Managers and children have no sidebar chat to rename or pin. Never pass an agent ID
 to sidebar tools. Preserve any existing explicit manager model/effort and include
 it as control metadata in a successor request; never substitute a worker pair.
@@ -50,9 +53,11 @@ recovery worker, apply Scoville Plan's start/resume rules. The active Plan's
 Do not mark later Steps started merely because they appear in an assignment.
 For a confirmed correction in a nonterminal item, retain completed effects and
 the correction reason when returning an affected done Step to in_progress.
-Save and validate the Plan before building the assignment, sending WORKING_ON
-or releasing the child to write. Selection and progress messages do not update
-these records. A read-only reviewer does not restart completed Steps.
+Save and validate the Plan, then generate and send WORKING_ON for the actually
+started Step/group under run-feedback.md before every writing dispatch or
+resumption. Assignment labels retain the complete assigned range. Selection and
+progress messages do not update these records. A read-only reviewer does not
+restart completed Steps.
 
 Within a sequential multi-Step assignment, the worker returns progress_pending
 before starting a Step outside the recorded jointly started group. It stops
@@ -67,10 +72,8 @@ Keep the full assignment and any measured crossing; repeat no completed work.
 
 1. Select the next unfinished Step, consecutive Step group or whole Work Item
    under [dispatch](operations-dispatch.md). Preserve order and prerequisites.
-   Apply Plan progress before execution, then send WORKING_ON for the selected
-   project, Plan and assigned
-   point/range under run-feedback.md. Its Scope is the actual overall assignment,
-   not this child's narrower task. Spawn a nested worker with the complete assignment. Retain its exact agent ID
+   Apply Plan progress before execution, including its WORKING_ON relay.
+   Spawn a nested worker with the complete assignment. Retain its exact agent ID
    for results, messages, resumption and interruption.
 2. The worker stops writing and returns its result. After fixing product code
    that was complete or checked before this assignment, it runs focused checks.
@@ -99,14 +102,13 @@ Keep the full assignment and any measured crossing; repeat no completed work.
    missing facts or telemetry; retain that evidence limit. A pending reviewer decision may resume the same
    review with the user's answer. A repeated
    notification does not start another action. For context_handoff follow
-   [rollover](operations-rollover.md). For blocked or needs_user_decision, retain
-   the actual limitation. After writes stop, record the blocker or outstanding
+   [rollover](operations-rollover.md). For blocked or needs_user_decision in a
+   message or result, promptly relay under run-feedback.md; retain the actual
+   limitation. After writes stop, record the blocker or outstanding
    decision in the canonical Plan before selecting independent eligible work;
-   follow Plan's authorized pause and return rules. Send the
-   runner only BLOCKED with the concrete limitation or NEEDS_USER_DECISION with
-   the exact necessary question. Record a question and its paused point in the
-   run report before relay, and append the actual clarification before dependent
-   work resumes. Record a problem only if it needs user review, not routine
+   follow Plan's authorized pause and return rules. Relay independently of report
+   writes under run-feedback.md. Record the question and its paused point, then
+   its actual clarification, before dependent work resumes. Record a problem only if it needs user review, not routine
    review findings or self-corrected checks. Retain its pending scope and process an answer
    once; no answer means no permission for dependent work.
 4. Inspect the scoped diff and named evidence only as needed for scope and
@@ -176,7 +178,7 @@ An unrelated user instruction may go to the active worker to preserve the sole
 writer, but identify it separately in the Plan update and commit description or
 commit it separately.
 
-## Results
+## Child results
 
 Return a normal concise message with an explicit status and the facts needed to
 assess or continue: completed effects, relevant changed paths, decisive checks,

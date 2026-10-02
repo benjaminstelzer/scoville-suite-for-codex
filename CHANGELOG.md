@@ -3,6 +3,11 @@
 
 
 
+## v2.3.6 - 2026-10-02
+
+- Show necessary Workflow questions and blockers in the visible chat with the affected Plan, Step, reason and waiting state.
+- Display the actually started Step when work advances within a larger assignment. Preserve steering and decision answers during manager takeover.
+
 ## v2.3.5 - 2026-10-01
 
 - Keep Workflow progress and verified manager handoffs tied to the actual Plan state.

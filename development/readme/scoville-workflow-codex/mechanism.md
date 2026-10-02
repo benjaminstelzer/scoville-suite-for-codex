@@ -4,9 +4,10 @@
 - Workflow carries out the assigned work, arranges independent reviews and
   corrects findings. Accepted progress and checks stay recorded in the Plan,
   so work can continue across sessions.
-- The chat shows the current project, Plan point and your assigned Scope when
+- The chat shows the current project, Plan point, started Step and your assigned Scope when
   the position changes.
-- You can ask questions or pause work during the run. Open questions, requested
+- Necessary questions and blockers appear in the visible chat with their Plan,
+  Step, reason and waiting work. You can ask questions or pause work during the run. Open questions, requested
   pauses and problems needing your attention stay in the report, with later
   resolutions added.
 - Once the requested work is complete and checked, Workflow says so and shows

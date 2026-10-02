@@ -12,34 +12,74 @@ area. Reuse that exact project name and scope file for each selected unit,
 including repairs, stop/resume and manager changes. Only an actual user change
 may replace these values. On recovery, reread the saved scope, not the Plan Goal,
 directory name or Plan title. Carry the exact project name, overall scope and
-scope-file path in the direct manager handoff. Generate before dispatch:
+scope-file path in the direct manager handoff. After saving and validating Plan
+progress, generate before every worker dispatch or resumption:
 
 ```text
 python "<workflow-skill-directory>/scripts/run_feedback.py" progress --project "<project-name>" --plan PLAN-0025 --point W-001/step-2 --scope-file "<scope.txt>"
 ```
 
 Send `WORKING_ON <key>` followed by the returned `text` to the runner with
-`send_message`. Use only these generated display fields. The point is the
-selected Step/range or whole Work Item, not an invented counter. Scope describes
-the entire currently assigned goal, such as finishing W-003 through W-006.
+`send_message`. Require successful send output before writing dispatch or
+resumption. On failure or uncertain delivery, retain the point and generated
+payload, report BLOCKED with the diagnostic and keep that release stopped.
+Use only these generated display fields. The point is the
+actually started Step or jointly started group just recorded and released, such
+as W-001/step-2. Never substitute the complete assigned range or a bare Work Item
+when it has Steps. A Step-less legacy item uses its Work Item ID. Scope describes
+the entire user assignment, such as finishing W-003 through W-006.
 
-The runner accepts messages only from its current STARTed manager. It keeps the
-last displayed key, including across takeover and stop/resume. A different key
-prints exactly the two display lines. The same key prints nothing, including
+The runner accepts progress only from its current STARTed manager. Process each
+received progress message in order, including a batch containing a question or
+blocker, before waiting again:
+
+1. Validate sender and retained project/scope values.
+2. If the key differs from the last visibly displayed key, print exactly the two
+   generated display lines, without replacing them with a summary.
+3. Only after that visible output, retain the key as displayed. Receiving a
+   message alone does not advance it.
+
+Keep that displayed key across takeover and stop/resume. The same key prints
+nothing, including
 review, repair, repeated notifications and a changed scope at the same point.
 The manager retains an authorized scope change for the next point display.
-Regenerate cosmetic display drift from retained project/scope values; clarify
-a substantive conflict before dependent work.
-The progress helper also supports `--previous-key <last-key>` and returns
-`changed: false` with empty `text` for the same project/Plan/point.
+Successful delivery permits writer release; it does not confirm visible display.
+On cosmetic project/scope drift, request regeneration from the retained values
+and keep that key undisplayed until its corrected message arrives. The manager
+resends promptly; cosmetic correction changes only the display if work is already
+released. A substantive scope conflict stops dependent work until clarified.
+Never repair helper output manually. Managers omit `--previous-key` for WORKING_ON:
+always send both generated lines and let the runner deduplicate visible output.
 
 ## Targeted issues
+
+The manager promptly sends every necessary user decision or blocking
+condition to the runner, whether it arises in a child message/result, its own
+work, a helper failure, or takeover. Stop dependent work first. Send
+`NEEDS_USER_DECISION` with the canonical Plan ID and affected Step/group, exact
+question, why an answer is needed and what is waiting; send `BLOCKED` with that
+location, actual diagnostic,
+why work cannot continue and the necessary next action. Report the affected
+scope, not a whole-run halt when independent authorized work can continue.
+Do not wait for final child results, unrelated checks or the next progress key.
+Children ask their manager, never the user directly. The runner authenticates
+the current or exact pending manager under the takeover rules and visibly states
+the Plan ID, affected Step/group, question or diagnostic, reason, and waiting or
+blocked state; it alone presents the user question. Startup issues use Startup
+until the canonical location is known. Retain each issue's manager identity for
+answer routing, including during takeover.
+A saved report or manager-only commentary is not a relay. Suppress only an
+identical already-visible pending issue, never a new question or changed cause
+because WORKING_ON is unchanged. Forward an actual answer once to the manager;
+no elapsed time, timeout or unrelated answer resolves the pending issue.
 
 Only record a user question, a point paused for a user request, or a problem
 requiring user inspection. Record the affected point and actual question or
 needed action. Ordinary reviews, self-corrected checks, progress and successful
 results create no entry. Children return needed facts to the manager and do
-not write this file. The current manager is its sole writer.
+not write this file. The current manager is its sole writer. Relay immediately,
+independently of persistence. Save the issue and any received answer before
+dependent work resumes, when the current report owner can safely write.
 
 Save the relevant free text in a UTF-8 temporary file and run:
 
@@ -63,9 +103,13 @@ paused while a necessary answer is absent. Preserve entries and IDs in the
 direct manager handoff. Never erase resolved issues to make a run look clean.
 
 For a stop, establish child/writer quiescence first, then record the pause before
-STOPPED. For a report-write failure, retain the unsaved issue, report the exact
-diagnostic and halt the affected operation. Show a necessary question even if
-its report save failed, marking it unsaved. An unknown write outcome requires
+STOPPED. While writes are prohibited, retain and relay the unsaved issue with
+the reason it cannot yet be saved. A pending successor keeps it unsaved until
+TAKEOVER_COMPLETE makes it the current owner. For a report-write failure, retain
+and relay the issue with the exact save diagnostic, marking it unsaved.
+Keep dependent work stopped until persistence and any necessary answer are
+secured; saving the report or Plan must never hide the
+condition from the runner. An unknown write outcome requires
 reading the existing report before retrying. Never accept partial helper stdout.
 
 If startup fails before a manager can own the report, the runner records the

@@ -1,5 +1,6 @@
 # User-editable native Codex model choices and context thresholds.
 schema_version = 1
+# Compatibility field. Native Workflow does not pin chats.
 pin_threads = true
 
 [context]

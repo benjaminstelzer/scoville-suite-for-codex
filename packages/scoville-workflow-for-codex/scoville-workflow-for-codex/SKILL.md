@@ -53,9 +53,10 @@ the title. Only the runner renames its visible chat; agent IDs remain unchanged.
 A failed rename is reported with its diagnostic, never claimed successful.
 
 Retain only the activation, workspace, runner ID, manager counter, exact manager
-IDs, any explicit manager pair, current control state, run-report path, named
-Plan ID and last
-displayed progress key and accepted project/scope display values. The report is
+IDs with current/pending ownership, any explicit manager pair, control state
+including pending issues with source identity and answer/delivery state, queued
+transition steering, run-report path, named Plan ID, last displayed progress key
+and accepted project/scope display values. The report is
 only for user-relevant issues, not a status log.
 Before the first manager start, create the report and display its returned full
 path as `Run report: <absolute-path>`:
@@ -115,7 +116,8 @@ runner --TAKEOVER_COMPLETE after both--> new manager --work--> children
 2. Call `spawn_agent` once. Require one unique returned manager ID and retain its
    host-provided canonical name/ID mapping. An unknown spawn state or other tool
    error, including a capacity refusal, halts the start with its diagnostic and
-   retained continuation state. Do not wake completed agents or retry automatically.
+   retained continuation state. Do not wake completed agents for capacity or
+   retry automatically. Essential predecessor clarification follows the exception below.
 3. Wait at most 60 seconds for `READY` from that exact spawned manager. Validate
    the host sender identity, not an ID claimed inside message text. A wrong,
    missing or ambiguous confirmation halts startup with a user message. If a
@@ -127,24 +129,32 @@ runner --TAKEOVER_COMPLETE after both--> new manager --work--> children
    known manager and establish child/writer quiescence under Stop below before
    any resume. Before START the manager may only send READY and
    wait. The successor requests and verifies its handoff before writing.
-5. Accept only short control states from known managers. `HANDOFF_DELIVERED`
+5. The initial manager becomes current after successful START delivery. A
+   successor stays pending through takeover. Accept READY and startup/takeover
+   controls, BLOCKED and NEEDS_USER_DECISION from that exact pending identity;
+   accept ordinary progress only from the current STARTed manager.
+   `HANDOFF_DELIVERED`
    confirms delivery. The predecessor stays active until the exact successor's
    receipt, then ends with that same control-only final response. Require both
    its native completion and the successor's `RUNNING` before sending
-   `TAKEOVER_COMPLETE` to the successor. Only then may it write or dispatch.
-   A missing confirmation blocks takeover. Retired managers remain write-inactive.
+   `TAKEOVER_COMPLETE` to the successor. First forward retained transition input
+   as described below. On successful release delivery, make that successor
+   current and retire the predecessor. Only then may it write or dispatch.
+   Missing confirmation or uncertain delivery blocks takeover with both exact
+   identities retained. Retired managers remain write-inactive.
 
 While active, use native waits for control messages. Do not poll files or read
 agent results for progress. Accept WORKING_ON only from the current STARTed
-manager. Display its generated Working on/Scope text only when its key differs
+manager. Display exactly its generated Working on/Scope lines when its key differs
 from the last displayed key, retaining the key across manager switches and
 stop/resume. Do not print READY, RUNNING or repeated unit/review notifications.
 For completion, follow run-feedback.md before announcing success. Relay other
-actionable states: a concrete blocker, stop or the exact necessary decision question.
+actionable states under run-feedback.md: display the Plan ID and affected Step/group, exact
+question or blocker, why it prevents progress and that the affected work is
+waiting. This relay is independent of WORKING_ON deduplication. Only the visible
+runner presents user questions; manager-only commentary does not notify the user.
 Retain the first accepted project and user scope; only user steering changes
-them. On cosmetic drift, suppress the display and have the manager regenerate
-from retained values, then continue. A substantive scope conflict blocks
-dependent work until user clarification. Never repair helper output manually.
+them. Handle display drift under run-feedback.md.
 Never request or relay substantive work results, evidence or handoffs. The
 manager's final response contains only its control status. The authorized final
 run-report read is the exception, under run-feedback.md. The durable Plan owns
@@ -153,10 +163,28 @@ progress and evidence.
 Send no routine receipt or closure message after a manager's native completion.
 If its state is unclear before necessary steering, check that exact handle once.
 This does not eliminate a completion race between checking and sending.
+Accept `CLARIFICATION_REQUEST <predecessor-id>` only from the current manager,
+for its retained retired predecessor. Use `followup_task` on that exact predecessor
+for direct read-only clarification to the current manager. Keep it retired and
+write-inactive; this permits no project work or routine cleanup.
 
 ## Steering, stop and resume
 
-Forward user steering and decision answers unchanged to the current manager.
+Forward ordinary user steering unchanged to the current manager. From an accepted
+successor request until the release gate, retain new steering for the successor
+instead of sending it only to the predecessor. Forward it once, in received
+order, to the exact pending successor before TAKEOVER_COMPLETE. Preserve this
+queue on a failed takeover; no failed or uncertain send licenses a duplicate.
+During that transition, queue new answers to predecessor-owned issues for the
+successor alongside steering. Retain the issue's original source identity and
+answer/delivery state; deliver once to the authenticated pending successor before
+release, in received order. This transfers the answer; do not also send it to
+the predecessor. Preserve the queue and uncertain delivery across a failed
+takeover. Answers to a pending successor's own issues go directly to that exact
+identity, even before release. Outside takeover, forward once to the originating
+manager, or its verified current successor if retired. Never broadcast an answer
+or treat elapsed time as an answer. The successor applies input received after its handoff snapshot
+before writing or dispatching and reports any resulting decision or blocker.
 Use `followup_task` for an idle manager: `send_message` does not wake it. During
 READY/START and handoff waits managers remain active with `wait_agent`.
 A pending decision is not permission; resume its dependent work only on the
