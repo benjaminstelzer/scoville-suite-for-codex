@@ -1,3 +1,13 @@
+### Set up Claude consultations
+
+1. Install [Claude Code](https://code.claude.com/docs/en/setup) if needed. Open a terminal or PowerShell window.
+2. Run `claude --version`. Opus 5.5 needs **2.1.280 or newer**. For an older version, run `claude update`, then check again. Keep running Claude sessions open.
+3. Run `claude auth login` and complete sign-in in your browser. Run `claude auth status` to check that you are signed in.
+
+If Ask reports an expired OAuth session, repeat step 3 and try again. An
+outdated CLI can reject the correct model ID. In that case, repeat step 2
+rather than switching to another model.
+
 ## How to use
 
 Ask naturally, for example:
@@ -14,16 +24,7 @@ Ask handles the consultation and necessary follow-ups without asking you to
 approve each exchange. Request a follow-up when you need one. Native agents
 keep their context, and Claude can resume its saved session.
 
-### How to Ask with Claude Code
-
-1. Install [Claude Code](https://code.claude.com/docs/en/setup) if needed. Open a terminal or PowerShell window.
-2. Run `claude --version`. Opus 5.5 needs **2.1.280 or newer**. For an older version, run `claude update`, then check again. Keep running Claude sessions open.
-3. Run `claude auth login` and complete sign-in in your browser. Run `claude auth status` to check that you are signed in.
-4. In Codex with this Skill installed, ask: **“Ask Claude to review this change.”** The configured defaults determine the model and reasoning level. Change the `ask` settings in `.scoville/config.json` or name another model or effort in the request.
-
-If Ask reports an expired OAuth session, repeat step 3 and try again. An
-outdated CLI can reject the correct model ID. In that case, repeat step 2
-rather than switching to another model.
+To consult Claude, ask: **“Ask Claude to review this change.”**
 
 ### Configure defaults
 
@@ -33,8 +34,7 @@ root. Anything missing falls back to the shipped defaults.
 Reading settings creates no file. If you name something explicitly in a
 request, it overrides these values for that call only, without saving them.
 
-Use Scoville Setup to inspect or save adviser choices. A model or effort named
-in one request applies to that call without changing saved defaults.
+Use Scoville Setup to inspect or save adviser choices.
 
 For example, this `.scoville/config.json` selects SOL and Fable by default and
 changes only SOL's effort:

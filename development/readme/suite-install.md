@@ -1,8 +1,10 @@
 ## Install the suite
 
 Install the suite once in your agent host and it's available in all your
-projects. Workflow starts directly in a saved Codex project. You don't need a
-per-project installation or an `AGENTS.md` entry.
+projects. Workflow starts directly in a saved Codex project.
+
+Before running Workflow, [raise the agent limit in `config.toml`](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/packages/scoville-workflow-for-codex#agent-capacity)
+as described in its installation instructions.
 
 ### New installation
 

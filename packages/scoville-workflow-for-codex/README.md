@@ -68,43 +68,41 @@ contains the coordination and recovery details.
 
 ## How it was developed
 
-Real project runs exposed unnecessary coordination and fragile context
-handoffs. Native agents and bounded assignments simplified the route. Host
-delivery failures and compaction immediately after handoff remain incompletely
-verified.
+Early versions spent too much effort coordinating agents. Real project work
+pushed development toward smaller assignments, clear responsibility and direct
+use of Codex's own agent tools. Handoffs also needed recorded progress so the
+next manager could continue without reconstructing the conversation.
+Coordination should help finish the work, not become the next work item.
 
 ## Compatibility
 
-Needs Codex with native agent spawning, messaging, waiting, interruption and
-agent-state inspection, Python 3.11+ and the complete Codex Suite. Agents must
-share the existing checkout and support the configured model and effort pairs.
-It also needs a frontier model from the Fable, Astra, SOL or Opus families,
-version 5.0 or newer. Bounded Luna Medium tests also cover the current manager
-handoff. They do not establish complete Luna coverage of the agent lifecycle.
-
-The run stops when the host cannot confirm agent identity, deliver a required
-message or establish who may write. It does not substitute chats, another model
-or an assumed close operation. Queued messages can keep completed agents resident.
-Available agent capacity can still limit a run.
-
-Context rollover uses fresh Codex measurements tied to the actual agent.
-Without usable telemetry, bounded work continues without claiming a measured
-switch. Automated tests cover helper validation and controlled telemetry.
-Live multi-unit execution, stop handling, child completion after a measured
-crossing and manager handoffs need separate evidence.
-
-Install and enable every Skill in the suite. Each applies to its own task scope.
-Start Workflow by asking for it explicitly.
+Requires the complete Codex Suite, Python 3.11+ and native agent tools in a shared workspace. Use a host-supported Fable, Astra, SOL or Opus model (5.0+) with the configured reasoning level.
 
 ## Install
 
-Install and enable the complete
+Install and enable every Skill in the suite. Each applies to its own task scope.
+
+Use the packages from
 [Scoville Suite for Codex](https://github.com/benjaminstelzer/scoville-suite-for-codex/tree/main/packages).
 Workflow only comes with the suite, and every Skill has to come from this
 repository's own `packages/<name>/<name>/` directory. Don't swap in packages
 from the individual repositories, and don't continue if members are missing.
-The suite needs Codex and Python 3.11 or newer. Use the suite's prompt for a
-new installation, or its upgrade prompt if you already have one installed.
+Use the suite's prompt for a new installation, or its upgrade prompt if you
+already have one installed.
+
+### Agent capacity
+
+For longer Workflow runs, we recommend raising the session's agent limit to
+256 in `~/.codex/config.toml`. Add or update the setting in its existing
+`[agents]` section:
+
+```toml
+[agents]
+max_concurrent_threads_per_session = 256
+```
+
+The limit leaves room for agent threads retained during longer runs. See the [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
+for the setting.
 
 
 
@@ -115,8 +113,6 @@ With the suite installed in Codex, start Workflow in your saved project:
 ```text
 Use $scoville-workflow-for-codex to execute the active Scoville Plan in this saved project.
 ```
-
-You don't need a separate project installation or an `AGENTS.md` entry.
 
 To limit the run, name a Work Item or the point where it should stop.
 Otherwise the manager works through the active Plan.

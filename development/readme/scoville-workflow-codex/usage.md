@@ -6,8 +6,6 @@ With the suite installed in Codex, start Workflow in your saved project:
 Use $scoville-workflow-for-codex to execute the active Scoville Plan in this saved project.
 ```
 
-You don't need a separate project installation or an `AGENTS.md` entry.
-
 To limit the run, name a Work Item or the point where it should stop.
 Otherwise the manager works through the active Plan.
 

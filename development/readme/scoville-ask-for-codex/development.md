@@ -1,5 +1,6 @@
 ## How it was developed
 
-Real consultations shaped independent advice and follow-ups. Configuration
-and delivery tests cover the helpers, while simulated host results cannot
-establish reliability across every live Codex or Claude failure.
+Early consultations made collecting answers and asking follow-up questions
+more complicated than the question warranted. Native adviser handles and
+saved Claude sessions gave each conversation a clear continuation path.
+Missing answers still have to remain visible: a partial panel is not a consensus.
