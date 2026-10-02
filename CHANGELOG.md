@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v2.3.8 - 2026-10-02
+
+- Let Workflow correct a known dispatch-argument mistake once before raising a blocker. Missing evidence and uncertain agent starts still stop the operation.
+- Make review inputs explicit so a missing worker result does not derail the next handoff.
+
 ## v2.3.7 - 2026-10-02
 
 - Configure Workflow's manager and reasoning through Setup, retaining the chosen pair across handoffs. Keep progress and questions clear in the original chat.

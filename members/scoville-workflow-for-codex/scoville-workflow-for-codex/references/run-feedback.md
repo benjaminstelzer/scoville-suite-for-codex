@@ -58,6 +58,11 @@ always send the complete generated text and let the runner deduplicate visible o
 
 ## Targeted issues
 
+For a dispatch-builder argument error, first apply the bounded
+[pre-dispatch correction](operations-dispatch.md#pre-dispatch-correction).
+A successful correction needs no visible blocker or report entry. All unresolved
+failures follow the immediate relay rule below.
+
 The manager promptly sends every necessary user decision or blocking
 condition to the runner, whether from a child message/result, its own work,
 a helper failure, or takeover. Stop dependent work first. Use `status` with

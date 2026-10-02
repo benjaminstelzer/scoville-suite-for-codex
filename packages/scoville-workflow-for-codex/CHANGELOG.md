@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.9.1 - 2026-10-02
+
+- Correct a known dispatch-argument mistake once before interrupting the user, provided no agent start or other effect occurred. Missing facts and uncertain starts remain blockers.
+- Require the absolute project path and original worker result explicitly when preparing a fresh review.
+
 ## v0.9.0 - 2026-10-02
 
 - Choose the manager through Setup or project settings. The default is GPT-6.1 SOL with medium reasoning, retained across manager handoffs.

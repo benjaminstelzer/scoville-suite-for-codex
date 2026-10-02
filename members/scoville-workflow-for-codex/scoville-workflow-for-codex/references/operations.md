@@ -173,7 +173,9 @@ another completed selected unit, even if startup exceeds the threshold.
 `rollover` follows the rollover reference; `continue` allows the next unit.
 Missing or stale telemetry continues without guesses or manual telemetry searches.
 Invalid configuration or a helper failure blocks the affected operation with its
-diagnostic. Complete the Plan/index only after the whole requested scope passes.
+diagnostic. Dispatch-builder argument errors may use the bounded
+[pre-dispatch correction](operations-dispatch.md#pre-dispatch-correction) before
+escalation. Complete the Plan/index only after the whole requested scope passes.
 
 An unrelated user instruction may go to the active worker to preserve the sole
 writer, but identify it separately in the Plan update and commit description or

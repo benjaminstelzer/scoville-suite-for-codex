@@ -62,12 +62,23 @@ For fresh assignments, do not duplicate the included Work Item's full Acceptance
 in supplemental context. Reviews identify their affected criteria. Recovery
 continuations must include applicable criteria because the Work Item is omitted.
 
+Use the actual absolute workspace path for `--project-root`, never `.` or a
+relative path. Before a fresh review, retain the original worker result in a
+UTF-8 file and supply it through `--executor-result`; supplemental context does
+not replace it. A recovery review uses the continuation inputs below.
+
 Build the child assignment once. The helper selects the unit internally; do not
 repeat selection to reconstruct its output or print the generated prompt as a
 second tool result before sending it:
 
 ```text
-python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-root "<workspace_root>" --unit <unit> --role <executor|reviewer> --format create --manager-agent-id <own-agent-id> --project-name "<project name>" --worker-number <number> --route <class>
+python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-root "<absolute-workspace-root>" --unit <unit> --role executor --format create --manager-agent-id <own-agent-id> --project-name "<project name>" --worker-number <number> --route <class> --supplemental-context "<facts.txt>"
+```
+
+For a fresh review, use the reviewed worker's number and retained result:
+
+```text
+python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-root "<absolute-workspace-root>" --unit <unit> --role reviewer --format create --manager-agent-id <own-agent-id> --project-name "<project name>" --worker-number <number> --route <class> --executor-result "<worker-result.txt>" --supplemental-context "<review-facts.txt>"
 ```
 
 The helper returns complete `spawn_agent` arguments as JSON: message, unique
@@ -85,9 +96,9 @@ reusing a reviewer task name. The bundled selector and Plan root are derived.
 Supply the actual spawning manager ID explicitly with --manager-agent-id;
 CODEX_THREAD_ID identifies a rollout and is not assumed to be an agent address.
 Recovery/correction also supply --model <launched-model> --thinking <launched-effort>.
-Optional context arguments name existing UTF-8 plain-text files:
+Role-specific inputs name existing UTF-8 plain-text files:
 
-- Review: `--executor-result <result.txt>` with a completed, progress_pending or review_pending worker result. In
+- Fresh review requires `--executor-result <result.txt>` with a completed, progress_pending or review_pending worker result. In
   supplemental context name the diff since the last review and affected Acceptance.
   For final review add short references to earlier assessments for unchanged
   parts. Include every still-unreviewed change and relevant interaction.
@@ -104,7 +115,8 @@ Optional context arguments name existing UTF-8 plain-text files:
 Pass original text without JSON, escaping or another result schema. The
 manager validates results before building the next assignment. The helper
 reads no stdin. A nonzero exit reports ERROR and stops dispatch; do not repair
-its output. For a new assignment the helper includes the complete selected Work
+its output. Handle argument errors only under [pre-dispatch correction](#pre-dispatch-correction).
+For a new assignment the helper includes the complete selected Work
 Item once. For a continuation it validates the selected unit but omits the Work
 Item body and uses the compact handoff and required supplemental facts instead.
 The unit remains an identity, not an instruction to repeat completed Steps.
@@ -117,10 +129,26 @@ Supplemental context supplies project facts, not copies of the builder's role,
 checkpoint or delivery rules. Reuse an existing selection for scope decisions;
 the builder's internal selection needs no separate preview call.
 
+### Pre-dispatch correction
+
+An explicit invalid-argument diagnostic from `build_dispatch_prompt.py` permits
+one corrected helper call before reporting BLOCKED, only when no agent start
+was attempted and the failed call produced no assignment file or other effects.
+Use already verified facts, such as the absolute workspace path or retained
+original worker result. Correct the input, never failed output. Dispatch only
+the corrected call's complete successful output.
+
+If required facts are missing, the correction fails, or effects or agent state
+are uncertain, retain the diagnostic and report the blocker under run-feedback.md.
+Do not invent a worker result, bypass validation or repeat a spawn. This exception
+does not cover other helper failures, capacity refusals or uncertain delivery.
+
+### Native dispatch and results
+
 Call `spawn_agent` directly with the generated arguments. Collaboration tools
-are direct tool calls, not tools inside functions.exec. Run the builder once,
-check its zero exit and complete output, then copy its JSON fields unchanged
-into the native call. For a fresh child on a direct-tool host, use
+are direct tool calls, not tools inside functions.exec. Check the builder's zero
+exit and complete output, then copy its JSON fields unchanged into the native
+call. For a fresh child on a direct-tool host, use
 --assignment-file "<new-absolute-temporary-file>" to avoid retyping a long message. The builder saves the complete
 assignment verbatim and returns a short native message that directs the child
 to read it. Keep that file through completion and review. The directory must
