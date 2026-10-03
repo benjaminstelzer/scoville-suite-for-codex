@@ -47,6 +47,12 @@ Step range. Do not rename the visible runner to a manager title.
 
 ## Plan progress before execution
 
+When an authorized return to a paused item is due and Plan's resume
+prerequisites are met, save and validate `Status: in_progress` before the manager
+begins that item's scoped reconciliation or preparation. Preserve observed Step
+statuses until their work actually starts. A merely selected item remains paused:
+report it as selected, not yet started.
+
 Before launching or resuming any writing child, including a correction or
 recovery worker, apply Scoville Plan's start/resume rules. The active Plan's
 `current_item` must name this Work Item, with `Status: in_progress` and written

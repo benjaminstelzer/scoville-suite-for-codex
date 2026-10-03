@@ -1,6 +1,10 @@
 # Changelog
 
 
+## v2.3.10 - 2026-10-03
+
+- Resume a paused Plan point before Workflow begins its authorized reconciliation or preparation. Distinguish selection from actual work and preserve existing Step progress.
+
 ## v2.3.9 - 2026-10-03
 
 - Keep configuration and workarounds in the right place when building Skill READMEs. Preserve shared fragments needed by the suite so filtered exports build on their own.

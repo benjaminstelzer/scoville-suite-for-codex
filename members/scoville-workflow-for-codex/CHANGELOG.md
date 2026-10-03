@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.2 - 2026-10-03
+
+- Resume a paused Plan point before the manager begins its authorized reconciliation or preparation. Keep a merely selected point visibly unstarted and preserve actual Step progress.
+
 ## v0.9.1 - 2026-10-02
 
 - Correct a known dispatch-argument mistake once before interrupting the user, provided no agent start or other effect occurred. Missing facts and uncertain starts remain blockers.
