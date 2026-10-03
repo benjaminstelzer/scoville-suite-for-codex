@@ -3,6 +3,8 @@
 
 ## v2.3.11 - 2026-10-03
 
+- Allow Context Cleanup with the tested Luna 6 Medium baseline instead of requiring a recommended frontier model.
+
 - Let Workflow dispatch and report progress for large Plan contexts with an explicit output budget. Report the required size and allow one corrected call before starting an agent or sending progress, without truncating context.
 - Validate an explicitly named current section while preserving other historically started Plan Steps.
 

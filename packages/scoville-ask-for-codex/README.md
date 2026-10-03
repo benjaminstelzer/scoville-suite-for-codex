@@ -39,7 +39,7 @@ Missing answers still have to remain visible: a partial panel is not a consensus
 
 ## Compatibility
 
-Requires Codex's native collaboration tools, Python 3.11 or newer, network access and a Fable, Astra, SOL or Opus model (5.0+). Claude consultations also need a signed-in Claude Code CLI, version 2.1.280+ for Opus 5.5.
+Requires Codex's native agents, Python 3.11+ and network access (Claude consultations also need a signed-in Claude Code CLI, 2.1.280+ for Opus 5.5). Fable, Astra, SOL or Opus (5.0+) are recommended, while Luna 6 with Medium reasoning is the lowest tested baseline.
 
 ## Install
 

@@ -347,7 +347,7 @@ ingredients that made the rules useful.
 
 ## Compatibility
 
-Requires Codex desktop with native agents, Python 3.11+ and a Fable, Astra, SOL or Opus model (5.0+). Claude consultations also need a signed-in Claude Code CLI, version 2.1.280+ for Opus 5.5.
+Requires Codex desktop, native agents and Python 3.11+ (Claude consultations also need a signed-in Claude Code CLI, 2.1.280+ for Opus 5.5). Fable, Astra, SOL or Opus (5.0+) are recommended, while Luna 6 with Medium reasoning is the lowest tested baseline.
 
 ## Install the suite
 

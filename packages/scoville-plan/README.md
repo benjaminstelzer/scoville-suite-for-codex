@@ -45,7 +45,7 @@ work they explain, without turning routine updates into more work items.
 
 ## Compatibility
 
-Requires Codex, repository read/write access and Python 3.11+ for the bundled helpers. Use a Fable, Astra, SOL or Opus model (5.0+).
+Requires Codex, repository read/write access and Python 3.11+ for the bundled helpers. Fable, Astra, SOL or Opus (5.0+) are recommended, while Luna 6 with Medium reasoning is the lowest tested baseline.
 
 ## Install
 

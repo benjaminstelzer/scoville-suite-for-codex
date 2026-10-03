@@ -30,7 +30,7 @@ those consumers, because a successful save alone says little about the next run.
 
 ## Compatibility
 
-Requires Codex with Python 3.11+. Use a Fable, Astra, SOL or Opus model (5.0+).
+Requires Codex with Python 3.11+. Fable, Astra, SOL or Opus (5.0+) are recommended, while Luna 6 with Medium reasoning is the lowest tested baseline.
 
 ## Install
 

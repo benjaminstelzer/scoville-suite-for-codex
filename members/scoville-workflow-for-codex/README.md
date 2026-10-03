@@ -76,7 +76,7 @@ Coordination should help finish the work, not become the next work item.
 
 ## Compatibility
 
-Requires the complete Codex Suite, Python 3.11+ and native agent tools in a shared workspace. Use a host-supported Fable, Astra, SOL or Opus model (5.0+) with the configured reasoning level.
+Requires the complete Codex Suite, Python 3.11+ and native agent tools in a shared workspace. Fable, Astra, SOL or Opus (5.0+) are recommended, while Luna 6 with Medium reasoning is the lowest tested baseline.
 
 ## Install
 
