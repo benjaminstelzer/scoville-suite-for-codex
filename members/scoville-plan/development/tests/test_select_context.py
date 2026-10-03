@@ -340,6 +340,13 @@ class SelectContextTests(unittest.TestCase):
         payload = json.loads(completed.stdout)
         self.assertEqual("OUTPUT_BUDGET_EXCEEDED", payload["diagnostics"][0]["code"])
         self.assertNotIn("ééééé", completed.stdout)
+        diagnostic = payload["diagnostics"][0]
+        required = diagnostic["observed"]["required_bytes"]
+        self.assertIn(f"--max-output-bytes {required}", diagnostic["message"])
+        corrected = self.run_cli("--max-output-bytes", str(required))
+        self.assertEqual(0, corrected.returncode, corrected.stdout)
+        self.assertEqual(required, len(corrected.stdout.encode("utf-8")))
+        self.assertIn("é" * 2_000, json.loads(corrected.stdout)["work_item"])
 
     def test_missing_referenced_decision_is_rejected(self) -> None:
         (self.root / "docs" / "decisions" / "0001-preserve-unicode.md").unlink()

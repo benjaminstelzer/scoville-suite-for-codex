@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v2.3.11 - 2026-10-03
+
+- Let Workflow dispatch and report progress for large Plan contexts with an explicit output budget. Report the required size and allow one corrected call before starting an agent or sending progress, without truncating context.
+- Validate an explicitly named current section while preserving other historically started Plan Steps.
+
 ## v2.3.10 - 2026-10-03
 
 - Resume a paused Plan point before Workflow begins its authorized reconciliation or preparation. Distinguish selection from actual work and preserve existing Step progress.

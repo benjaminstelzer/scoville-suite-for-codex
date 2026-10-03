@@ -94,3 +94,46 @@ class SimplifiedHelpersTests(unittest.TestCase):
         self.progress(error='no started current Work Item')
         self.plan.write_text(self.original.replace('Steps:\n1. Read the canonical files.\n2. Check the local record shapes.\n', ''), encoding='utf-8')
         self.assertIn('PLAN-0001 → W-001**', self.progress()['text'])
+
+    def test_large_progress_budget_and_corrected_runner_message(self):
+        self.saved_steps('1. [status: in_progress] First.\n2. [status: todo] Second.')
+        self.plan.write_text(self.plan.read_text(encoding='utf-8').replace(
+            'Steps:\n', 'Instructions: ' + 'é' * 40_000 + '\nSteps:\n', 1), encoding='utf-8')
+        before = {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
+        base = ['progress', '--project-root', self.root, '--project', 'test']
+        self.cli('run_feedback.py', *base, error='OUTPUT_BUDGET_EXCEEDED')
+        self.cli('run_feedback.py', *base, '--max-output-bytes', '0', error='OUTPUT_BUDGET_INVALID')
+        generated = self.cli('run_feedback.py', *base, '--max-output-bytes', '131072')
+        expected = self.cli('run_feedback.py', 'progress', '--project', 'test',
+                            '--plan', 'PLAN-0001', '--point', 'W-001/step-1')
+        self.assertEqual(generated, expected)
+        self.assertEqual(generated['message'].split('\n', 1)[1], generated['text'])
+        self.cli('run_feedback.py', 'progress', '--project', 'test', '--plan', 'PLAN-0001',
+                 '--point', 'W-001/step-1', '--max-output-bytes', '131072',
+                 error='--max-output-bytes requires --project-root')
+        self.assertEqual(before, {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()})
+
+    def test_explicit_progress_preserves_historical_groups_and_rejects_unstarted_scope(self):
+        self.saved_steps('1. [status: in_progress] First.\n2. [status: done] Second.\n'
+                         '3. [status: in_progress] Third.\n4. [status: in_progress] Fourth.\n'
+                         '5. [status: todo] Fifth.\n6. [status: cancelled] Sixth.')
+        before = {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
+        base = ['progress', '--project-root', self.root, '--project', 'test']
+        self.cli('run_feedback.py', *base, error='Supply --point')
+        for point in ('W-001/step-1', 'W-001/step-3', 'W-001/steps-3-4'):
+            actual = self.cli('run_feedback.py', *base, '--point', point)
+            expected = self.cli('run_feedback.py', 'progress', '--project', 'test',
+                                '--plan', 'PLAN-0001', '--point', point)
+            self.assertEqual(actual, expected)
+        for point in ('W-001/step-2', 'W-001/steps-1-3', 'W-001/step-5',
+                      'W-001/step-6', 'W-001/step-9'):
+            self.cli('run_feedback.py', *base, '--point', point, error='only saved in_progress')
+        for point, error in [('W-002/step-1', 'saved current Work Item'),
+                             ('W-001', 'item with Steps'), ('W-001/steps-4-3', 'ascending')]:
+            self.cli('run_feedback.py', *base, '--point', point, error=error)
+        self.assertEqual(before, {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()})
+        self.saved_steps('1. [status: in_progress] First.\n2. Unknown.')
+        self.cli('run_feedback.py', *base, '--point', 'W-001/step-1', error='unmarked Steps')
+        self.plan.write_text(self.original.replace('Steps:\n1. Read the canonical files.\n2. Check the local record shapes.\n', ''), encoding='utf-8')
+        actual = self.cli('run_feedback.py', *base, '--point', 'W-001')
+        self.assertEqual(actual, self.progress())

@@ -177,6 +177,55 @@ class NativeWorkflowContractTests(unittest.TestCase):
                         prompt_builder.select_unit(SELECTOR, root, unit)
                 self.assertEqual(before, {p: p.read_bytes() for p in root.rglob('*') if p.is_file()})
 
+    def test_dispatch_budget_failure_and_corrected_assignment_with_bundled_selector(self):
+        fixture_spec = importlib.util.spec_from_file_location('budget_fixture',
+            SUITE_ROOT / 'members/scoville-plan/development/tests/test_select_context.py')
+        fixture = importlib.util.module_from_spec(fixture_spec)
+        fixture_spec.loader.exec_module(fixture)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            (root / 'docs/plans').mkdir(parents=True)
+            (root / 'docs/decisions').mkdir()
+            (root / 'PROJECT_INDEX.md').write_text(
+                '---\nformat_version: 1\nactive_plan: PLAN-0001\n---\n', encoding='utf-8')
+            outcome = 'é' * 20_000 + ' END-OF-REQUIRED-CONTEXT'
+            (root / 'docs/plans/0001-test.md').write_text(fixture.plan().replace(
+                'Outcome: Return ✓ without unrelated bodies.', 'Outcome: ' + outcome), encoding='utf-8')
+            (root / 'docs/decisions/0001-test.md').write_text(fixture.DECISION, encoding='utf-8')
+            assignment = root / 'assignment.md'
+            before = {p: p.read_bytes() for p in root.rglob('*') if p.is_file()}
+            command = [sys.executable, '-B', str(PACKAGE / 'scripts/build_dispatch_prompt.py'),
+                       '--project-root', str(root), '--unit', 'W-003/step-1', '--role', 'executor',
+                       '--format', 'create', '--manager-agent-id', 'manager', '--project-name', 'Budget test',
+                       '--worker-number', '1', '--route', 'medium', '--assignment-file', str(assignment)]
+            for extra, code in (([], 'OUTPUT_BUDGET_EXCEEDED'),
+                                (['--max-output-bytes', '512'], 'OUTPUT_BUDGET_EXCEEDED'),
+                                (['--max-output-bytes', '0'], 'OUTPUT_BUDGET_INVALID')):
+                failed = subprocess.run(command + extra, text=True, encoding='utf-8', capture_output=True)
+                self.assertEqual(failed.returncode, 1, failed.stderr)
+                self.assertEqual(failed.stdout, '')
+                diagnostic = json.loads(failed.stderr.split('ERROR: Plan selection failed: ', 1)[1])['diagnostics'][0]
+                self.assertEqual(diagnostic['code'], code)
+                if code == 'OUTPUT_BUDGET_EXCEEDED':
+                    required = diagnostic['observed']['required_bytes']
+                    self.assertGreater(required, 65_536)
+                    self.assertIn(f'--max-output-bytes {required}', diagnostic['message'])
+                self.assertEqual(before, {p: p.read_bytes() for p in root.rglob('*') if p.is_file()})
+            corrected = subprocess.run(command + ['--max-output-bytes', str(required)],
+                                       text=True, encoding='utf-8', capture_output=True)
+            self.assertEqual(corrected.returncode, 0, corrected.stderr)
+            arguments = json.loads(corrected.stdout)
+            self.assertEqual(set(arguments), {'message', 'task_name', 'fork_turns', 'model', 'reasoning_effort'})
+            self.assertEqual(arguments['fork_turns'], 'none')
+            self.assertIn(str(assignment), arguments['message'])
+            self.assertIn('PLAN-0001/W-003/step-1', arguments['message'])
+            # Consume the generated file as directed by the native message.
+            prompt = assignment.read_text(encoding='utf-8')
+            self.assertIn(outcome, prompt)
+            self.assertIn('## Assigned unit\nW-003/step-1', prompt)
+            self.assertEqual(before, {p: p.read_bytes() for p in root.rglob('*')
+                                      if p.is_file() and p != assignment})
+
     def test_normal_messages_pass_unchanged_to_review_and_correction(self):
         context = {'work_item': {'unit': 'W-001', 'source_text': 'Work', 'context_text': 'Work'}}
         for role, field, text in [

@@ -115,7 +115,8 @@ Role-specific inputs name existing UTF-8 plain-text files:
 Pass original text without JSON, escaping or another result schema. The
 manager validates results before building the next assignment. The helper
 reads no stdin. A nonzero exit reports ERROR and stops dispatch; do not repair
-its output. Handle argument errors only under [pre-dispatch correction](#pre-dispatch-correction).
+its output. Handle argument or selector-budget errors only under
+[pre-dispatch correction](#pre-dispatch-correction).
 For a new assignment the helper includes the complete selected Work
 Item once. For a continuation it validates the selected unit but omits the Work
 Item body and uses the compact handoff and required supplemental facts instead.
@@ -131,12 +132,19 @@ the builder's internal selection needs no separate preview call.
 
 ### Pre-dispatch correction
 
-An explicit invalid-argument diagnostic from `build_dispatch_prompt.py` permits
-one corrected helper call before reporting BLOCKED, only when no agent start
-was attempted and the failed call produced no assignment file or other effects.
+One corrected helper call before reporting BLOCKED is allowed for an explicit
+invalid-argument diagnostic from `build_dispatch_prompt.py`, or
+`OUTPUT_BUDGET_EXCEEDED` from that builder or `run_feedback.py progress`.
+No agent start or progress-message send may have been attempted, and the failed
+call must have produced no assignment file or other effects.
 Use already verified facts, such as the absolute workspace path or retained
 original worker result. Correct the input, never failed output. Dispatch only
 the corrected call's complete successful output.
+
+For `OUTPUT_BUDGET_EXCEEDED`, pass `--max-output-bytes <required_bytes>` to the
+failed helper using the diagnostic's required size, within any caller-imposed budget.
+This forwards a bounded budget to the bundled selector and preserves complete
+context. Do not replace the selector with an adapter or truncate the result.
 
 If required facts are missing, the correction fails, or effects or agent state
 are uncertain, retain the diagnostic and report the blocker under run-feedback.md.

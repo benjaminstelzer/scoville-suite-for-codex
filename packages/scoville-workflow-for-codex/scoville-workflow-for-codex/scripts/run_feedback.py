@@ -205,12 +205,16 @@ def progress(project: str, plan: str, point: str, previous_key: str | None = Non
             'message': f'WORKING_ON {key}\n{text}' if changed else ''}
 
 
-def recorded_progress(project_root: Path, selector: Path) -> tuple[str, str]:
+def recorded_progress(project_root: Path, selector: Path, max_output_bytes: int | None = None,
+                      point: str | None = None) -> tuple[str, str]:
     """Project saved position only. Never select or start work."""
     if not selector.is_file():
         raise ValueError(f'Plan position helper missing: {selector}; install the complete matching Workflow package')
-    result = subprocess.run([sys.executable, '-B', str(selector), '--root', str(project_root),
-                             '--position', '--format', 'json'],
+    command = [sys.executable, '-B', str(selector), '--root', str(project_root),
+               '--position', '--format', 'json']
+    if max_output_bytes is not None:
+        command.extend(['--max-output-bytes', str(max_output_bytes)])
+    result = subprocess.run(command,
                             capture_output=True, text=True, encoding='utf-8')
     if result.returncode:
         raise ValueError('Plan position failed; correct its diagnostic before progress: ' + result.stdout + result.stderr)
@@ -220,12 +224,26 @@ def recorded_progress(project_root: Path, selector: Path) -> tuple[str, str]:
     units = position.get('current_units', [])
     if position.get('untracked_steps'):
         raise ValueError('Plan position contains unmarked Steps with unknown start state; establish their observed status and save/validate before progress --project-root PATH')
-    if len(units) == 1:
+    if point is not None:
+        validate_location(position['plan'], point)
+        owner, _, steps = point.partition('/')
+        if owner != position['work_item']:
+            raise ValueError('--point must belong to the saved current Work Item: ' + position['work_item'])
+        if not steps:
+            if position.get('reason') != 'whole_work_item':
+                raise ValueError('--point must name the actually worked Step/group for an item with Steps')
+        else:
+            numbers = list(map(int, steps.split('-')[1:]))
+            first, last = numbers[0], numbers[-1]
+            active = [n for n in position['current_steps'] if first <= n <= last]
+            if len(active) != last - first + 1:
+                raise ValueError('--point must contain only saved in_progress Steps in one consecutive group; preserve other Step statuses and name the actually worked section')
+    elif len(units) == 1:
         point = units[0]
     elif not units and position.get('reason') == 'whole_work_item':
         point = position['work_item']
     else:
-        raise ValueError(f'Plan position needs exactly one saved in_progress Step/group; found {len(units)}: {units}. Record the actually started consecutive group, validate, then rerun progress --project-root PATH; do not start work from this projection')
+        raise ValueError(f'Plan position cannot infer one current Step/group; found {len(units)}: {units}. Supply --point W-NNN/step-N or --point W-NNN/steps-N-M for the actually worked saved in_progress section. Preserve historical Step statuses; this projection does not start work.')
     return position['plan'], point
 
 
@@ -250,8 +268,10 @@ def main() -> int:
     source = child.add_mutually_exclusive_group(required=True)
     source.add_argument('--project-root', type=Path, help='manager only: derive progress from saved Plan position')
     source.add_argument('--plan', help='explicit display-only Plan ID; requires --point')
-    child.add_argument('--point')
+    child.add_argument('--point', help='with --project-root, validate the actually worked saved in_progress Step/group; required with display-only --plan')
     child.add_argument('--selector', type=Path, default=Path(__file__).with_name('select_context.py'))
+    child.add_argument('--max-output-bytes', type=int,
+                       help='explicit UTF-8 selector budget with --project-root; omit for its default')
     child.add_argument('--scope-file', type=Path, help='legacy argument, ignored; progress displays only project and Plan point')
     child.add_argument('--previous-key')
     child = sub.add_parser('status', help='render one status heading and its unchanged explanatory text')
@@ -268,10 +288,10 @@ def main() -> int:
             result = create_report(args.project_root)
         elif args.command == 'progress':
             if args.project_root:
-                if args.point:
-                    raise ValueError('--point cannot override saved progress; omit it with --project-root')
-                plan, point = recorded_progress(args.project_root, args.selector)
+                plan, point = recorded_progress(args.project_root, args.selector, args.max_output_bytes, args.point)
             else:
+                if args.max_output_bytes is not None:
+                    raise ValueError('--max-output-bytes requires --project-root; omit it for display-only --plan/--point')
                 if not args.point:
                     raise ValueError('--plan requires --point W-NNN/step-N; managers use --project-root PATH instead')
                 plan, point = args.plan, args.point

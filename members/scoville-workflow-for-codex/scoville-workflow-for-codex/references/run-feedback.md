@@ -36,9 +36,14 @@ resumption. On failure or uncertain delivery, retain the point and generated
 payload, report BLOCKED with the diagnostic and keep that release stopped.
 The manager-only mode reads the bundled select_context.py --position projection.
 It uses the active in_progress Work Item and its single saved consecutive
-in_progress Step/group, or a Step-less legacy item. Missing, unmarked or multiple
-start groups fail with a diagnostic; reconcile observed progress and validate
-before retrying. It neither selects nor starts work. Assignment labels may cover
+in_progress Step/group, or a Step-less legacy item. When several groups remain
+in_progress, add `--point W-NNN/step-N` or `--point W-NNN/steps-N-M` for the
+actually worked section. This may be part of a saved group; every named Step must
+already be in_progress in the current item. Preserve other historical Step
+statuses. Do not reset them or use display-only `--plan/--point` to bypass this
+check. Missing or unmarked progress fails with a diagnostic; reconcile observed
+progress and validate before retrying. The helper neither selects nor starts
+work. Assignment labels may cover
 a larger range. Display only `Working on: project → PLAN-NNNN → W-NNN/step-N`
 as the generated bold line, with no Scope paragraph or other body.
 The runner never invokes this mode or reads the Plan.
@@ -58,7 +63,8 @@ always send the complete generated text and let the runner deduplicate visible o
 
 ## Targeted issues
 
-For a dispatch-builder argument error, first apply the bounded
+For a dispatch-builder argument error or a dispatch/progress selector-budget
+error, first apply the bounded
 [pre-dispatch correction](operations-dispatch.md#pre-dispatch-correction).
 A successful correction needs no visible blocker or report entry. All unresolved
 failures follow the immediate relay rule below.

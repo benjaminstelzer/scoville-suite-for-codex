@@ -14,11 +14,14 @@ from workflow_settings import ROUTES, load_config
 
 
 
-def select_unit(selector: Path, root: Path, unit: str) -> dict:
+def select_unit(selector: Path, root: Path, unit: str, max_output_bytes: int | None = None) -> dict:
     if not re.fullmatch(r"W-[0-9]{3}(?:/step-[1-9][0-9]*|/steps-[1-9][0-9]*-[1-9][0-9]*)?", unit):
         raise ValueError(f"--unit {unit!r} is invalid; use an existing Work Item, Step or consecutive range, e.g. W-001, W-001/step-2 or W-001/steps-1-3 (lowercase step/steps)")
-    result = subprocess.run([sys.executable, "-B", str(selector), "--root", str(root),
-                             "--unit", unit, "--format", "json"],
+    command = [sys.executable, "-B", str(selector), "--root", str(root),
+               "--unit", unit, "--format", "json"]
+    if max_output_bytes is not None:
+        command.extend(["--max-output-bytes", str(max_output_bytes)])
+    result = subprocess.run(command,
                             capture_output=True, text=True, encoding="utf-8")
     if result.returncode:
         raise ValueError("Plan selection failed: " + result.stdout + result.stderr)
@@ -147,6 +150,8 @@ def main() -> int:
     parser.add_argument('--route', choices=ROUTES, help='resolve the role pair internally; --model and --thinking override its fields')
     parser.add_argument('--worker-number', type=int, help='worker number, also for its reviewer')
     parser.add_argument("--selector", type=Path, default=Path(__file__).with_name("select_context.py"))
+    parser.add_argument("--max-output-bytes", type=int,
+                        help="explicit UTF-8 budget for the complete Plan selector result; omit for its default")
     parser.add_argument("--plan-root", type=Path)
     parser.add_argument("--unit", required=True)
     parser.add_argument("--role", choices=("executor", "reviewer"), required=True)
@@ -179,7 +184,7 @@ def main() -> int:
             path = getattr(args, key)
             if path:
                 role_input[key] = path.read_text(encoding="utf-8")
-        context = select_unit(args.selector, args.plan_root or args.workspace_root, args.unit)
+        context = select_unit(args.selector, args.plan_root or args.workspace_root, args.unit, args.max_output_bytes)
         prompt = build_prompt(args.role, args.workspace_root, args.manager_agent_id,
                               "", context, role_input)
         if args.format == 'create':

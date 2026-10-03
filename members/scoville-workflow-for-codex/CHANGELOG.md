@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.9.3 - 2026-10-03
+
+- Start assignments and report progress with large Plan context by passing an explicit output budget to the bundled selector. Allow one corrected call before starting an agent or sending progress, preserving the complete context.
+- Report the currently worked section when several historical Step groups remain in progress. Validate the named section against the saved Plan without resetting other Step statuses.
+
 ## v0.9.2 - 2026-10-03
 
 - Resume a paused Plan point before the manager begins its authorized reconciliation or preparation. Keep a merely selected point visibly unstarted and preserve actual Step progress.
