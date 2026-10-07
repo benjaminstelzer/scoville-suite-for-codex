@@ -15,10 +15,20 @@ serialized UTF-8 JSON request; never hand-write transport JSON:
 python "<ask-skill-directory>/scripts/ask.py" --input-file "<request.json>"
 ```
 
-The object contains operation=resolve, project_root and optional overrides.
-The JSON response config.advisers supplies id, route, model and effort directly.
-These are technical settings, not a dispatch prompt. Use model and effort as
-spawn_agent model and reasoning_effort. Dispatch questions and adviser answers remain
+The request object contains:
+
+- `operation=resolve` to select the operation.
+- `project_root` for the selected project.
+- Optional `overrides` for unsaved settings.
+
+The JSON response's `config.advisers` entries supply these settings directly:
+
+- `id` identifies the adviser.
+- `route` selects its transport.
+- `model` supplies the `spawn_agent` model.
+- `effort` supplies the `spawn_agent` reasoning_effort.
+
+These are technical settings, not a dispatch prompt. Dispatch questions and adviser answers remain
 plain text. A nonzero exit or ok:false stops the operation with its diagnostic.
 Stdin JSON requests remain supported, including Ask Claude.
 
@@ -57,7 +67,14 @@ the process working directory if neither was supplied. `project_config` is
 rejected with migration guidance. Keep settings unchanged during a run.
 Display resolved settings when configuration is requested.
 
-Claude-only `prepare` takes mode=review|consultation, question, scope, reference
-and an existing absolute cwd, with overrides selecting only Claude advisers.
-It returns entries[].request for operation=claude. Use the helper commands
+The Claude-only `prepare` request contains:
+
+- `mode=review|consultation` to select the kind of advice.
+- `question` for the actual request.
+- `scope` for its boundary.
+- `reference` for the consultation reference.
+- `cwd` for an existing absolute working directory.
+- `overrides` selecting only Claude advisers.
+
+The response returns `entries[].request` for `operation=claude`. Use the helper commands
 in [Claude operation](claude.md) for fresh requests and follow-ups.

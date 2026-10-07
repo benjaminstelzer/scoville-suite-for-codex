@@ -11,7 +11,18 @@ import unittest
 from unittest import mock
 
 
-PACKAGE = Path(__file__).resolve().parents[2] / "scoville-ask-for-codex"
+SUITE = Path(__file__).resolve().parents[4]
+_build_spec = importlib.util.spec_from_file_location('ask_behavior_build', SUITE / 'development/build_suite.py')
+_builder = importlib.util.module_from_spec(_build_spec)
+_build_spec.loader.exec_module(_builder)
+_package_temp = tempfile.TemporaryDirectory(prefix='ask-behavior-', ignore_cleanup_errors=True)
+_config = _builder.load(SUITE, 'codex')
+_member = next(m for m in _config['members'] if m['name'] == 'scoville-ask-for-codex')
+for _name, _data in _builder.payload(SUITE, _member, _config).items():
+    _target = Path(_package_temp.name) / _name
+    _target.parent.mkdir(parents=True, exist_ok=True)
+    _target.write_bytes(_data)
+PACKAGE = Path(_package_temp.name) / 'scoville-ask-for-codex'
 SCRIPTS = PACKAGE / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 SPEC = importlib.util.spec_from_file_location("ask_under_test", SCRIPTS / "ask.py")
@@ -41,6 +52,31 @@ def prepare_request(advisers=ADVISERS, **extra):
 
 
 class AskBehaviorTests(unittest.TestCase):
+    def test_shared_writing_contract_preserves_question_in_claude_consumer(self):
+        question = 'Exact question: A/B; "quoted"\nKeep this unchanged.\n'
+        request = ask.prepare(prepare_request([ADVISERS[1]], question=question))['entries'][0]['request']
+        writing = (PACKAGE / 'references/writing.md').read_text(encoding='utf-8')
+        self.assertEqual(1, request['prompt'].count(writing))
+        self.assertTrue(request['prompt'].endswith(question))
+        completed = subprocess.CompletedProcess([], 0, json.dumps({'result':'review complete','session_id':'fixture'}), '')
+        with mock.patch.object(ask.ask_claude, 'resolve_claude_command', return_value=['claude']), \
+             mock.patch.object(ask.ask_claude, 'run_command', return_value=completed) as consumer:
+            answer = ask.claude(request)
+        self.assertEqual('review complete', answer['answer'])
+        self.assertEqual(request['prompt'], consumer.call_args.args[2])
+
+    def test_missing_writing_contract_is_named_and_corrected_prepare_succeeds(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'references').mkdir()
+            for name in ('config.default.json', 'references/adviser.md'):
+                (root / name).write_bytes((PACKAGE / name).read_bytes())
+            with mock.patch.object(ask, 'ROOT', root):
+                with self.assertRaisesRegex(ValueError, 'packaged writing rules.*writing.md.*readable UTF-8'):
+                    ask.prepare(prepare_request([ADVISERS[1]]))
+                (root / 'references/writing.md').write_bytes((PACKAGE / 'references/writing.md').read_bytes())
+                self.assertEqual('claude', ask.prepare(prepare_request([ADVISERS[1]]))['entries'][0]['request']['operation'])
+
     def test_invalid_nested_timeout_does_not_echo_private_value(self):
         marker = 'TEST_PRIVATE_VALUE_NOT_FOR_DIAGNOSTICS'
         request = {'operation': 'resolve', 'overrides': {'claude': {'timeout_seconds': {'api_key': marker}}}}

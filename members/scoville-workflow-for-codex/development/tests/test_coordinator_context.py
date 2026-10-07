@@ -7,7 +7,8 @@ import json
 import os
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scoville-workflow-for-codex" / "scripts"))
+from test_contract import PACKAGE
+sys.path.insert(0, str(PACKAGE / "scripts"))
 from check_context_checkpoint import decide as decide_configured, read_thresholds
 from inspect_native_context import InspectionError
 

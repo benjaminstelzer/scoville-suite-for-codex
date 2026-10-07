@@ -21,7 +21,7 @@ _test_package = tempfile.TemporaryDirectory(prefix="workflow-tests-", ignore_cle
 PACKAGE = Path(_test_package.name) / "scoville-workflow-for-codex"
 _config = _builder.load(SUITE_ROOT, 'codex')
 _member = next(m for m in _config['members'] if m['name'] == PACKAGE.name)
-for _package_member in (_member, next(m for m in _config['members'] if m['name'] == 'scoville-code')):
+for _package_member in (_member, *(m for m in _config['members'] if m['name'] in {'scoville-code', 'scoville-plan'})):
     for _name, _data in _builder.payload(SUITE_ROOT, _package_member, _config).items():
         _target = Path(_test_package.name) / _name
         _target.parent.mkdir(parents=True, exist_ok=True)
@@ -204,7 +204,7 @@ class NativeWorkflowContractTests(unittest.TestCase):
                 failed = subprocess.run(command + extra, text=True, encoding='utf-8', capture_output=True)
                 self.assertEqual(failed.returncode, 1, failed.stderr)
                 self.assertEqual(failed.stdout, '')
-                diagnostic = json.loads(failed.stderr.split('ERROR: Plan selection failed: ', 1)[1])['diagnostics'][0]
+                diagnostic = json.JSONDecoder().raw_decode(failed.stderr.split('ERROR: Plan selection failed: ', 1)[1])[0]['diagnostics'][0]
                 self.assertEqual(diagnostic['code'], code)
                 if code == 'OUTPUT_BUDGET_EXCEEDED':
                     required = diagnostic['observed']['required_bytes']
@@ -227,11 +227,12 @@ class NativeWorkflowContractTests(unittest.TestCase):
                                       if p.is_file() and p != assignment})
 
     def test_normal_messages_pass_unchanged_to_review_and_correction(self):
-        context = {'work_item': {'unit': 'W-001', 'source_text': 'Work', 'context_text': 'Work'}}
+        context = {'plan': {'non_goals': '## Non-goals\n\n- No publication.'}, 'work_item': {'unit': 'W-001', 'source_text': 'Work', 'context_text': 'Work'}}
         for role, field, text in [
             ('reviewer', 'executor_result', 'Completed. Import checks passed. No rollback proof yet.'),
             ('executor', 'reviewer_result', 'Changes requested. src/import.py: rollback leaves partial writes. Fix the transaction.')]:
-            prompt = prompt_builder.build_prompt(role, PACKAGE, 'manager', '', context, {field: text})
+            prompt = prompt_builder.build_prompt(role, PACKAGE, 'manager', '', context,
+                {field: text, 'supplemental_context': 'Initial review of the named change against Work Item Acceptance. No earlier assessment.'})
             self.assertIn(text, prompt)
             self.assertNotIn('SCOVILLE_RESULT_V1', prompt)
             self.assertNotIn('code_changed=', prompt)
@@ -239,7 +240,7 @@ class NativeWorkflowContractTests(unittest.TestCase):
             prompt_builder.build_prompt('reviewer', PACKAGE, 'manager', '', context, {})
 
     def test_authorized_recovery_supplies_manager_receipt_recipient(self):
-        context = {'work_item': {'unit': 'W-001', 'source_text': 'Work', 'context_text': 'Work'}}
+        context = {'plan': {'non_goals': '## Non-goals\n\n- No publication.'}, 'work_item': {'unit': 'W-001', 'source_text': 'Work', 'context_text': 'Work'}}
         data = {'context_handoff': 'Checks A passed; B remains.', 'predecessor_agent_id': 'worker-a',
                 'supplemental_context': 'User authorized this recovery transfer. B must pass. Keep rollback limits.'}
         for role in ('executor', 'reviewer'):
@@ -248,7 +249,7 @@ class NativeWorkflowContractTests(unittest.TestCase):
             prompt = prompt_builder.build_prompt(role, PACKAGE, 'manager', '', context, inputs)
             self.assertIn('## predecessor_agent_id\nworker-a', prompt)
             self.assertTrue(prompt.startswith('FIRST ACTION'))
-            self.assertIn('call send_message with target=manager and message=HANDOFF_ACCEPTED worker-a', prompt)
+            self.assertIn('call collaboration.send_message with target=manager and message=HANDOFF_ACCEPTED worker-a', prompt)
             self.assertNotIn('target=worker-a', prompt)
             self.assertLess(prompt.index('send_message'), prompt.index('## Assigned unit'))
             self.assertEqual(prompt.count('HANDOFF_ACCEPTED'), 1)
@@ -292,7 +293,7 @@ class NativeWorkflowContractTests(unittest.TestCase):
                 self.assertIn('## Assigned unit\nW-003/steps-1-2', result.stdout)
                 self.assertNotIn(selected['work_item']['context_text'].strip(), result.stdout)
                 self.assertNotIn(selected['work_item']['source_text'].strip(), result.stdout)
-                if role == 'reviewer': self.assertIn('Stay read-only.', result.stdout)
+                self.assertIn(f'scoville_role={role}', result.stdout.splitlines())
             # Empty handoffs must not silently switch back to full-item dispatch.
             (root / 'handoff.txt').write_text('  ', encoding='utf-8')
             failed = subprocess.run(command + ['--supplemental-context', str(root / 'facts.txt')],

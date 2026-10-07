@@ -22,7 +22,7 @@ a file; read the exit status, summary and relevant failures.
 `rollover_pending` records a measured threshold crossing but does not end or
 shorten the assignment. Retain it across compaction and finish the assigned Step
 or Step group, review or repair, including required corrections and checks.
-Then return the normal completed/pass/changes_requested result and stop writing.
+Then return the normal `completed`, `pass` or `changes_requested` result and stop writing.
 Include the retained measurement when needed for rollover evidence. Do not return
 context_handoff with unfinished assigned work merely because of the threshold.
 
@@ -45,7 +45,7 @@ A context_handoff alone does not trigger review, but a checked product fix in
 that handoff follows the review cadence before dependent work continues.
 
 The manager spawns a successor with the same role, remaining scope, workspace
-and launched model/effort, the compact handoff, and predecessor/manager agent IDs.
+and launched model and reasoning effort, the compact handoff, and agent IDs of predecessor and manager.
 Supply only unfinished work, applicable acceptance, constraints, completed effects
 with evidence limits, required paths and next action. Preserve user permissions
 and stops. Do not resend the complete Work Item or completed instructions. The
@@ -62,9 +62,16 @@ with the retained predecessor ID. Require the completed native handoff, confirme
 writer quiescence, applicable authorization and no stop or unanswered decision.
 Only then send TAKEOVER_COMPLETE to that successor. Ignore duplicate receipts
 already handled. A mismatch or uncertain state blocks without releasing work.
-The successor waits actively for this exact manager's release, at most 60 seconds,
-before project work. Missing release or STOP is BLOCKED. After release it finishes
-the remaining assignment and returns its complete native final to the manager.
+If a mismatch, uncertain state, user stop or unanswered decision prevents
+release, the manager sends STOP for a stop, or BLOCKED otherwise, to that exact
+successor. The successor accepts either signal only from that exact manager,
+remains write-inactive and returns a blocked result with the signal and reason
+to the manager. It does not keep waiting after that signal.
+The successor uses bounded `collaboration.wait_agent` calls until this exact manager releases
+it. A wait timeout alone does not end the wait or authorize project work.
+Only TAKEOVER_COMPLETE permits work; STOP or BLOCKED halts the transition.
+After release it finishes the remaining assignment and returns its complete
+native final to the manager.
 The predecessor stays write-inactive. No chat, archival or close tool is needed.
 
 ## Manager rollover
@@ -80,12 +87,17 @@ means continue without inventing a measured boundary or claiming a switch.
 Retain a measured crossing across compaction. A decision or blocker that prevents
 the current unit's completion also prevents its threshold-driven handoff.
 
-Retain a compact substantive handoff locally: exact workspace and Plan path,
-requested scope, exact project display name, unchanged run-report path and open issue IDs/answer states,
-checked effects and evidence limits, pending review/findings,
-child IDs and write/stop states, next worker number, recovery context if any,
-constraints, coordination authority and next action. Include any pending
-user question, answer state and source identity. Keep a received answer; never
+Retain a compact substantive handoff locally with:
+
+- The exact workspace and Plan path, requested scope and exact project display name.
+- The unchanged run-report path and open issue IDs, including each pending user
+  question, its source identity and whether its answer has arrived.
+- Checked effects and evidence limits, plus pending reviews and findings.
+- Child IDs and whether each child is writing or stopped.
+- The next worker number and any recovery context.
+- Constraints, coordination authority and the next action.
+
+Keep a received answer; never
 repeat a question solely because of takeover. The consumed checkpoint boundary
 must be named so the successor resumes its pending action rather than rechecking.
 Follow [manager protocol](manager-protocol.md) for the successor request,

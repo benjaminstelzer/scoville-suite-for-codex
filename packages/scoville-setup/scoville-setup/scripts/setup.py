@@ -15,6 +15,19 @@ from workflow_settings import load_config, read_thresholds
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def read_patch() -> dict:
+    example = '{"workflow": {"context": {"coordinator_percent": 40}}}'
+    try:
+        return json.load(sys.stdin)
+    except json.JSONDecodeError as error:
+        raise ValueError('set expects a UTF-8 JSON object patch on stdin; '
+                         f'encode the complete patch as UTF-8 JSON, e.g. {example}. '
+                         f'Invalid JSON at line {error.lineno}, column {error.colno}: {error.msg}') from error
+    except UnicodeError as error:
+        raise ValueError('set expects a UTF-8 JSON object patch on stdin; '
+                         f'encode the complete patch as UTF-8 JSON, e.g. {example}. Original error: {error}') from error
+
+
 def effective(project_root: Path) -> dict:
     return {
         "ask": resolve_settings(ROOT / "assets/ask.default.json", {"project_root": project_root}),
@@ -90,7 +103,7 @@ def main() -> int:
     parser.add_argument("--project-root", type=Path, required=True)
     args = parser.parse_args()
     try:
-        values = (apply(args.project_root, json.load(sys.stdin))
+        values = (apply(args.project_root, read_patch())
                   if args.operation == "set" else validate(args.project_root))
         print(json.dumps({"ok": True, "saved": args.operation == "set",
                           "file": str(args.project_root / ".scoville/config.json"),

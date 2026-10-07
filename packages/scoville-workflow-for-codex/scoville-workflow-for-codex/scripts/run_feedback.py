@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
 import hashlib
 import json
 import os
@@ -16,7 +18,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from inspect_native_context import configure_utf8
-from native_task_arguments import single_line
+from native_task_arguments import single_line, budget_retry
 
 CLEAN = 'No issues occurred during this run.\n'
 KINDS = {'question': 'User question', 'pause': 'Paused for user request', 'problem': 'Needs user review'}
@@ -26,6 +28,27 @@ STATUS_LABELS = {'working': 'Working on', 'decision': 'Decision needed',
                  'blocked': 'Blocked', 'paused': 'Paused', 'completed': 'Completed'}
 STATUS_CONTROLS = {'working': 'WORKING_ON', 'decision': 'NEEDS_USER_DECISION',
                    'blocked': 'BLOCKED', 'paused': 'STOPPED', 'completed': 'COMPLETED'}
+
+
+def read_body(path: Path) -> str:
+    try:
+        return path.read_text(encoding='utf-8')
+    except (OSError, UnicodeError) as error:
+        raise ValueError(
+            f'Invalid argument --text-file "{path}": expected an existing readable UTF-8 file '
+            'containing the actual question, issue, clarification or completed scope. '
+            'Save and verify that complete content with a literal-safe file-write tool, or correct the path, '
+            'then rerun with --text-file "<existing-input-file>". Do not change access controls or invent '
+            f'missing content. Original error: {error}') from error
+
+
+def decode_body(value: str) -> str:
+    try:
+        return base64.b64decode(value, validate=True).decode('utf-8', errors='strict')
+    except (binascii.Error, UnicodeError, ValueError) as error:
+        raise ValueError('Invalid argument --text-base64: expected unbroken standard Base64 of a UTF-8 message body. '
+                         'Encode the complete body as UTF-8, then standard Base64, and pass the generated value unchanged. '
+                         f'Original error: {error}') from error
 
 
 def is_redirect(path: Path) -> bool:
@@ -38,7 +61,11 @@ def is_redirect(path: Path) -> bool:
 
 
 def report_directory(project_root: Path) -> Path:
-    root = project_root.resolve(strict=True)
+    try:
+        root = project_root.resolve(strict=True)
+    except OSError as error:
+        raise ValueError(f'Invalid argument --project-root "{project_root}": expected an existing readable project directory. '
+                         f'Use the actual existing workspace in --project-root "<workspace>". Original error: {error}') from error
     if not root.is_dir():
         raise ValueError('--project-root must be an existing project directory')
     folder = root / '.scoville'
@@ -54,10 +81,24 @@ def report_path(path: Path, project_root: Path | None = None) -> Path:
         raise ValueError('--report-file must be the absolute workflow-run-...md path returned by create')
     if is_redirect(path):
         raise ValueError('--report-file must not redirect to another file')
+    if not path.is_file():
+        raise ValueError(f'Invalid argument --report-file "{path}": expected an existing run Markdown file. '
+                         'Use the actual existing absolute report path returned by create; do not create a replacement.')
     folder = report_directory(project_root or path.parent.parent)
     if path.parent != folder or not path.is_file():
         raise ValueError('--report-file must be an existing run Markdown file directly in this project .scoville directory')
     return path
+
+
+def read_report_text(path: Path) -> str:
+    try:
+        return path.read_text(encoding='utf-8')
+    except (OSError, UnicodeError) as error:
+        raise ValueError(
+            f'Invalid argument --report-file "{path}": expected an existing readable UTF-8 run Markdown file. '
+            'Check the actual report path returned by create and restore its complete known report bytes as UTF-8 '
+            'before rerunning with --report-file "<existing-report-file>". Do not create a replacement report '
+            f'or guess damaged content. Original error: {error}') from error
 
 
 def create_report(project_root: Path) -> dict:
@@ -96,7 +137,7 @@ def save(path: Path, before: str, after: str) -> None:
                                          dir=path.parent, prefix='.workflow-report-', suffix='.tmp', delete=False) as stream:
             temporary = Path(stream.name)
             stream.write(after)
-        if path.read_text(encoding='utf-8') != before:
+        if read_report_text(path) != before:
             raise ValueError('--report-file changed during this write; reread it and reconcile the intended entry before retrying')
         os.replace(temporary, path)
         temporary = None
@@ -110,7 +151,7 @@ def add_issue(path: Path, kind: str, location: str, text: str, issue_id: str | N
     location = single_line(location, '--location, e.g. PLAN-0025 / W-001/step-2 or Startup')
     body = quote(text)
     issue_id = issue_id or uuid4().hex
-    before = path.read_text(encoding='utf-8')
+    before = read_report_text(path)
     bounds = issue_bounds(before, issue_id)
     block = (f'<!-- scoville-issue: {issue_id} -->\n'
              f'## {location} · {KINDS[kind]}\n\nStatus: Open\n\n{body}\n'
@@ -131,7 +172,7 @@ def add_issue(path: Path, kind: str, location: str, text: str, issue_id: str | N
 def resolve_issue(path: Path, issue_id: str, text: str) -> dict:
     path = report_path(path)
     body = quote(text)
-    before = path.read_text(encoding='utf-8')
+    before = read_report_text(path)
     bounds = issue_bounds(before, issue_id)
     if not bounds:
         raise ValueError('--issue-id is absent from this report; use the ID returned by add for this run')
@@ -140,7 +181,7 @@ def resolve_issue(path: Path, issue_id: str, text: str) -> dict:
     if resolution in block:
         return {'report_file': str(path), 'issue_id': issue_id, 'changed': False}
     if 'Status: Open\n' not in block and 'Status: Resolved\n' not in block:
-        raise ValueError('--report-file issue has no valid Open/Resolved status; inspect the edited entry before resolving it')
+        raise ValueError('--report-file issue has no valid Open or Resolved status; inspect the edited entry before resolving it')
     updated = block.replace('Status: Open\n', 'Status: Resolved\n', 1)
     updated = updated.replace(f'<!-- /scoville-issue: {issue_id} -->', resolution + f'<!-- /scoville-issue: {issue_id} -->', 1)
     save(path, before, before[:bounds[0]] + updated + before[bounds[1]:])
@@ -149,17 +190,46 @@ def resolve_issue(path: Path, issue_id: str, text: str) -> dict:
 
 def read_report(path: Path) -> dict:
     path = report_path(path)
-    text = path.read_text(encoding='utf-8')
+    text = read_report_text(path)
     display = re.sub(r'^<!-- /?scoville-issue: [A-Za-z0-9_-]{1,80} -->\n?', '', text, flags=re.M)
     return {'report_file': str(path), 'text': text, 'display_text': display}
 
 
 def finish_report(path: Path) -> dict:
     path = report_path(path)
-    before = path.read_text(encoding='utf-8')
+    before = read_report_text(path)
     if not before.strip():
         save(path, before, CLEAN)
     return read_report(path)
+
+
+
+def complete_report(path: Path, project: str, plan: str, point: str, body: str, emit=None) -> dict:
+    """Prepare the full result before any report write; acceptance stays human."""
+    completion = status('completed', project, plan, point, body)
+    path = report_path(path)
+    before = read_report_text(path)
+    after = before if before.strip() else CLEAN
+    display = re.sub(r'^<!-- /?scoville-issue: [A-Za-z0-9_-]{1,80} -->\n?', '', after, flags=re.M)
+    result = {'report_file': str(path), 'report_text': after,
+              'display_text': display, **completion}
+    payload = json.dumps(result, ensure_ascii=False) + '\n'
+    payload.encode('utf-8', errors='strict')
+    changed = after != before
+    if changed:
+        save(path, before, after)
+    if emit is not None:
+        try:
+            emit(payload)
+        except (OSError, UnicodeError, ValueError) as error:
+            if changed:
+                try:
+                    save(path, after, before)
+                except (OSError, UnicodeError, ValueError) as rollback_error:
+                    raise ValueError(f'Completion output failed: {error}; report rollback failed: '
+                                     f'{rollback_error}. Reread --report-file before retrying; completion is unconfirmed') from error
+            raise
+    return result
 
 
 def validate_location(plan: str, point: str) -> None:
@@ -177,7 +247,7 @@ def status(kind: str, project: str, plan: str | None, point: str | None, body: s
     project = single_line(project, '--project (the actual project name)')
     if plan is None and point is None:
         if kind in ('working', 'completed'):
-            raise ValueError('--plan and --point are required for working/completed; use the actual PLAN-NNNN and W-NNN/step-N')
+            raise ValueError('--plan and --point are required for working or completed; use the actual PLAN-NNNN and W-NNN/step-N')
         location = 'Startup'
     elif plan is None or point is None:
         raise ValueError('--plan and --point must be supplied together, e.g. --plan PLAN-0025 --point W-001/step-2; omit both only before startup location is known')
@@ -185,7 +255,7 @@ def status(kind: str, project: str, plan: str | None, point: str | None, body: s
         validate_location(plan, point)
         location = f'{plan} → {point}'
     if not body.strip():
-        raise ValueError('--text or --text-file must supply the actual question, reason, waiting work or completion scope as nonempty text')
+        raise ValueError('--text, --text-file or status --text-base64 must supply the actual question, reason, waiting work or completion scope as nonempty text')
     # Project names are literal text inside a Markdown status heading.
     escaped = re.sub(r'([\\`*_\[\]<>])', r'\\\1', project)
     text = f'**{STATUS_LABELS[kind]}: {escaped} → {location}**\n\n{body.strip()}'
@@ -206,7 +276,7 @@ def progress(project: str, plan: str, point: str, previous_key: str | None = Non
 
 
 def recorded_progress(project_root: Path, selector: Path, max_output_bytes: int | None = None,
-                      point: str | None = None) -> tuple[str, str]:
+                      point: str | None = None, retry_arguments: list[str] | None = None) -> tuple[str, str]:
     """Project saved position only. Never select or start work."""
     if not selector.is_file():
         raise ValueError(f'Plan position helper missing: {selector}; install the complete matching Workflow package')
@@ -217,13 +287,14 @@ def recorded_progress(project_root: Path, selector: Path, max_output_bytes: int 
     result = subprocess.run(command,
                             capture_output=True, text=True, encoding='utf-8')
     if result.returncode:
-        raise ValueError('Plan position failed; correct its diagnostic before progress: ' + result.stdout + result.stderr)
+        raise ValueError('Plan position failed; correct its diagnostic before progress: ' + result.stdout + result.stderr
+                         + budget_retry(result.stdout, retry_arguments or command))
     position = json.loads(result.stdout)
     if position.get('plan_status') != 'active' or position.get('work_status') != 'in_progress':
         raise ValueError('Plan position has no started current Work Item; save and validate Status: in_progress before progress --project-root PATH')
     units = position.get('current_units', [])
     if position.get('untracked_steps'):
-        raise ValueError('Plan position contains unmarked Steps with unknown start state; establish their observed status and save/validate before progress --project-root PATH')
+        raise ValueError('Plan position contains unmarked Steps with unknown start state; establish their observed status and save and validate before progress --project-root PATH')
     if point is not None:
         validate_location(position['plan'], point)
         owner, _, steps = point.partition('/')
@@ -231,7 +302,7 @@ def recorded_progress(project_root: Path, selector: Path, max_output_bytes: int 
             raise ValueError('--point must belong to the saved current Work Item: ' + position['work_item'])
         if not steps:
             if position.get('reason') != 'whole_work_item':
-                raise ValueError('--point must name the actually worked Step/group for an item with Steps')
+                raise ValueError('--point must name the actually worked Step or Step group for an item with Steps')
         else:
             numbers = list(map(int, steps.split('-')[1:]))
             first, last = numbers[0], numbers[-1]
@@ -243,7 +314,7 @@ def recorded_progress(project_root: Path, selector: Path, max_output_bytes: int 
     elif not units and position.get('reason') == 'whole_work_item':
         point = position['work_item']
     else:
-        raise ValueError(f'Plan position cannot infer one current Step/group; found {len(units)}: {units}. Supply --point W-NNN/step-N or --point W-NNN/steps-N-M for the actually worked saved in_progress section. Preserve historical Step statuses; this projection does not start work.')
+        raise ValueError(f'Plan position cannot infer one current Step or Step group; found {len(units)}: {units}. Supply --point W-NNN/step-N or --point W-NNN/steps-N-M for the actually worked saved in_progress section. Preserve historical Step statuses; this projection does not start work.')
     return position['plan'], point
 
 
@@ -268,7 +339,7 @@ def main() -> int:
     source = child.add_mutually_exclusive_group(required=True)
     source.add_argument('--project-root', type=Path, help='manager only: derive progress from saved Plan position')
     source.add_argument('--plan', help='explicit display-only Plan ID; requires --point')
-    child.add_argument('--point', help='with --project-root, validate the actually worked saved in_progress Step/group; required with display-only --plan')
+    child.add_argument('--point', help='with --project-root, validate the actually worked saved in_progress Step or Step group; required with display-only --plan')
     child.add_argument('--selector', type=Path, default=Path(__file__).with_name('select_context.py'))
     child.add_argument('--max-output-bytes', type=int,
                        help='explicit UTF-8 selector budget with --project-root; omit for its default')
@@ -282,13 +353,25 @@ def main() -> int:
     text_input = child.add_mutually_exclusive_group(required=True)
     text_input.add_argument('--text-file', type=Path, help='UTF-8 message body')
     text_input.add_argument('--text', help='plain message body; usable without file writes')
+    text_input.add_argument('--text-base64', help='automatically encoded unbroken standard Base64 of a UTF-8 body; status only, without file writes')
+    child = sub.add_parser('complete', help='finish the report and render Completed in one call after acceptance')
+    child.add_argument('--report-file', required=True, type=Path)
+    child.add_argument('--completed', action='store_true', required=True,
+                       help='only after requested scope passes acceptance and closure')
+    child.add_argument('--project', required=True)
+    child.add_argument('--plan', required=True)
+    child.add_argument('--point', required=True)
+    text_input = child.add_mutually_exclusive_group(required=True)
+    text_input.add_argument('--text-file', type=Path, help='UTF-8 actual completed scope')
+    text_input.add_argument('--text', help='plain actual completed scope')
     args = parser.parse_args()
     try:
         if args.command == 'create':
             result = create_report(args.project_root)
         elif args.command == 'progress':
             if args.project_root:
-                plan, point = recorded_progress(args.project_root, args.selector, args.max_output_bytes, args.point)
+                plan, point = recorded_progress(args.project_root, args.selector, args.max_output_bytes, args.point,
+                                                [sys.executable, str(Path(__file__).resolve()), *sys.argv[1:]])
             else:
                 if args.max_output_bytes is not None:
                     raise ValueError('--max-output-bytes requires --project-root; omit it for display-only --plan/--point')
@@ -297,12 +380,20 @@ def main() -> int:
                 plan, point = args.plan, args.point
             result = progress(args.project, plan, point, args.previous_key)
         elif args.command == 'status':
-            body = args.text_file.read_text(encoding='utf-8') if args.text_file is not None else args.text
+            body = (read_body(args.text_file) if args.text_file is not None else
+                    decode_body(args.text_base64) if args.text_base64 is not None else args.text)
             result = status(args.kind, args.project, args.plan, args.point, body)
+        elif args.command == 'complete':
+            body = read_body(args.text_file) if args.text_file is not None else args.text
+            def emit(payload):
+                sys.stdout.write(payload)
+                sys.stdout.flush()
+            complete_report(args.report_file, args.project, args.plan, args.point, body, emit)
+            return 0
         elif args.command == 'add':
-            result = add_issue(args.report_file, args.kind, args.location, args.text_file.read_text(encoding='utf-8'), args.issue_id)
+            result = add_issue(args.report_file, args.kind, args.location, read_body(args.text_file), args.issue_id)
         elif args.command == 'resolve':
-            result = resolve_issue(args.report_file, args.issue_id, args.text_file.read_text(encoding='utf-8'))
+            result = resolve_issue(args.report_file, args.issue_id, read_body(args.text_file))
         else:
             result = (finish_report if args.command == 'finish' else read_report)(args.report_file)
         print(json.dumps(result, ensure_ascii=False))

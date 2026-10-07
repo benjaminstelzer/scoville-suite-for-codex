@@ -1,6 +1,16 @@
 # Changelog
 
 
+## v2.4.0 - 2026-10-07
+
+- Keep development ahead of bookkeeping. Reuse decisive evidence and test observable results instead of freezing incidental wording in source files.
+- Add read-only Plan ID and start-condition queries, with actionable errors and warnings for likely text-decoding damage.
+- Deliver complete native assignments and answers through compaction or hashed temporary files. Workflow preserves Plan exclusions in every assignment and finishes its report and completion message in one call.
+- Start Workflow only on an explicit request, preserve agent takeover order, and continue unfinished work without rebuilding a completed assignment.
+- Resolve Claude adviser requests against their selected project and preserve Unicode settings piped from PowerShell.
+- Keep Codex packages on AGENTS.md, require their packaged helpers, and remove unused writing-depth settings.
+- Keep long Project and Plan history menus scrollable and their last entries selectable in Plan Viewer 1.4.3.
+
 ## v2.3.11 - 2026-10-03
 
 - Allow Context Cleanup with the tested Luna 6 Medium baseline instead of requiring a recommended frontier model.

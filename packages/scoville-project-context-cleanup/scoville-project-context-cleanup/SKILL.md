@@ -1,7 +1,7 @@
 ---
 name: scoville-project-context-cleanup
-description: Add or revise project rules in AGENTS.md and context in PROJECT_INDEX.md. Use for requested additions to project rules (Projektregeln) and cleanup of these files. Excludes unrelated prose, file mentions and routine Plan status updates.
-compatibility: Requires project-file read/write access. Fable, Astra, SOL or Opus 5.0+ recommended. Lowest tested baseline is Luna 6 with Medium reasoning. Developed and tested in Codex; other hosts untested. No scripts, services or network required.
+description: Add or revise project rules in AGENTS.md and context in PROJECT_INDEX.md. Use for requested additions to project rules and cleanup of these files. Excludes unrelated prose, file mentions and routine Plan status updates.
+compatibility: "Agent Skills host with project-file read and write access. No services or network required. Developed and tested in Codex; other hosts untested. Python 3.11+ and the bundled text-size checker are required for size checks."
 ---
 
 # Scoville Project Context Cleanup
@@ -40,8 +40,8 @@ Apply the [shared writing contract](references/writing.md) when drafting or
 rewording. It supplies the common meaning and completion rules.
 
 Keep information that changes a project decision: specific commands and their
-conditions, canonical owners, non-obvious constraints, permissions and useful
-gotchas. Remove repetition, obsolete context established by evidence, and
+conditions, responsible sources, non-obvious constraints, permissions and useful
+pitfalls. Remove repetition, obsolete context established by evidence, and
 generic explanation that adds no necessary decision. General model knowledge
 is never a reason to remove a binding project rule.
 
@@ -69,7 +69,7 @@ For AGENTS.md, adapt this order to the existing project:
 1. Purpose and scope, only when orientation is needed.
 2. Binding boundaries and permissions.
 3. Canonical sources and responsibilities.
-4. Project-specific working rules and gotchas.
+4. Project-specific working rules and pitfalls.
 5. Relevant verification commands and completion conditions.
 6. Conditional references for specialized work.
 
@@ -107,3 +107,17 @@ log is unnecessary.
 Distinguish actual checks from untested model behavior. Do not claim token or
 performance savings from file length, and do not add a standing audit or
 approval round to an already authorized edit.
+
+Reuse an already verified Python 3.11+ interpreter. Otherwise check `py -3`
+on Windows or `python3` elsewhere; try `python` if needed. Choose it locally,
+without asking the user. Use that executable for the `python` examples.
+Report a missing runtime only when no suitable installed interpreter is found.
+
+## Runtime helpers
+
+Use the bundled helpers for their operations. Read their invocation instructions,
+not their source, unless diagnosing a failure.
+Python and every named helper are required. Missing dependencies or helper
+errors stop the affected operation. Do not substitute manual execution.
+
+Helpers: `scripts/check_text_size.py`.

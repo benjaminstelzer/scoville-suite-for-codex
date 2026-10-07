@@ -1,11 +1,13 @@
 """Packaged route and saved-position integration; native dispatch is tested live."""
 import json
+import hashlib
 from pathlib import Path
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
+import uuid
 
 from test_contract import PACKAGE, SUITE_ROOT
 
@@ -40,6 +42,8 @@ class SimplifiedHelpersTests(unittest.TestCase):
         return json.loads(result.stdout)
 
     def dispatch(self, *args, role='executor', error=None):
+        if not any(flag in args for flag in ('--assignment-file', '--context-handoff', '--predecessor-agent-id')):
+            args = (*args, '--assignment-file', self.root / f'assignment-{uuid.uuid4().hex}.txt')
         return self.cli('build_dispatch_prompt.py', '--project-root', self.root,
                         '--unit', 'W-001/step-1', '--role', role, '--format', 'create',
                         '--manager-agent-id', '/root/manager', '--project-name', 'test',
@@ -49,7 +53,7 @@ class SimplifiedHelpersTests(unittest.TestCase):
         self.dispatch(error='--route CLASS or both --model and --thinking')
         actual = self.dispatch('--route', 'medium')
         self.assertEqual((actual['model'], actual['reasoning_effort']), ('gpt-6-luna', 'medium'))
-        reviewed = self.dispatch('--route', 'medium', '--executor-result', self.result, role='reviewer')
+        reviewed = self.dispatch('--route', 'medium', '--executor-result', self.result, '--supplemental-context', self.scope, role='reviewer')
         self.assertEqual((reviewed['model'], reviewed['reasoning_effort']), ('gpt-6-sol', 'high'))
         for overrides, pair in [(['--model', 'gpt-6-astra'], ('gpt-6-astra', 'medium')),
                                 (['--thinking', 'high'], ('gpt-6-luna', 'high'))]:
@@ -65,6 +69,61 @@ class SimplifiedHelpersTests(unittest.TestCase):
             output = self.dispatch('--model', actual['model'], '--thinking', actual['reasoning_effort'], *extra)
             self.assertEqual((output['model'], output['reasoning_effort']), ('gpt-6-luna', 'medium'))
             self.assertEqual(set(output), {'task_name', 'message', 'fork_turns', 'model', 'reasoning_effort'})
+
+    def test_assignment_delivery_tools_reach_actual_complete_file_consumer(self):
+        payload = self.root / 'complete Grüße 中文.txt'
+        payload.write_text('completed: full result\nRequired final fact: Grüße 中文.\n', encoding='utf-8')
+        cases = [
+            ('executor', ['--route', 'medium']),
+            ('reviewer', ['--route', 'medium', '--executor-result', self.result, '--supplemental-context', self.scope]),
+            ('executor', ['--model', 'gpt-6-luna', '--thinking', 'medium', '--reviewer-result', self.result]),
+            ('executor', ['--model', 'gpt-6-luna', '--thinking', 'medium', '--context-handoff', self.result,
+                          '--supplemental-context', self.scope, '--predecessor-agent-id', '/root/previous']),
+        ]
+        for role, extra in cases:
+            with self.subTest(role=role, extra=extra):
+                assignment = self.root / f'delivery-{uuid.uuid4().hex}.txt'
+                carrier = self.dispatch(*extra, '--assignment-file', assignment, role=role)
+                self.assertIn(str(assignment), carrier['message'])
+                fields = dict(line.split(': ', 1) for line in assignment.read_text(encoding='utf-8').splitlines()
+                              if line.startswith(('text_size_checker: ', 'python: ')))
+                self.assertEqual(fields['python'], sys.executable)
+                self.assertEqual(Path(fields['text_size_checker']), (PACKAGE / 'scripts/check_text_size.py').resolve())
+                consumed = subprocess.run([fields['python'], fields['text_size_checker'], '--file', str(payload),
+                                           '--publish-full', '--project-root', str(self.root)],
+                                          capture_output=True, text=True, encoding='utf-8')
+                self.assertEqual(consumed.returncode, 0, consumed.stderr)
+                metadata = json.loads(consumed.stdout)
+                received = Path(metadata['full_file']).read_bytes()
+                self.assertEqual(received, payload.read_bytes())
+                self.assertEqual(hashlib.sha256(received).hexdigest(), metadata['sha256'])
+                self.assertEqual(metadata['status'], 'complete_file')
+                self.assertNotIn('tool_output_limit_tokens', metadata)
+
+    def test_missing_delivery_checker_prevents_assignment_then_restoration_succeeds(self):
+        suite = Path(self.temp.name) / 'copied suite'
+        copy = suite / PACKAGE.name
+        shutil.copytree(PACKAGE, copy)
+        shutil.copytree(PACKAGE.parent / 'scoville-code', suite / 'scoville-code')
+        checker = copy / 'scripts/check_text_size.py'
+        original = checker.read_bytes()
+        checker.unlink()
+        assignment = self.root / 'restored-checker-assignment.txt'
+        command = [sys.executable, '-B', str(copy / 'scripts/build_dispatch_prompt.py'),
+                   '--project-root', str(self.root), '--unit', 'W-001/step-1', '--role', 'executor',
+                   '--format', 'create', '--manager-agent-id', '/root/manager', '--project-name', 'test',
+                   '--worker-number', '1', '--route', 'medium', '--assignment-file', str(assignment)]
+        failed = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
+        self.assertNotEqual(failed.returncode, 0)
+        self.assertEqual(failed.stdout, '')
+        self.assertIn(str(checker.resolve()), failed.stderr)
+        self.assertIn('intact matching Workflow package', failed.stderr)
+        self.assertFalse(assignment.exists())
+        checker.write_bytes(original)
+        corrected = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
+        self.assertEqual(corrected.returncode, 0, corrected.stderr)
+        self.assertIn(str(assignment), json.loads(corrected.stdout)['message'])
+        self.assertIn(str(checker.resolve()), assignment.read_text(encoding='utf-8'))
 
     def saved_steps(self, steps):
         self.plan.write_text(self.original.replace('1. Read the canonical files.\n2. Check the local record shapes.', steps), encoding='utf-8')

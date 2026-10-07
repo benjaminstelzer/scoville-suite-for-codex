@@ -42,7 +42,7 @@ evidence. Selected comparisons do not establish a general performance gain.
 
 ## Compatibility
 
-Developed for Codex and Claude Code with reference access and a shell for the project's own checks. Fable, Astra, SOL or Opus (5.0+) are recommended, while Luna 6 with Medium reasoning is the lowest tested baseline.
+Developed for Codex and Claude Code with reference access and a shell for the project's own checks. Fable, Astra, SOL or Opus (5.0+) are recommended. Luna 6 with High reasoning has passing results in selected practical Code tasks in Codex, but some practical checks and one abstract instruction-recall check did not pass. These checks do not establish reliable use across Code tasks or on other model routes or hosts.
 
 ## Install
 
@@ -66,7 +66,7 @@ The host needs permission to write to its Skills directory. The
 You can edit the bundled [conventions](scoville-code/references/project-conventions.md),
 but the next Skill update may overwrite them. To keep your conventions, maintain a Markdown file outside the
 Skill installation and reference it explicitly from your global or project
-`AGENTS.md` (Codex) or `CLAUDE.md` (Claude Code). For example, add this to
+`AGENTS.md`. For example, add this to
 the file at the project root:
 
 ```markdown
@@ -80,7 +80,7 @@ fallback to additions or refactors in an existing project.
 ```
 
 Then create the file with your conventions. Relative paths are resolved from
-the `AGENTS.md` or `CLAUDE.md` that references them, and a personal file
+the `AGENTS.md` that references them, and a personal file
 shared across projects can use an absolute path. The agent reads the
 referenced file and tells you if it can't find it.
 

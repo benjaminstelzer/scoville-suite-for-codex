@@ -11,6 +11,10 @@ assess the same evidence; a general consultation combines independent answers
 into a synthesis. The caller owns any subsequent changes. Advisers never repair
 the subject or delegate the consultation.
 
+When writing adviser framing or reporting results, read and apply the
+[shared writing rules](references/writing.md). The helpers include those rules
+for adviser answers while preserving the literal user question.
+
 ## Choose the consultation
 
 Infer `review` or `consultation` from the actual question; an explicit mode wins.
@@ -30,10 +34,7 @@ settings for each adviser. Read
 [configuration and helper inputs](references/configuration.md) for resolution,
 migration or the first helper invocation.
 
-Reuse an already verified Python 3.11+ interpreter. Otherwise check `py -3`
-on Windows or `python3` elsewhere; try `python` if needed. Choose it locally,
-without asking the user. Use that executable for the `python` examples.
-Report a missing runtime only when no suitable installed interpreter is found.
+{{ include: rules.python }}
 
 Native spawn_agent validates the requested model and effort on the actual host.
 Report a host rejection without substituting another model or route.

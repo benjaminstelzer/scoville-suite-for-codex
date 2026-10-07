@@ -42,14 +42,16 @@ If it cannot be reconciled, report that adviser unresolved with partial results.
 
 Use `collaboration.wait_agent` for bounded waits while advisers are working.
 It signals mailbox activity; consume the actual messages and final responses,
-not the wait summary as an answer. Require the exact adviser's actual native final
-and completion. A substantive send_message is partial information, not its final.
-Match the complete native final to the exact retained handle and its latest
-question. Missing/incomplete finals remain unresolved. Retain complete answers
-once. If a label repeats without changing identity, reference or scope, use
-the retained assignment to identify the answer. A different reference or scope
-still needs clarification. Do not accept
-an earlier answer as the result of a later same-handle follow-up.
+not the wait summary as an answer. For an inline or complete-file answer, require
+the exact adviser's actual native final and completion. Match its host sender
+to the retained handle and its answer to the latest question, adviser identity,
+reference and scope. For complete-file delivery, verify SHA-256 and read the
+entire file before accepting or using the answer; metadata alone is insufficient.
+A substantive send_message is partial information, not the native final.
+Missing or incomplete answers remain unresolved. Retain complete answers once.
+If only a label repeats, use the retained assignment to identify the answer;
+a different reference or scope needs clarification. Never accept an earlier
+answer as the result of a later same-handle follow-up.
 
 A timeout ends only the wait. Continue waiting for active advisers; keep
 completed answers and failures visible. A real tool failure, user interruption

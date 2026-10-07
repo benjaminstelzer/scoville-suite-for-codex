@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build spawn_agent arguments for a gated manager start or direct takeover."""
+"""Runner only: build spawn_agent arguments for an initial or successor manager start; never composes or delivers a manager handoff."""
 from __future__ import annotations
 
 import argparse
@@ -8,7 +8,7 @@ from pathlib import Path
 
 from inspect_native_context import configure_utf8
 from run_feedback import report_path
-from native_task_arguments import EFFORTS, single_line, unique_task_name
+from native_task_arguments import EFFORTS, single_line, unique_task_name, assignment_path, publish_assignment
 from workflow_settings import load_config, validate_pair
 
 
@@ -26,7 +26,15 @@ def build_arguments(args: argparse.Namespace) -> dict:
             raise ValueError('--mode start requires --project-root with the existing absolute workspace directory')
         if not args.request_file:
             raise ValueError('--mode start requires --request-file <request.txt> containing the user activation, scope and coordination authority')
-        request = args.request_file.read_text(encoding='utf-8')
+        try:
+            request = args.request_file.read_text(encoding='utf-8')
+        except (OSError, UnicodeError) as error:
+            raise ValueError(
+                f'Invalid argument --request-file "{args.request_file}": expected an existing readable UTF-8 file '
+                'containing the actual user activation, requested scope and coordination authority. '
+                'Save and verify that complete content with a literal-safe file-write tool, or correct the path, '
+                'then rerun with --request-file "<existing-input-file>". Do not change access controls or invent '
+                f'missing content. Original error: {error}') from error
         if not request.strip():
             raise ValueError(f'--request-file {args.request_file} is empty; retain the actual user activation and scope in UTF-8 text')
         pair = load_config(Path(__file__).resolve().parents[1] / 'assets' / 'workflow.toml', args.project_root)['manager']
@@ -51,6 +59,15 @@ def build_arguments(args: argparse.Namespace) -> dict:
         raise ValueError('--report-file is required for every manager; use the existing absolute path returned by run_feedback.py create')
     report = report_path(args.report_file, args.project_root if args.mode == 'start' else None)
     skill = Path(__file__).resolve().parents[1]
+    writing = skill / 'references' / 'writing.md'
+    if not writing.is_file():
+        raise ValueError(f'packaged writing rules missing at {writing}; use the intact matching suite package before starting a manager')
+    wrapped = skill.parent.name == skill.name
+    suite = skill.parent.parent if wrapped else skill.parent
+    plan_root = suite / 'scoville-plan'
+    plan = (plan_root / 'scoville-plan' if wrapped else plan_root) / 'SKILL.md'
+    if not plan.is_file():
+        raise ValueError(f'bundled Scoville Plan is missing at {plan}; use the complete matching suite package layout before starting a manager')
     message = (
         f'You are Scoville manager {args.manager_number}. Runner agent: {runner}.\n'
         f'Project display name: {project}. Preserve it in progress, status messages and direct handoffs.\n'
@@ -60,6 +77,10 @@ def build_arguments(args: argparse.Namespace) -> dict:
         'handoff requests, writes or children. Load the shared manager protocol before this action.\n'
         f'Manager protocol: {skill / "references" / "manager-protocol.md"}\n'
         f'Manager operations: {skill / "references" / "operations.md"}\n'
+        f'Plan Skill: {plan}\n'
+        'After START, use this Plan Skill and its scripts/ helpers. Resolve other suite Skills '
+        'from the same suite directory, preserving any explicit user override; do not substitute another installed build.\n'
+        f'Writing rules (read after START before writing assignments, results or handoffs): {writing}\n'
         f'Rollover contract: {skill / "references" / "operations-rollover.md"}\n'
         f'Run feedback contract: {skill / "references" / "run-feedback.md"}\n'
         f'Run report (same file for all managers): {report}\n'
@@ -67,18 +88,34 @@ def build_arguments(args: argparse.Namespace) -> dict:
         'are within that run; this grants no third-party messaging or extra project scope.\n'
         'The runner receives only short control states: READY, RUNNING, SUCCESSOR_REQUEST, '
         'HANDOFF_DELIVERED, WORKING_ON, COMPLETED, STOPPED, BLOCKED, NEEDS_USER_DECISION '
-        'or CLARIFICATION_REQUEST <retained-predecessor-id>. '
-        'WORKING_ON carries only the generated key and one project/Plan/point status line. '
+        'or CLARIFICATION_REQUEST <retained-predecessor-id>. An oversized handoff or a confirmed one-way manager '
+        'handoff routing rejection uses HANDOFF_FILE_READY and HANDOFF_FILE under '
+        'manager-protocol.md; these carry only a file path, never handoff text. '
+        'WORKING_ON carries only the generated key and one status line naming project, Plan and point. '
         'Read run-feedback.md after START; record user-relevant issues and resolutions in the same run report. '
         'Finalize that file only after requested-scope acceptance and closure. '
-        'Issue controls include the canonical Plan ID and affected Step/group (or Startup), '
+        'Issue controls include the canonical Plan ID and affected Step or Step group (or Startup), '
         'exact question or diagnostic, reason and waiting work. Include no work results, '
         'diffs, evidence, Plan content or substantive handoffs, including in your final answer. '
         + context)
-    return {'task_name': unique_task_name(f'scoville_manager_{args.manager_number}'),
+    result = {'task_name': unique_task_name(f'scoville_manager_{args.manager_number}'),
             'message': message, 'fork_turns': 'none',
             'model': single_line(pair['model'], 'workflow.manager.model / --model'),
             'reasoning_effort': pair['reasoning']}
+    target = assignment_path(args.assignment_file, report.parent.parent)
+    successor_step = (f'After START, first send HANDOFF_REQUEST directly to {predecessor}. '
+                      if args.mode == 'successor' else '')
+    result['message'] = (
+        f'You are Scoville manager {args.manager_number}. Runner agent: {runner}.\n'
+        f'Read the manager protocol before READY: {skill / "references" / "manager-protocol.md"}\n'
+        'Send READY to the exact runner, then wait for START. Before START, do not read project files, '
+        'request a handoff, write or start children.\n'
+        + successor_step
+        + f'After START, read the complete UTF-8 manager assignment from {target} '
+          'before any other project work or status. Follow its bundled Skill paths and controls.\n')
+    json.dumps(result, ensure_ascii=False).encode('utf-8', errors='strict')
+    publish_assignment(target, message)
+    return result
 
 
 def main() -> int:
@@ -91,6 +128,8 @@ def main() -> int:
     parser.add_argument('--project-root', type=Path)
     parser.add_argument('--request-file', type=Path, help='UTF-8 user activation and scope, initial start only')
     parser.add_argument('--report-file', type=Path, help='existing absolute per-run report, control metadata for every manager')
+    parser.add_argument('--assignment-file', type=Path,
+                        help='optional new absolute UTF-8 file; defaults to an external system temporary path')
     parser.add_argument('--predecessor-id', help='exact predecessor agent ID, successor only')
     parser.add_argument('--model', help='initial override, or required launched predecessor model for a successor; otherwise use workflow.manager')
     parser.add_argument('--thinking', choices=EFFORTS)

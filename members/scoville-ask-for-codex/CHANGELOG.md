@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.4.0 - 2026-10-07
+
+- Deliver complete native adviser answers through compaction or a hashed temporary file when they exceed the known output limit. Keep the Claude answer-delivery route unchanged.
+- Execute prepared Claude requests against their selected project instead of reading configuration from an unrelated shell directory.
+- Report unreadable request files and invalid directories with the affected argument and exact path, without partial success output.
+
 ## v1.3.0 - 2026-10-02
 
 - Prepare Claude questions and follow-ups directly from text files, retaining saved settings and explicit overrides.

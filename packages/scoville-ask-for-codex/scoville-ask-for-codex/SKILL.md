@@ -11,6 +11,10 @@ assess the same evidence; a general consultation combines independent answers
 into a synthesis. The caller owns any subsequent changes. Advisers never repair
 the subject or delegate the consultation.
 
+When writing adviser framing or reporting results, read and apply the
+[shared writing rules](references/writing.md). The helpers include those rules
+for adviser answers while preserving the literal user question.
+
 ## Choose the consultation
 
 Infer `review` or `consultation` from the actual question; an explicit mode wins.
@@ -96,4 +100,4 @@ not their source, unless diagnosing a failure.
 Python and every named helper are required. Missing dependencies or helper
 errors stop the affected operation. Do not substitute manual execution.
 
-Helpers: `scripts/ask.py`, `scripts/build_adviser_prompt.py`.
+Helpers: `scripts/ask.py`, `scripts/build_adviser_prompt.py`, `scripts/check_text_size.py`.

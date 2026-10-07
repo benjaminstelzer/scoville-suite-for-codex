@@ -42,7 +42,8 @@ def prepare(request):
     require(cwd.is_absolute() and cwd.is_dir(),
             f"request.cwd={str(cwd)!r} must be an existing absolute directory; pass the project's absolute path")
     settings = resolve(request)['config']
-    role = (ROOT / 'references/adviser.md').read_text(encoding='utf-8')
+    role = read_utf8(ROOT / 'references/adviser.md', 'packaged adviser contract')
+    writing = read_utf8(ROOT / 'references/writing.md', 'packaged writing rules')
     entries = []
     for adviser in settings['advisers']:
         ref = reference + ':' + adviser['id']
@@ -50,7 +51,7 @@ def prepare(request):
         if adviser['route'] == 'native':
             raise ValueError(f"adviser {adviser['id']!r}.route='native' cannot use prepare; use build_adviser_prompt.py and collaboration.spawn_agent for this native adviser or select a claude-cli adviser")
         else:
-            prompt = (role + f'\n\nmode: {mode}\nadviser_id: {adviser["id"]}'
+            prompt = (role + '\n\n' + writing + f'\n\nmode: {mode}\nadviser_id: {adviser["id"]}'
                       + f'\nworkspace_root: {cwd}\nconsultation_reference: {ref}\nscope: {scope}'
                       + '\n\nInspect only the supplied scope in this workspace. Resolve relative evidence paths there.'
                       + '\n\n## User request and evidence\n\n' + question)
@@ -69,17 +70,18 @@ def claude(request):
     adviser, config = request['adviser'], request['claude']
     require(adviser.get('route') == 'claude-cli',
             f"request.adviser.route={diagnostic_value(adviser.get('route'))} must be 'claude-cli' for this operation; provide a Claude CLI adviser")
-    # Reuse configuration validation without reading unrelated native defaults.
+    cwd = Path(text(request.get('cwd'), 'cwd'))
+    require(cwd.is_absolute() and cwd.is_dir(),
+            f"request.cwd={str(cwd)!r} must be an existing absolute directory; pass the project's absolute path")
+    # Validate against the selected project, never the launching shell's directory.
     try:
-        resolved = resolve({'overrides': {'advisers': [adviser], 'claude': config}})['config']
+        resolved = resolve({'project_root': str(cwd),
+                            'overrides': {'advisers': [adviser], 'claude': config}})['config']
     except ValueError as error:
         raise ValueError(str(error).replace('request.overrides.advisers[0]', 'request.adviser')
                          .replace('request.overrides.claude', 'request.claude')) from error
     config = resolved['claude']
     adviser = resolved['advisers'][0]
-    cwd = Path(text(request.get('cwd'), 'cwd'))
-    require(cwd.is_absolute() and cwd.is_dir(),
-            f"request.cwd={str(cwd)!r} must be an existing absolute directory; pass the project's absolute path")
     resume = request.get('session_id')
     if resume is not None:
         text(resume, 'session_id')

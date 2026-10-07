@@ -50,17 +50,30 @@ def main() -> int:
         parser.error('--task-name, --model and --effort require --format spawn; omit them for prompt output')
     try:
         question = args.question_file.read_text(encoding='utf-8')
-        if not question.strip():
-            parser.error('--question-file must contain the request and necessary evidence')
-        rules = [(ROOT / 'references' / name).read_text(encoding='utf-8')
-                 for name in ('adviser.md', 'native-delivery.md')]
     except (OSError, UnicodeError) as error:
-        parser.error(f'cannot read required UTF-8 input: {error}; provide a readable --question-file and intact packaged references')
+        parser.error(f'Invalid argument --question-file "{args.question_file}": expected an existing readable UTF-8 file '
+                     'containing the complete request and necessary evidence. Save that content safely or correct the path, '
+                     f'then rerun with --question-file "<existing-question-file>". Original error: {error}')
+    if not question.strip():
+        parser.error('--question-file must contain the request and necessary evidence')
+    rules = []
+    for name in ('adviser.md', 'writing.md', 'native-delivery.md'):
+        path = ROOT / 'references' / name
+        try:
+            rules.append(path.read_text(encoding='utf-8'))
+        except (OSError, UnicodeError) as error:
+            parser.error(f'Cannot read required packaged UTF-8 reference "{path}". '
+                         f'Use the intact built Ask package; do not repair its contracts in the adviser. Original error: {error}')
+    checker = ROOT / 'scripts' / 'check_text_size.py'
+    if not checker.is_file():
+        parser.error(f'packaged text-size checker is missing at {checker}; use the intact built Ask package containing scripts/check_text_size.py')
     prompt = ('\n\n'.join(rules)
               + f'\n\nmode: {args.mode}\nadviser_id: {args.adviser_id}'
               + f'\nworkspace_root: {args.workspace_root}'
+              + f'\ntext_size_checker: {checker}\npython: {sys.executable}'
               + f'\nconsultation_reference: {args.reference}\nscope: {args.scope}'
               + '\n\nInspect only the supplied scope in this workspace. Resolve relative evidence paths there.'
+              + '\nFor oversized-result delivery only, invoke the named Python interpreter and text-size checker even when they are outside the workspace. This exception permits no unrelated external inspection.'
               + '\n\n## User request and evidence\n\n' + question)
     if args.format == 'spawn':
         print(json.dumps({'task_name': args.task_name, 'message': prompt,

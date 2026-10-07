@@ -14,11 +14,48 @@ spec.loader.exec_module(builder)
 
 
 class SetupTests(unittest.TestCase):
-    def test_saved_manager_pair_reaches_start_and_survives_successor(self):
+    def test_invalid_stdin_patch_preserves_config_then_actual_consumer(self):
         with tempfile.TemporaryDirectory() as temporary:
             base = Path(temporary)
             config = builder.load(ROOT, 'codex', 'suite')
             for name in ('scoville-setup', 'scoville-workflow-for-codex'):
+                member = next(m for m in config['members'] if m['name'] == name)
+                for relative, data in builder.payload(ROOT, member, config).items():
+                    target = base / name / relative
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_bytes(data)
+            project = base / 'project Ä 中文'
+            (project / '.scoville').mkdir(parents=True)
+            path = project / '.scoville/config.json'
+            before = b'{"workflow":{"context":{"coordinator_percent":40}},"unrelated":{"keep":true}}\n'
+            path.write_bytes(before)
+            script = base / 'scoville-setup/scoville-setup/scripts/setup.py'
+            command = [sys.executable, '-B', str(script), 'set', '--project-root', str(project)]
+            for invalid in (b'', b'{\n"workflow":', b'\xff'):
+                failed = subprocess.run(command, input=invalid, capture_output=True)
+                self.assertNotEqual(failed.returncode, 0)
+                payload = json.loads(failed.stdout.decode('utf-8'))
+                self.assertFalse(payload['ok'])
+                self.assertNotIn('effective', payload)
+                self.assertIn('stdin', payload['diagnostic'])
+                self.assertIn('UTF-8', payload['diagnostic'])
+                self.assertEqual(path.read_bytes(), before)
+            patch = {'workflow': {'context': {'coordinator_percent': 35}}}
+            corrected = subprocess.run(command, input=json.dumps(patch).encode('utf-8'), capture_output=True)
+            self.assertEqual(corrected.returncode, 0, corrected.stdout.decode('utf-8'))
+            self.assertEqual(json.loads(path.read_text(encoding='utf-8'))['unrelated'], {'keep': True})
+            consumer = base / 'scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/check_context_checkpoint.py'
+            result = subprocess.run([sys.executable, '-B', str(consumer), '--role', 'coordinator',
+                                     '--boundary', 'W-001/step-1',
+                                     '--project-root', str(project)], capture_output=True, text=True, encoding='utf-8')
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(json.loads(result.stdout)['threshold_percent'], 35)
+
+    def test_saved_manager_pair_reaches_start_and_survives_successor(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            config = builder.load(ROOT, 'codex', 'suite')
+            for name in ('scoville-setup', 'scoville-workflow-for-codex', 'scoville-plan'):
                 member = next(m for m in config['members'] if m['name'] == name)
                 for relative, data in builder.payload(ROOT, member, config).items():
                     target = base / name / relative
@@ -38,11 +75,16 @@ class SetupTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             request = project / 'request.txt'
             request.write_text('Start Workflow; internal coordination authorized.', encoding='utf-8')
-            common = ['--runner-id', '/root/runner', '--manager-number', '1', '--report-file', report['report_file']]
+            common = ['--runner-id', '/root/runner', '--project-name', project.name,
+                      '--manager-number', '1', '--report-file', report['report_file']]
+            assignments = []
 
             def start(*overrides):
+                assignment = project / f'manager-{len(assignments)}.txt'
+                assignments.append(assignment)
                 return run(scripts / 'build_manager_handoff.py', *common, '--mode', 'start',
-                           '--project-root', project, '--request-file', request, *overrides)
+                           '--project-root', project,
+                           '--request-file', request, '--assignment-file', assignment, *overrides)
 
             result, initial = start()
             self.assertEqual(result.returncode, 0, result.stderr)
@@ -74,16 +116,20 @@ class SetupTests(unittest.TestCase):
             result, saved = run(setup, 'set', '--project-root', project,
                                 patch={'workflow': {'manager': {'model': 'gpt-6-astra', 'reasoning': 'medium'}}})
             self.assertEqual(result.returncode, 0, result.stdout)
+            successor_assignment = project / 'manager-successor.txt'
+            assignments.append(successor_assignment)
             result, successor = run(scripts / 'build_manager_handoff.py', *common, '--mode', 'successor',
                 '--predecessor-id', '/root/manager', '--model', launched['model'],
-                '--thinking', launched['reasoning_effort'])
+                '--thinking', launched['reasoning_effort'], '--assignment-file', successor_assignment)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual((successor['model'], successor['reasoning_effort']), ('gpt-6-luna', 'high'))
             # Same consumer signature as native spawn_agent; no live agent is started.
             def consume(*, task_name, message, fork_turns, model, reasoning_effort):
                 self.assertEqual(fork_turns, 'none')
                 self.assertTrue(task_name)
-                self.assertIn(f'model={model}, reasoning={reasoning_effort}', message)
+                matching = [p for p in assignments if str(p) in message]
+                self.assertEqual(len(matching), 1)
+                self.assertIn(f'model={model}, reasoning={reasoning_effort}', matching[0].read_text(encoding='utf-8'))
             for arguments in (initial, launched, explicit, successor):
                 consume(**arguments)
             path.write_text(json.dumps({'workflow': {'manager': {'model': False}}}), encoding='utf-8')
