@@ -146,8 +146,9 @@ completed work.
    review_pending result, keep the original worker write-inactive throughout
    review and any correction by a new worker. For the
    final review, supply short references to earlier assessments from this run,
-   same unit and recorded reviewers. Reuse them for unchanged parts rather than
-   reviewing those parts again. Never import a result found through global
+   same unit and recorded reviewers. Reuse them only where reviewed content,
+   applicable requirements and supporting conditions are unchanged since that
+   assessment; do not review those parts again. Never import a result found through global
    agent inventory or another test run. The manager handles Plan findings; send
    source findings to a new worker with the review findings. The manager
    does not edit product files. Keep the worker's model unless the cause warrants
@@ -224,7 +225,8 @@ commit it separately.
 
 Return a normal concise message with an explicit status. Workers include the
 facts needed to assess or continue: completed effects, relevant changed paths,
-decisive checks, unverified behavior and next action if work remains. No marker,
+decisive checks, unverified behavior and next action if work remains. Report facts,
+not a verdict that the work is correct or meets Acceptance. No marker,
 fixed field order, JSON or change flags are required.
 
 Worker statuses: completed, progress_pending, review_pending, blocked,

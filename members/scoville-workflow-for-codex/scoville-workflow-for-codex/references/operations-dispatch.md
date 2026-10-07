@@ -132,6 +132,8 @@ Role-specific inputs name existing UTF-8 plain-text files:
   Acceptance. For a final review, add short references to earlier assessments
   for unchanged parts.
   Include every still-unreviewed change and relevant interaction.
+  Supply applicable Goal parts, constraints and findings to verify, without a
+  manager assessment, defence of the implementation or expected verdict.
 - For a correction worker, supply `--role executor --reviewer-result <result.txt>`.
   Put the assigned source findings and needed context in supplemental context.
 - For an authorized recovery continuation, supply

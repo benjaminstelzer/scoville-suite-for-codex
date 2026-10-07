@@ -2,6 +2,11 @@
 
 
 
+## v2.4.3 - 2026-10-07
+
+- Give Workflow reviewers the assigned requirements and factual worker results without a proposed verdict. Keep reported checks usable as evidence and identify the review boundary explicitly.
+- Reuse earlier checks and reviews only while their reviewed content, requirements and supporting conditions remain unchanged. Reassess only affected claims when those change.
+
 ## v2.4.2 - 2026-10-07
 
 - Keep Acceptance focused on distinct required results and binding checks, without turning it into an implementation recipe or test catalog.
