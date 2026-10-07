@@ -45,7 +45,7 @@ adviser or saving configuration.
 
 For an explicit request to save settings, pass only the requested fields as a
 JSON object on stdin to the command below. Generate that object with a serializer
-(such as Python `json.dumps` or PowerShell `ConvertTo-Json`); do not hand-write
+(such as Python `json.dumps` or PowerShell `ConvertTo-Json -Depth 10 -Compress`); do not hand-write
 JSON text. Use UTF-8 for stdin. In PowerShell, set
 `$OutputEncoding = [System.Text.UTF8Encoding]::new($false)` before piping the
 serialized object so non-ASCII values reach the helper unchanged.

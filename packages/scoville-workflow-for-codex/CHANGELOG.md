@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.4 - 2026-10-07
+
+- Keep manager takeover focused on current work and reuse accepted results. Read earlier reports only for a specific missing or conflicting fact.
+- Return a short pass when a review finds no defects and complete routine bookkeeping without another worker or review.
+- Provide complete, correctly quoted size-check commands before file-backed manager and worker assignments are read.
+
 ## v0.9.3 - 2026-10-03
 
 - Start assignments and report progress with large Plan context by passing an explicit output budget to the bundled selector. Allow one corrected call before starting an agent or sending progress, preserving the complete context.

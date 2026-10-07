@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.1 - 2026-10-07
+
+- Allow native advisers to check input size before large reads. Preserve Python launcher arguments in the shared size-check command and keep the Claude delivery route unchanged.
+
 ## v1.4.0 - 2026-10-07
 
 - Deliver complete native adviser answers through compaction or a hashed temporary file when they exceed the known output limit. Keep the Claude answer-delivery route unchanged.

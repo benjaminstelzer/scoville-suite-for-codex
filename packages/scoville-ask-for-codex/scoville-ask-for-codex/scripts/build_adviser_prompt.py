@@ -73,7 +73,7 @@ def main() -> int:
               + f'\ntext_size_checker: {checker}\npython: {sys.executable}'
               + f'\nconsultation_reference: {args.reference}\nscope: {args.scope}'
               + '\n\nInspect only the supplied scope in this workspace. Resolve relative evidence paths there.'
-              + '\nFor oversized-result delivery only, invoke the named Python interpreter and text-size checker even when they are outside the workspace. This exception permits no unrelated external inspection.'
+              + '\nFor size checks before reading potentially large text and for oversized-result delivery, invoke the named Python interpreter and text-size checker even when they are outside the workspace. This exception permits no unrelated external inspection or project writes; delivery artifacts remain governed by the shared writing rules.'
               + '\n\n## User request and evidence\n\n' + question)
     if args.format == 'spawn':
         print(json.dumps({'task_name': args.task_name, 'message': prompt,

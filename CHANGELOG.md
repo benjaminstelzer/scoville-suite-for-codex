@@ -1,6 +1,12 @@
 # Changelog
 
 
+
+## v2.4.1 - 2026-10-07
+
+- Keep Instructions and Evidence concise, clean old Plans through Maintenance and avoid extra workers or reviews for routine bookkeeping.
+- Reuse accepted results at manager takeover, inspect old reports only for a specific gap and return a short pass when a review finds no defects.
+- Provide directly usable size-check commands before file-backed assignments are read. Preserve nested PowerShell settings and correct Plan selection and recovery guidance.
 ## v2.4.0 - 2026-10-07
 
 - Keep development ahead of bookkeeping. Reuse decisive evidence and test observable results instead of freezing incidental wording in source files.

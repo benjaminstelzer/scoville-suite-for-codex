@@ -5,10 +5,11 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import sys
 
 from inspect_native_context import configure_utf8
 from run_feedback import report_path
-from native_task_arguments import EFFORTS, single_line, unique_task_name, assignment_path, publish_assignment
+from native_task_arguments import EFFORTS, single_line, unique_task_name, assignment_path, publish_assignment, file_read_instruction
 from workflow_settings import load_config, validate_pair
 
 
@@ -112,7 +113,9 @@ def build_arguments(args: argparse.Namespace) -> dict:
         'request a handoff, write or start children.\n'
         + successor_step
         + f'After START, read the complete UTF-8 manager assignment from {target} '
-          'before any other project work or status. Follow its bundled Skill paths and controls.\n')
+          'before any other project work or status. '
+        + file_read_instruction(target, skill / 'scripts' / 'check_text_size.py', sys.executable)
+        + 'Follow its bundled Skill paths and controls.\n')
     json.dumps(result, ensure_ascii=False).encode('utf-8', errors='strict')
     publish_assignment(target, message)
     return result

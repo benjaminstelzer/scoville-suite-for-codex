@@ -36,7 +36,8 @@ remains fixed for this run. A later configuration change applies to the next
 run. Include the launched pair as control metadata in a successor request, never
 a worker pair.
 
-The manager owns Plan, Decision and index edits, staging and authorized commits.
+The manager owns Plan, Decision and index edits, necessary result-report updates
+at normal closure, staging and authorized commits.
 It delegates implementation and stays idle with respect to project files while a
 child writes. At most one worker may write. Reviewers stay read-only. Keep
 assignments, results and direct handoffs under the [shared writing
@@ -111,7 +112,7 @@ completed work.
    - For a running worker, use `collaboration.send_message` for steering. If its state is
      unclear, check that exact handle once before sending; completion may still
      race with delivery. Never restart a completed assignment for a correction.
-   - A reviewer returns one complete assessment with evidence limits, without
+   - A reviewer returns one result under Child results, without
      a question round. Do not reactivate a completed reviewer for missing facts
      or telemetry; retain the limit. If the review itself is paused for a user
      decision, the user's answer may resume that same review.
@@ -137,6 +138,9 @@ completed work.
    evidence without product-code changes do not trigger an earlier review.
    Review is required for code, changes to executables or configuration, critical
    documentation, an explicit requirement or unclear materiality.
+   Critical documentation changes product or operating behavior, user obligations
+   or authority. Routine progress, Evidence and accepted-result summaries are
+   bookkeeping; they do not trigger a review by themselves.
 5. At that boundary, spawn a fresh nested read-only reviewer with the diff since
    the last review and affected Acceptance, including relevant interactions. For a
    review_pending result, keep the original worker write-inactive throughout
@@ -168,8 +172,16 @@ completed work.
    is not start. Preserve completed effects during review, correction and
    continuation. Record checked intermediate results without claiming final
    acceptance. Mark the Work Item done only when its Acceptance and required
-   review pass. Evidence contains the outcome and decisive report reference,
-   not agent IDs or attempts.
+   review pass. Keep Evidence brief: the observed outcome, that a required review
+   occurred, and confirmed open limits needed for further work. Review texts are
+   temporary input for development, never permanent Plan or report content.
+   Replace Instructions with only remaining conditions absent from Steps; do not
+   duplicate Steps as prose or prepend results to old text.
+   Record accepted results, pause or return state and the next owner during this
+   normal closure, after all children stop writing. Create no worker assignment,
+   extra review, report, hash chain or artifact inventory solely to synchronize
+   bookkeeping. A material change to an accepted finding still follows the
+   review and Decision rules.
    Complete the Work Item and select its eligible successor in the same prepared
    Plan change, honoring dependencies and recorded returns. Align current_item
    with that selection; selection does not start the successor's work. For the
@@ -210,10 +222,10 @@ commit it separately.
 
 ## Child results
 
-Return a normal concise message with an explicit status and the facts needed to
-assess or continue: completed effects, relevant changed paths, decisive checks,
-unverified behavior and next action if work remains. No marker, fixed field order,
-JSON or change flags are required.
+Return a normal concise message with an explicit status. Workers include the
+facts needed to assess or continue: completed effects, relevant changed paths,
+decisive checks, unverified behavior and next action if work remains. No marker,
+fixed field order, JSON or change flags are required.
 
 Worker statuses: completed, progress_pending, review_pending, blocked,
 needs_user_decision, context_handoff. Use completed when the worker's
@@ -222,7 +234,11 @@ closure remains. Review_pending requires a checked prior-code fix and named work
 still assigned to that same worker. Reviewer statuses: pass, changes_requested,
 blocked, needs_user_decision, context_handoff. Context_handoff requires an
 explicitly authorized transfer of unfinished work, never a context threshold
-alone. A pass has no unresolved defects. Findings identify the defect, location,
+alone. For pass, say only that the review was performed and found no defects;
+do not repeat files, checks, evidence or the worker's result. A pass has no
+unresolved defects or material acceptance gap. Otherwise transmit only open
+findings and the facts needed to address them, or the concrete blocker, decision
+or evidence limit preventing acceptance. Findings identify the defect, location,
 effect and smallest correction. Optional ideas do not block pass and are not
 assigned for correction without explicit authorization; omit them unless they
 inform a relevant decision. A handoff distinguishes finished and unfinished
