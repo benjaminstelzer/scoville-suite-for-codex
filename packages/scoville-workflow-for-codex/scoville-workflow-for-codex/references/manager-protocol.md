@@ -36,17 +36,20 @@ rejection uses the file route below.
 
 ## Verification
 
-Successor loads operations and compares the compact handoff with the current
-Plan position and sources needed for the next action. Confirm unchanged report
-path, child quiescence, completed effects and evidence limits, required review
-and commit boundaries, scope, permissions, stops and pending issues and answers.
-Reuse completed checks and accepted review outcomes only for unchanged reviewed
-content, applicable requirements and supporting conditions. If these change,
-reassess only affected claims under the existing check and review rules. Read
-old results or inspect additional sources only to resolve a specific missing or
-conflicting fact; do not reconstruct earlier work or rerun accepted checks solely
-because the manager changed. Resolve material gaps directly. Only then send
-HANDOFF_ACCEPTED to predecessor and RUNNING to runner. No writes or dispatch.
+The successor verifies without writes or dispatch:
+
+1. Load operations and compare the handoff with the current Plan position and
+   sources needed next. Confirm unchanged report path, child quiescence,
+   completed effects, evidence limits, required review and commit boundaries, scope,
+   permissions, stops, pending issues and answers.
+2. Reuse completed checks and accepted reviews only while reviewed content,
+   applicable requirements and supporting conditions remain unchanged. Reassess
+   only affected claims under existing check and review rules.
+3. Resolve material gaps directly. Read old results or additional sources only
+   for specific missing or conflicting facts; neither reconstruct earlier work
+   nor rerun accepted checks solely because the manager changed. After complete
+   verification, send HANDOFF_ACCEPTED to predecessor and RUNNING to runner.
+   Keep writes and dispatch stopped until TAKEOVER_COMPLETE.
 
 ## Transition failures
 
@@ -82,37 +85,34 @@ receipt during that state; elapsed wait time is not a reason to invent success.
 
 ## Complete handoff file
 
-After the authenticated HANDOFF_REQUEST, use this route when the complete
-handoff cannot meet the shared pre-output size check without losing required
-information, or when its direct send explicitly returns
-`live agent path ... not found`. For an oversized handoff, do not attempt the
-direct text send. The retiring predecessor may publish this complete temporary
-handoff file. Other project and report writes remain stopped. An uncertain send,
-capacity error or other failure stays blocked. Do not retry the send or spawn
+After authenticated HANDOFF_REQUEST, use this route when required handoff
+content cannot fit the shared pre-output size check, or its direct send
+explicitly returns `live agent path ... not found`. Skip direct text send for
+oversized handoffs. The retiring predecessor may publish the complete temporary
+handoff; other project and report writes remain stopped. Uncertain sends,
+capacity errors and other failures stay blocked. Never retry the send or spawn
 another manager.
 
-Publish the same retained handoff through `check_text_size.py --publish-full`
-under `.scoville/temp/<sha256>.txt`. Send
-`HANDOFF_FILE_READY <successor-id> <sha256> <absolute-file-path>` to the runner.
-The runner checks the exact predecessor sender and its one pending successor ID,
-then forwards `HANDOFF_FILE <predecessor-id> <sha256> <absolute-file-path>` to
-that successor with the instruction to verify the hash and read the entire file.
-The complete path is the text after the hash, including any spaces. The runner
-sees only this metadata and never reads the file. A failed or uncertain forward
-blocks takeover with the file and delivery state retained.
-
-The successor accepts the path only from its exact runner after START. Verify
-SHA-256 over the complete original bytes. Decode and emit text explicitly as
-UTF-8, and read every ordered character-safe portion through prechecked
-complete outputs that fit, including labels and combined results. Hash
-verification does not replace reading. Missing,
-mismatched or incomplete content blocks takeover. Compare the handoff with the
-canonical Plan and relevant files under Verification. If a direct copy also
-arrives, consume the same handoff only once. Conflicting copies block. Send
-HANDOFF_ACCEPTED directly to the predecessor only after verification. The
-predecessor then sends HANDOFF_DELIVERED to the runner and ends with its
-control-only native final. The runner still requires that final and successor
-RUNNING before TAKEOVER_COMPLETE.
+1. **Predecessor:** Publish the same retained handoff through
+   `check_text_size.py --publish-full` under `.scoville/temp/<sha256>.txt`. Send
+   `HANDOFF_FILE_READY <successor-id> <sha256> <absolute-file-path>` to runner.
+2. **Runner:** Check the exact predecessor sender and one pending successor ID.
+   Forward `HANDOFF_FILE <predecessor-id> <sha256> <absolute-file-path>` to that
+   successor, instructing it to verify the hash and read the entire file. The
+   path is all text after the hash, including spaces. Never read the file.
+   Failed or uncertain forwarding blocks takeover; retain file and delivery state.
+3. **Successor:** Accept the path only from the exact runner after START. Verify
+   SHA-256 over complete original bytes. Decode and emit explicitly as UTF-8;
+   read every ordered character-safe portion through prechecked complete outputs
+   that fit, including labels and combined results. Hash verification is not
+   reading. Missing, mismatched or incomplete content blocks takeover. If a
+   direct copy arrives, consume the same handoff only once; conflicting copies
+   block. Apply
+   [Verification](#verification) against the canonical Plan and relevant files
+   before sending HANDOFF_ACCEPTED directly to predecessor.
+4. **Predecessor:** After the receipt, send HANDOFF_DELIVERED to runner and end
+   with the control-only native final. **Runner:** Require that final and
+   successor RUNNING before TAKEOVER_COMPLETE.
 
 ## Steering and answers
 

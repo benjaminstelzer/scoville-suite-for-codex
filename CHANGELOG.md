@@ -2,6 +2,10 @@
 
 
 
+## v2.4.7 - 2026-10-08
+
+- Follow shorter ordered instructions for document reads, Plan edits, code changes and manager handoffs, with required context and ownership checks kept in place.
+
 ## v2.4.6 - 2026-10-08
 
 - Return only the report path and completion status when Workflow finishes. Read the complete report separately when needed, without repeating a large report in the completion response.

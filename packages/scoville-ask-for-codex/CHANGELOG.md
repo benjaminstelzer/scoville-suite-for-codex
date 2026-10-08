@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.5 - 2026-10-08
+
+- Clarify the shared writing and document-reading instructions so the next action and its prerequisites are easier to identify.
+
 ## v1.4.4 - 2026-10-08
 
 - Diagnose shortened output from the observed failing layer; a later shortened query does not prove that the original capture lost information.
