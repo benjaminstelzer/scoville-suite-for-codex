@@ -71,7 +71,7 @@ def apply(project_root: Path, patch: dict) -> dict:
     if "workflow" in patch:
         unknown = sorted(set(patch["workflow"]) - {"manager", "execute", "review", "context", "pin_threads"})
         if unknown:
-            raise ValueError(f"patch.workflow has unsupported fields {unknown}; Setup accepts manager, execute, review, context and pin_threads")
+            raise ValueError(f"patch.workflow has unsupported fields {unknown}; Setup accepts manager, execute, review and context")
     if "pin_threads" in patch.get("ask", {}):
         raise ValueError("patch.ask.pin_threads is obsolete: native Ask advisers are subagents without sidebar chats; omit this field and use ask.advisers or ask.presets for adviser settings")
     if "pin_threads" in patch.get("workflow", {}):

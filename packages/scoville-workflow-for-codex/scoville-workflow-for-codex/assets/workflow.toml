@@ -1,6 +1,6 @@
-# User-editable native Codex model choices and context thresholds.
+# Bundled defaults; override workflow settings in project .scoville/config.json.
 schema_version = 1
-# Compatibility field. Native Workflow does not pin chats.
+# Legacy compatibility field; native Workflow never changes sidebar pinning.
 pin_threads = true
 
 [manager]
@@ -8,7 +8,8 @@ model = "gpt-6.1-sol"
 reasoning = "medium"
 
 [context]
-# Coordinator: at or above; workers: strictly above. Percent of context window.
+# Manager: at or above; all children (workers, reviewers, repairs): strictly above.
+# Percent of the launched model's context window.
 coordinator_percent = 40
 worker_percent = 60
 

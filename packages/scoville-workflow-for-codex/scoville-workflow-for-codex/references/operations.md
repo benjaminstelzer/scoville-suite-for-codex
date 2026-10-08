@@ -38,6 +38,9 @@ a worker pair.
 
 The manager owns Plan, Decision and index edits, necessary result-report updates
 at normal closure, staging and authorized commits.
+When authorized remaining work moves to another Work Item or Plan, apply Plan's
+moved-work rule in references/edit.md. A manager or worker handoff of the same
+item changes no Plan fields or criteria.
 It delegates implementation and stays idle with respect to project files while a
 child writes. At most one worker may write. Reviewers stay read-only. Keep
 assignments, results and direct handoffs under the [shared writing
@@ -130,12 +133,13 @@ completed work.
      required answer, dependent work has no permission to resume.
 4. Inspect the scoped diff and named evidence only as needed for scope and
    acceptance. Do not repeat the worker's diagnosis or tests. Follow the user's
-   or project's review cadence. Otherwise review earlier, at the next checked
-   boundary, when unreviewed product-code changes exist and either the next unit
-   builds on or extensively verifies them, or they fix product code that was
-   complete or checked before the fixing assignment. Otherwise review at Work
-   Item completion. Pure tests, docs and
-   evidence without product-code changes do not trigger an earlier review.
+   or project's review cadence. Without one, choose:
+   - Review earlier at the next checked boundary if unreviewed product-code
+     changes exist and either the next unit builds on or extensively verifies
+     them, or they fix product code complete or checked before the assignment.
+   - Otherwise review at Work Item completion. Pure tests, docs and evidence
+     without product-code changes do not trigger an earlier review.
+
    Review is required for code, changes to executables or configuration, critical
    documentation, an explicit requirement or unclear materiality.
    Critical documentation changes product or operating behavior, user obligations

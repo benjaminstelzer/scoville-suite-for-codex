@@ -142,6 +142,10 @@ Role-specific inputs name existing UTF-8 plain-text files:
    applicable limit. Reopen it only for a named new claim, gap or contradiction.
   Supply applicable Goal parts, constraints and findings to verify, without a
   manager assessment, defence of the implementation or expected verdict.
+  When the review needs Plan or Decision source evidence, name its exact paths
+  and sections in supplemental context. Reviewers may read only those assigned
+  sources and the applicable Plan field rules for a native-field review. This
+  grants no Plan maintenance, tests or unrestricted context search.
 - For a correction worker, supply `--role executor --reviewer-result <result.txt>`.
   Put the assigned source findings and needed context in supplemental context.
 - For an authorized recovery continuation, supply

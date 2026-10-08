@@ -17,10 +17,38 @@ run. Match every reused assessment to this run, unit and recorded reviewer ID.
 | Initial activation or one SUCCESSOR_REQUEST from the current manager | Build and spawn once; retain one unique ID, canonical name mapping and launched pair. Ignore a handled duplicate request. Never infer a request from elapsed time or context. | A predecessor requests once only after its complete unit and children are quiescent, then stops writes. Include own ID and launched pair. |
 | Spawned, awaiting READY | Require READY from the exact new ID within 60 seconds. For a successor, first deliver SUCCESSOR `<new-id>` to the predecessor, then send START to the ready manager. | **First action:** send READY to the supplied runner, then actively wait for its START. Before START, no project reads, handoff requests, writes or children. |
 | START delivered | Initial manager becomes current. A successor stays pending. Accept pending startup or takeover controls and issues, but ordinary progress only from the current STARTed manager. | Initial manager loads operations and sends RUNNING after startup checks. Successor's **first action after START:** send HANDOFF_REQUEST directly to the supplied predecessor. |
-| Direct handoff | Never read the handoff. | Predecessor accepts the request only from the runner-named successor. Compose the substantive handoff yourself from your retained rollover handoff, keeping pending choices and the necessary next action; omit obsolete diary repetition. Send its text with `collaboration.send_message` directly to that successor, then HANDOFF_DELIVERED to runner. `build_manager_handoff.py` only builds the runner's spawn arguments; never run it for this step. Stay active and write-inactive for direct clarifications and the exact successor's receipt. A wait timeout alone does not end this state. An oversized handoff or confirmed one-way routing rejection uses the file route below. |
-| Verification | Retain both IDs; no release yet. | Successor loads operations and compares the compact handoff with the current Plan position and sources needed for the next action. Confirm unchanged report path, child quiescence, completed effects and evidence limits, required review and commit boundaries, scope, permissions, stops and pending issues and answers. Reuse completed checks and accepted review outcomes only for unchanged reviewed content, applicable requirements and supporting conditions. If these change, reassess only affected claims under the existing check and review rules. Read old results or inspect additional sources only to resolve a specific missing or conflicting fact; do not reconstruct earlier work or rerun accepted checks solely because the manager changed. Resolve material gaps directly. Only then send HANDOFF_ACCEPTED to predecessor and RUNNING to runner. No writes or dispatch. |
+| Direct handoff | Never read the handoff. | Apply [Direct handoff](#direct-handoff); await the exact successor's receipt without writes. |
+| Verification | Retain both IDs; no release yet. | Apply [Verification](#verification) before HANDOFF_ACCEPTED and RUNNING; no writes or dispatch. |
 | Receipt and predecessor final | Require **both** predecessor's native completion and successor's RUNNING. HANDOFF_DELIVERED alone proves only delivery. Forward queued input in order, then send TAKEOVER_COMPLETE. Successful delivery makes successor current and retires predecessor. | Predecessor ends only after the authenticated receipt, with control-only final HANDOFF_DELIVERED. Successor actively waits for exact runner's TAKEOVER_COMPLETE; a wait timeout alone is no refusal. Apply post-snapshot steering and answers, then resume the retained next action without repeating consumed checkpoints or checks. |
 | Retired predecessor | Only for CLARIFICATION_REQUEST from the current manager naming its retained predecessor, use collaboration.followup_task on that exact ID for direct read-only clarification. | Retired manager remains write-inactive. After native completion, send neither routine receipts nor routine closure messages. Do not wake it for cleanup. |
+
+## Direct handoff
+
+Predecessor accepts the request only from the runner-named successor. Compose
+the substantive handoff yourself from your retained rollover handoff, keeping
+pending choices and the necessary next action; omit obsolete diary repetition.
+Send its text with `collaboration.send_message` directly to that successor, then
+HANDOFF_DELIVERED to runner. `build_manager_handoff.py` only builds the runner's
+spawn arguments; never run it for this step. Stay active and write-inactive for
+direct clarifications and the exact successor's receipt. A wait timeout alone
+does not end this state. An oversized handoff or confirmed one-way routing
+rejection uses the file route below.
+
+## Verification
+
+Successor loads operations and compares the compact handoff with the current
+Plan position and sources needed for the next action. Confirm unchanged report
+path, child quiescence, completed effects and evidence limits, required review
+and commit boundaries, scope, permissions, stops and pending issues and answers.
+Reuse completed checks and accepted review outcomes only for unchanged reviewed
+content, applicable requirements and supporting conditions. If these change,
+reassess only affected claims under the existing check and review rules. Read
+old results or inspect additional sources only to resolve a specific missing or
+conflicting fact; do not reconstruct earlier work or rerun accepted checks solely
+because the manager changed. Resolve material gaps directly. Only then send
+HANDOFF_ACCEPTED to predecessor and RUNNING to runner. No writes or dispatch.
+
+## Transition failures
 
 Use bounded `collaboration.wait_agent` calls while waiting for READY, START or takeover.
 Do not end the waiting turn. RUNNING asserts completion of the applicable

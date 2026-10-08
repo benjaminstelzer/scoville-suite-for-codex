@@ -39,9 +39,10 @@ Check their availability before startup. Never fall back to new chats, assume a
 capacity limit or invent `close_agent`. Agent identity comes from the host, not
 a title. Do not create a worktree or move the workspace without a user request.
 
-Reuse a verified Python 3.11+ interpreter, otherwise try `py -3` on Windows or
-`python3`, then `python`. Required helper failure stops its operation with the
-actual diagnostic. Workflow creates no persistent goal or scheduled continuation.
+{{ include: rules.python }}
+
+Required helper failure stops its operation with the actual diagnostic.
+Workflow creates no persistent goal or scheduled continuation.
 An existing goal is reported without changing it or adding another.
 
 ## Runner start contract
@@ -135,9 +136,9 @@ The builder returns all five `collaboration.spawn_agent` arguments: `task_name`,
 new manager assignment has an automatic unique name suffix, even in a new run
 with the same manager number. Use that name without asking the user. Retain the
 returned arguments and never repeat a failed or uncertain spawn automatically.
-Parse complete successful stdout; never spawn truncated or failed output. Use
-direct collaboration tool calls if the host does not expose them inside code
-cells. Initial starts resolve `workflow.manager` from the project configuration
+Parse complete successful stdout; never spawn truncated or failed output.
+Call collaboration tools directly, never from inside `functions.exec`.
+Initial starts resolve `workflow.manager` from the project configuration
 and bundled defaults. An explicit pair in the user's request overrides both
 through paired `--model` and `--thinking` arguments. Retain the returned model
 and reasoning effort and validate them against exposed host capabilities before

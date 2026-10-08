@@ -34,9 +34,12 @@ settings for each adviser. Read
 [configuration and helper inputs](references/configuration.md) for resolution,
 migration or the first helper invocation.
 
-Reuse an already verified Python 3.11+ interpreter. Otherwise check `py -3`
+Reuse an already verified interpreter meeting this Skill's Python 3.11+
+requirement. Otherwise check `py -3`
 on Windows or `python3` elsewhere; try `python` if needed. Choose it locally,
-without asking the user. Use that executable for the `python` examples.
+without asking the user. Verify its version before the first helper operation.
+Use that executable wherever examples say `python` or `<verified-python>`,
+including Python commands after `--run --`.
 Report a missing runtime only when no suitable installed interpreter is found.
 
 Native spawn_agent validates the requested model and effort on the actual host.
@@ -98,15 +101,24 @@ and opt-in web access are described in references/claude.md.
 Use the bundled helpers for their operations. Read their invocation instructions,
 not their source, unless diagnosing a failure.
 
-Before reading Skill references or other large inputs, apply any declared or
-explicitly selected output limit. With Python, use
-`<verified-python> -X utf8 "<skill-directory>/scripts/check_text_size.py" --file "<file>" --max-output-tokens <limit> --part 1`.
-Follow each `next=M` label with `--part M`; read every unchanged UTF-8 part
-through `last`, where end equals total. Measure the complete rendered output, including labels;
-combine files or parts only when that combined output fits. Otherwise use
-separate, individually checked outer tool calls; a script joining reads
-returns one combined output. With no applicable limit, read
-complete UTF-8 directly; do not invent a budget.
+Before a potentially large read, use the verified Python interpreter and the
+bundled reader:
+`<verified-python> -X utf8 "<skill-directory>/scripts/check_text_size.py" --file "<document>" --max-output-tokens <limit> --part 1`.
+The program is `scripts/check_text_size.py`; the document is only the `--file`
+value. Start only named `.py` files as Python program files. SKILL.md, references
+and assignments are documents, never programs.
+
+Use the smallest declared or explicitly selected command and outer output limit.
+The reader validates the complete UTF-8 file and budgets its labels too.
+Follow `part=N bytes=start:end/total next=M` with `--part M` through `last`,
+where end equals total. Read every unchanged part in order before dependent
+work. Keep the same budget throughout; if it changes, restart at part 1.
+Use separate outer calls unless their complete combined output, including
+labels and metadata, has been measured and fits. Multiple reads or `text()`
+calls in one outer call share its budget. A reader error leaves the read
+incomplete, even if the budget cannot fit its diagnostic. Do not alter or copy
+the input, truncate it or recover omitted text after an oversized read.
+Without an applicable limit, read complete UTF-8 directly; invent no budget.
 Python and every named helper are required. Missing dependencies or helper
 errors stop the affected operation. Do not substitute manual execution.
 

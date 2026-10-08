@@ -2,6 +2,12 @@
 
 
 
+## v2.4.5 - 2026-10-08
+
+- Start only named .py files as Python programs and preserve complete output from running command sessions. Helper instructions consistently require Python 3.11+.
+- Let assigned field reviewers read the named Plan and Decision sources without granting maintenance or test permissions.
+- Preserve binding Acceptance conditions across owner changes and clarify Workflow roles, handoff stages and review cadence.
+
 ## v2.4.4 - 2026-10-08
 
 - Read complete UTF-8 input in bounded parts and capture command output before display, including diagnostics and original failure status.

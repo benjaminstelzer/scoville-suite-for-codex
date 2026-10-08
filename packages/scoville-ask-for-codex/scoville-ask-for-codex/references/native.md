@@ -12,10 +12,11 @@ directory. Exclude the callerâ€™s verdict, unrelated history and other advisersâ
 assignment per selected adviser:
 
 ```text
-python "<ask-skill-directory>/scripts/build_adviser_prompt.py" --question-file "<question.txt>" --mode review --scope "<exact scope>" --reference "<consultation reference>" --workspace-root "<absolute-project-root>" --adviser-id <resolved-id> --format spawn --task-name <unique-lowercase-name> --model <resolved-model> --effort <resolved-effort>
+python "<ask-skill-directory>/scripts/build_adviser_prompt.py" --question-file "<question.txt>" --mode review --scope "<exact scope>" --reference "<consultation reference>" --workspace-root "<absolute-project-root>" --adviser-id <resolved-id> --format spawn --task-name <unique_name> --model <resolved-model> --effort <resolved-effort>
 ```
 
-Use `--mode consultation` for advice. Parse complete successful stdout as JSON
+Use a unique task name with lowercase letters, digits and underscores, such as
+`ask_sol_1`. Use `--mode consultation` for advice. Parse complete successful stdout as JSON
 and pass it unchanged to `collaboration.spawn_agent`. The object supplies
 `message`, `task_name`, `fork_turns="none"`, `model` and `reasoning_effort`.
 A helper error or incomplete output stops dispatch. Correct its named input;

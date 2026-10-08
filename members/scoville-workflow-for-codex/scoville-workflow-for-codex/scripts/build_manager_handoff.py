@@ -109,13 +109,15 @@ def build_arguments(args: argparse.Namespace) -> dict:
                       if args.mode == 'successor' else '')
     result['message'] = (
         f'You are Scoville manager {args.manager_number}. Runner agent: {runner}.\n'
-        f'Read the manager protocol before READY: {skill / "references" / "manager-protocol.md"}\n'
+        + 'Use this reader for each document below only at its stated permitted reading stage.\n'
+        + file_read_instruction(target, skill / 'scripts' / 'check_text_size.py', sys.executable)
+        + '\n'
+        + f'Read the manager protocol before READY: {skill / "references" / "manager-protocol.md"}\n'
         'Send READY to the exact runner, then wait for START. Before START, do not read project files, '
         'request a handoff, write or start children.\n'
         + successor_step
         + f'After START, read the complete UTF-8 manager assignment from {target} '
           'before any other project work or status. '
-        + file_read_instruction(target, skill / 'scripts' / 'check_text_size.py', sys.executable)
         + 'Follow its bundled Skill paths and controls.\n')
     json.dumps(result, ensure_ascii=False).encode('utf-8', errors='strict')
     publish_assignment(target, message)

@@ -1,9 +1,9 @@
 # Run feedback
 
-The runner is the exact agent ID supplied in this manager's start assignment.
-Send controls and issues only to that runner, never another project's runner or
-a chat selected by title. Display questions and the final report in the original
-runner chat. Children return messages and results to their spawning manager.
+Manager: send controls and issues only to the exact runner ID in your start
+assignment, never another project's runner or a chat selected by title.
+Children: return messages and results to your spawning manager.
+Runner: display questions and the final report in the original runner chat.
 
 Use the same absolute report path supplied at every manager start. A successor
 verifies that its direct handoff names that file. Keep the actual overall scope
@@ -72,8 +72,7 @@ python -X utf8 "<workflow-skill-directory>/scripts/run_feedback.py" status --kin
 ```
 
 Once known, add both `--plan PLAN-NNNN` and `--point W-NNN/step-N` or its
-consecutive Step range. Read this Markdown as documentation, not as a Python
-program. Capture the helper's complete output before displaying it.
+consecutive Step range. Capture the helper's complete output before display.
 
 For a dispatch-builder argument error or a selector-budget error in dispatch or
 progress, first apply the bounded [pre-dispatch
@@ -98,7 +97,8 @@ language using the retained project name and affected unit:
 python "<workflow-skill-directory>/scripts/run_feedback.py" status --kind decision --project "<project-name>" --plan <plan-id> --point <point> --text-file "<question.txt>"
 ```
 
-Kinds are `decision`, `blocked`, `paused` and `completed`.
+Use `decision`, `blocked` or `paused`. Completion uses `complete` below;
+`status --kind completed` is legacy display only and does not finish the report.
 Use `--text-file` for message bodies prepared under the shared writing rules
 when the role may write. While writes are prohibited, use this standard
 ECMAScript function in the available Codex code runtime to encode the complete
@@ -193,7 +193,8 @@ A failure emits no Completed message. Treat file failure as BLOCKED.
 The helper checks mechanics, not Plan acceptance. The manager owns acceptance
 and closure. Open questions blocking acceptance, stops, blockers and handoffs
 never use `complete` or send COMPLETED. The retained `finish` and `status`
-commands remain compatible with older callers.
+commands remain compatible with older callers. `status --kind completed` only
+renders a message; this Workflow's completion route is `complete`.
 
 On a valid COMPLETED from the current manager, keep the runner completion phase
 open until that manager's actual native final and confirmed quiescence of

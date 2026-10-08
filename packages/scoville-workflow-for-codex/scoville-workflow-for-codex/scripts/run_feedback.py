@@ -346,7 +346,8 @@ def main() -> int:
     child.add_argument('--scope-file', type=Path, help='legacy argument, ignored; progress displays only project and Plan point')
     child.add_argument('--previous-key')
     child = sub.add_parser('status', help='render one status heading and its unchanged explanatory text')
-    child.add_argument('--kind', choices=('decision', 'blocked', 'paused', 'completed'), required=True)
+    child.add_argument('--kind', choices=('decision', 'blocked', 'paused', 'completed'), required=True,
+                       help='decision, blocked or paused; completed is legacy display only and does not finish the report; use complete')
     child.add_argument('--project', required=True)
     child.add_argument('--plan')
     child.add_argument('--point')

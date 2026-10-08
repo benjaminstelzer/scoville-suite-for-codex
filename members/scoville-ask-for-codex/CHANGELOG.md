@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4.3 - 2026-10-08
+
+- Bind native adviser instructions to the reader and its document input, with complete output and command-session handling.
+- Use valid native task names and keep adviser roles and transfer boundaries explicit.
+
 ## v1.4.2 - 2026-10-08
 
 - Give native advisers complete bounded UTF-8 read commands for assignments and references. Keep source reads read-only and preserve necessary oversized-result delivery. The Claude delivery route is unchanged.

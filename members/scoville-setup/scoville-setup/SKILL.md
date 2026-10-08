@@ -1,6 +1,6 @@
 ---
 name: scoville-setup
-description: Show or change the selected project's Scoville Ask and Workflow settings. Use for saved models, effort, chat pinning, Claude limits and context rollover thresholds. Excludes running workflows, installations, updates and monitoring.
+description: Show or change the selected project's Scoville Ask and Workflow settings. Use for saved models, effort, Claude limits and context rollover thresholds. Excludes running workflows, installations, updates and monitoring.
 compatibility: "Codex Suite with Python 3.11+, bundled configuration helpers and filesystem access to the selected project. Configuration changes are local; this Skill starts no host tasks."
 ---
 

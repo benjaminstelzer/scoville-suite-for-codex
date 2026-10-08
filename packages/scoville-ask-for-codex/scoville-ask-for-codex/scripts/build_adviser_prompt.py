@@ -74,6 +74,8 @@ def main() -> int:
               + f'\nconsultation_reference: {args.reference}\nscope: {args.scope}'
               + '\n\nInspect only the supplied scope in this workspace. Resolve relative evidence paths there.'
               + '\nFor bounded UTF-8 reads, command capture, size checks and oversized-result delivery, invoke the named Python interpreter and text-size checker even when they are outside the workspace. This exception permits no unrelated external inspection, commands or project writes; delivery artifacts remain governed by the shared writing rules.'
+              + '\nProgram: the named check_text_size.py. Document: only its --file value. Start only named .py files as Python program files; never start a Skill, reference or assignment as a program.'
+              + '\nThe named python and text_size_checker replace <verified-python> and <skill-directory>/scripts/check_text_size.py in the shared writing rules.'
               + '\n\n## User request and evidence\n\n' + question)
     if args.format == 'spawn':
         print(json.dumps({'task_name': args.task_name, 'message': prompt,

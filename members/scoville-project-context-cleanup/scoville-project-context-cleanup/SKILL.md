@@ -34,7 +34,7 @@ add index text.
 
 ## Prepare the change
 
-Apply the [shared writing contract](references/writing.md) when drafting or
+Apply the [shared writing rules](references/writing.md) when drafting or
 rewording. It supplies the common meaning and completion rules.
 
 Keep information that changes a project decision: specific commands and their
