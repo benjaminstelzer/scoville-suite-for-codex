@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.4 - 2026-10-08
+
+- Diagnose shortened output from the observed failing layer; a later shortened query does not prove that the original capture lost information.
+
 ## v1.4.3 - 2026-10-08
 
 - Bind native adviser instructions to the reader and its document input, with complete output and command-session handling.

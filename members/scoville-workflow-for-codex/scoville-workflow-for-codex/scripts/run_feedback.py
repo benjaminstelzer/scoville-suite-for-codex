@@ -210,9 +210,7 @@ def complete_report(path: Path, project: str, plan: str, point: str, body: str, 
     path = report_path(path)
     before = read_report_text(path)
     after = before if before.strip() else CLEAN
-    display = re.sub(r'^<!-- /?scoville-issue: [A-Za-z0-9_-]{1,80} -->\n?', '', after, flags=re.M)
-    result = {'report_file': str(path), 'report_text': after,
-              'display_text': display, **completion}
+    result = {'report_file': str(path), **completion}
     payload = json.dumps(result, ensure_ascii=False) + '\n'
     payload.encode('utf-8', errors='strict')
     changed = after != before

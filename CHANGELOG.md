@@ -2,6 +2,11 @@
 
 
 
+## v2.4.6 - 2026-10-08
+
+- Return only the report path and completion status when Workflow finishes. Read the complete report separately when needed, without repeating a large report in the completion response.
+- Diagnose shortened output from the observed failing layer; a later shortened query does not prove that the original capture lost information.
+
 ## v2.4.5 - 2026-10-08
 
 - Start only named .py files as Python programs and preserve complete output from running command sessions. Helper instructions consistently require Python 3.11+.

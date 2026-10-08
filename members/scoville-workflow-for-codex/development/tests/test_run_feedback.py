@@ -56,7 +56,7 @@ class RunFeedbackTests(unittest.TestCase):
                     self.assertIn('Actual retained question Ä 中文.', displayed['display_text'])
                     self.assertEqual(displayed['text'], report.read_bytes().decode('utf-8'))
                     if command == 'complete':
-                        self.assertEqual(received['report_text'], displayed['text'])
+                        self.assertEqual(Path(received['report_file']), report)
                     if command == 'resolve':
                         self.assertIn('Known answer Ä 中文.', displayed['display_text'])
                     if command in ('read', 'finish', 'complete'):
@@ -231,7 +231,6 @@ class RunFeedbackTests(unittest.TestCase):
             control, displayed = received['message'].split('\n', 1)
             self.assertEqual(control, 'COMPLETED')
             self.assertEqual(displayed, received['text'])
-            self.assertEqual(received['report_text'], feedback.CLEAN)
             self.assertEqual(self.cli('read', '--report-file', received['report_file'])['display_text'], feedback.CLEAN)
             before = report.stat().st_mtime_ns
             self.assertEqual(self.cli(*base, '--text', 'Completed scope.'), received)
@@ -253,9 +252,10 @@ class RunFeedbackTests(unittest.TestCase):
                     '--plan', 'PLAN-0035', '--point', 'W-001', '--text', 'Scope passed acceptance.']
             received = self.cli(*args)
             self.assertEqual(report.read_bytes(), before)
-            self.assertEqual(received['report_text'], before.decode('utf-8'))
-            self.assertNotIn('scoville-issue:', received['display_text'])
-            self.assertIn('Nonblocking problem', received['display_text'])
+            displayed = self.cli('read', '--report-file', received['report_file'])
+            self.assertEqual(displayed['text'], before.decode('utf-8'))
+            self.assertNotIn('scoville-issue:', displayed['display_text'])
+            self.assertIn('Nonblocking problem', displayed['display_text'])
             self.assertEqual(self.cli(*args), received)
             empty = self.create(root)
             with patch.object(feedback, 'save', side_effect=OSError('disk full')):
@@ -318,8 +318,48 @@ class RunFeedbackTests(unittest.TestCase):
             result = self.cli('complete', '--report-file', report, '--completed', '--project', 'Fixture',
                               '--plan', 'PLAN-0035', '--point', 'W-001', '--text', 'Requested scope accepted; retained issue is nonblocking.')
             self.assertEqual(report.read_bytes(), before)
-            self.assertIn('Status: Open', result['display_text'])
-            self.assertEqual(result['report_text'], before.decode('utf-8'))
+            displayed = self.cli('read', '--report-file', result['report_file'])
+            self.assertIn('Status: Open', displayed['display_text'])
+            self.assertEqual(displayed['text'], before.decode('utf-8'))
+
+    def test_large_history_keeps_completion_small_and_runner_read_complete(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / 'project Ä 中文'
+            root.mkdir()
+            report = self.create(root)
+            body = self.text(root, 'Initial nonblocking note.')
+            self.cli('add', '--report-file', report, '--kind', 'problem',
+                     '--location', 'Startup', '--text-file', body)
+            args = ['complete', '--report-file', report, '--completed', '--project', 'Fixture',
+                    '--plan', 'PLAN-0042', '--point', 'W-001', '--text', 'Local scope accepted; remote work remains open.']
+            small = self.cli(*args)
+            history = 'Retained historical note Ä 中文.\n' * 3000
+            body.write_text(history, encoding='utf-8', newline='\n')
+            issue = self.cli('add', '--report-file', report, '--kind', 'problem',
+                             '--location', 'PLAN-0042 / W-001', '--text-file', body)
+            before = report.read_bytes()
+            self.assertGreater(len(before), 32054)
+            received = self.cli(*args)
+            self.assertEqual(received, small, 'History size must not affect completion delivery')
+            self.assertEqual(received['message'].split('\n', 1)[1], received['text'])
+            self.assertEqual(report.read_bytes(), before)
+            displayed = self.cli('read', '--report-file', received['report_file'])
+            self.assertEqual(displayed['text'], before.decode('utf-8'))
+            self.assertIn('\n'.join('> ' + line for line in history.rstrip().splitlines()), displayed['display_text'])
+            self.assertNotIn('<!-- scoville-issue: ' + issue['issue_id'], displayed['display_text'])
+            checker = PACKAGE / 'scripts/check_text_size.py'
+            capture = subprocess.run([sys.executable, '-X', 'utf8', str(checker),
+                                      '--max-output-tokens', '20000', '--publish-full', '--project-root', str(root),
+                                      '--run', '--', sys.executable, '-X', 'utf8', str(SCRIPT), *map(str, args)],
+                                     capture_output=True, text=True, encoding='utf-8')
+            self.assertEqual(capture.returncode, 0, capture.stderr)
+            metadata = json.loads(capture.stdout)
+            captured = Path(metadata['full_file']).read_text(encoding='utf-8')
+            self.assertTrue(captured.startswith('exit=0 '))
+            payload = captured.split('stdout:\n', 1)[1].rsplit('\nstderr:\n', 1)[0]
+            self.assertEqual(json.loads(payload), received)
+            self.assertLess(len(captured.encode('utf-8')), 16000)
+            self.assertEqual(report.read_bytes(), before)
 
     def test_project_plan_point_changes_only_without_scope_body(self):
         with tempfile.TemporaryDirectory() as directory:

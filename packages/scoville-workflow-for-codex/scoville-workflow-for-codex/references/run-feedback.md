@@ -180,11 +180,14 @@ Only after the requested scope passes acceptance and required closure, use
 one call with the actual retained Plan, last accepted point and completed scope:
 
 ```text
-python "<workflow-skill-directory>/scripts/run_feedback.py" complete --report-file "<run-report.md>" --completed --project "<project-name>" --plan <plan-id> --point <point> --text-file "<completion.txt>"
+<verified-python> -X utf8 "<workflow-skill-directory>/scripts/check_text_size.py" --max-output-tokens <limit> --publish-full --project-root "<workspace_root>" --run -- <verified-python> -X utf8 "<workflow-skill-directory>/scripts/run_feedback.py" complete --report-file "<run-report.md>" --completed --project "<project-name>" --plan <plan-id> --point <point> --text-file "<completion.txt>"
 ```
 
 Prepare the complete UTF-8 body under the shared writing rules before this call.
-Send the returned `message` unchanged. The helper validates the message and
+Use the same smallest applicable output limit in the checker and both host tools.
+Verify the returned capture hash and read every part through `last` before using
+its result. `complete` returns only `report_file`, `text` and `message`; the report
+stays in its file. Send the returned `message` unchanged. The helper validates the message and
 report before saving. An empty report becomes exactly `No issues occurred
 during this run.`. Existing issues and resolutions stay unchanged. Repeating
 completion preserves the report and returns the same completion semantics.
@@ -199,8 +202,14 @@ renders a message; this Workflow's completion route is `complete`.
 On a valid COMPLETED from the current manager, keep the runner completion phase
 open until that manager's actual native final and confirmed quiescence of
 children and writers. A control message alone is not the end of the run. Then
-read the retained file with `run_feedback.py read --report-file
-"<run-report.md>"`. Require success and nonempty `display_text` before
+read the retained file with a complete capture:
+
+```text
+<verified-python> -X utf8 "<workflow-skill-directory>/scripts/check_text_size.py" --max-output-tokens <limit> --publish-full --project-root "<workspace_root>" --run -- <verified-python> -X utf8 "<workflow-skill-directory>/scripts/run_feedback.py" read --report-file "<run-report.md>"
+```
+
+Apply the same limit and complete-file reading rules as above. Require success
+and nonempty `display_text` before
 displaying the retained generated completion text. Then output `Run report:
 <absolute-path>` and the complete returned `display_text`. This field preserves
 all report content except internal issue-marker lines; `text` retains the stored
