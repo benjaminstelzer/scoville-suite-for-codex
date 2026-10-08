@@ -84,8 +84,10 @@ session implicitly.
 
 {{ include: family.contract }}
 
-Native advisers receive a read-only instruction. Spawning a native agent does
-not add a technical write barrier or a separate sandbox. Claude tool restrictions
+Native advisers may inspect the subject but must not change it or run tests.
+Only necessary oversized-answer delivery permits temporary files in `.scoville/temp`,
+as specified in [native delivery](references/native-delivery.md).
+Spawning a native agent adds no technical write barrier or separate sandbox. Claude tool restrictions
 and opt-in web access are described in references/claude.md.
 
 {{ include: helper.policy }}

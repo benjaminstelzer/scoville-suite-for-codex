@@ -92,8 +92,10 @@ All Skills included in this suite must be installed and enabled. Use the
 applicable owner without checking sibling availability. Load only instructions
 needed for the task. Explicit invocation gates and user exclusions still apply.
 
-Native advisers receive a read-only instruction. Spawning a native agent does
-not add a technical write barrier or a separate sandbox. Claude tool restrictions
+Native advisers may inspect the subject but must not change it or run tests.
+Only necessary oversized-answer delivery permits temporary files in `.scoville/temp`,
+as specified in [native delivery](references/native-delivery.md).
+Spawning a native agent adds no technical write barrier or separate sandbox. Claude tool restrictions
 and opt-in web access are described in references/claude.md.
 
 ## Runtime helpers
@@ -101,24 +103,24 @@ and opt-in web access are described in references/claude.md.
 Use the bundled helpers for their operations. Read their invocation instructions,
 not their source, unless diagnosing a failure.
 
-Before a potentially large read, use the verified Python interpreter and the
+When a file may exceed an applicable output limit, use the verified Python interpreter and the
 bundled reader:
 `<verified-python> -X utf8 "<skill-directory>/scripts/check_text_size.py" --file "<document>" --max-output-tokens <limit> --part 1`.
 The program is `scripts/check_text_size.py`; the document is only the `--file`
 value. Start only named `.py` files as Python program files. SKILL.md, references
 and assignments are documents, never programs.
 
-Use the smallest declared or explicitly selected command and outer output limit.
+Without an applicable limit, read complete UTF-8 directly; invent no budget.
+Use the smallest declared or explicitly selected limit on the read and its enclosing output.
 The reader validates the complete UTF-8 file and budgets its labels too.
 Follow `part=N bytes=start:end/total next=M` with `--part M` through `last`,
 where end equals total. Read every unchanged part in order before dependent
 work. Keep the same budget throughout; if it changes, restart at part 1.
-Use separate outer calls unless their complete combined output, including
-labels and metadata, has been measured and fits. Multiple reads or `text()`
-calls in one outer call share its budget. A reader error leaves the read
+Read separately unless the complete combined output, including
+labels and metadata, has been measured and fits. Multiple reads returned
+together share that output budget. A reader error leaves the read
 incomplete, even if the budget cannot fit its diagnostic. Do not alter or copy
 the input, truncate it or recover omitted text after an oversized read.
-Without an applicable limit, read complete UTF-8 directly; invent no budget.
 Python and every named helper are required. Missing dependencies or helper
 errors stop the affected operation. Do not substitute manual execution.
 
