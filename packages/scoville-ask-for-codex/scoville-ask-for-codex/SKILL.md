@@ -97,6 +97,16 @@ and opt-in web access are described in references/claude.md.
 
 Use the bundled helpers for their operations. Read their invocation instructions,
 not their source, unless diagnosing a failure.
+
+Before reading Skill references or other large inputs, apply any declared or
+explicitly selected output limit. With Python, use
+`<verified-python> -X utf8 "<skill-directory>/scripts/check_text_size.py" --file "<file>" --max-output-tokens <limit> --part 1`.
+Follow each `next=M` label with `--part M`; read every unchanged UTF-8 part
+through `last`, where end equals total. Measure the complete rendered output, including labels;
+combine files or parts only when that combined output fits. Otherwise use
+separate, individually checked outer tool calls; a script joining reads
+returns one combined output. With no applicable limit, read
+complete UTF-8 directly; do not invent a budget.
 Python and every named helper are required. Missing dependencies or helper
 errors stop the affected operation. Do not substitute manual execution.
 

@@ -236,7 +236,7 @@ def validate_location(plan: str, point: str) -> None:
     if not re.fullmatch(r'PLAN-\d{4}', plan):
         raise ValueError('--plan must be the actual PLAN-NNNN ID, e.g. PLAN-0025')
     if not re.fullmatch(r'W-\d{3}(?:/step-[1-9]\d*|/steps-[1-9]\d*-[1-9]\d*)?', point):
-        raise ValueError('--point must be W-NNN, W-NNN/step-N or W-NNN/steps-N-M')
+        raise ValueError('--point must be W-NNN, W-NNN/step-N or W-NNN/steps-N-M; for a Startup issue omit both --plan and --point')
     if '/steps-' in point:
         first, last = map(int, point.split('/steps-')[1].split('-'))
         if first >= last:

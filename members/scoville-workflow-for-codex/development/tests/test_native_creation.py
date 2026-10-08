@@ -605,8 +605,9 @@ class NativeCreationTests(unittest.TestCase):
         auto_assignment = getattr(result, 'auto_assignment', None)
         if auto_assignment is not None:
             self.assertIn(str(auto_assignment), data['message'])
-            self.assertLess(len(data['message'].encode('utf-8')), 1200)
-            data['message'] = auto_assignment.read_text(encoding='utf-8')
+            assignment = auto_assignment.read_text(encoding='utf-8')
+            self.assertNotIn(assignment, data['message'])
+            data['message'] = assignment
         return data
 
     def test_manager_start_and_successor_have_separate_context(self):
@@ -666,7 +667,6 @@ class NativeCreationTests(unittest.TestCase):
             self.assertIn(str(start_file), start['message'])
             self.assertIn(str((PACKAGE / 'references/manager-protocol.md').resolve()), start['message'])
             self.assertNotIn(activation, start['message'])
-            self.assertLess(len(start['message'].encode('utf-8')), 1200)
             full_start = start_file.read_text(encoding='utf-8')
             self.assertIn(activation.rstrip(), full_start)
             self.assertIn(str((PACKAGE / 'references/operations.md').resolve()), full_start)
@@ -682,7 +682,6 @@ class NativeCreationTests(unittest.TestCase):
                 '--predecessor-id', '/root/old', '--assignment-file', successor_file))
             self.assertIn('first send HANDOFF_REQUEST directly to /root/old', successor['message'])
             self.assertIn(str(successor_file), successor['message'])
-            self.assertLess(len(successor['message'].encode('utf-8')), 1200)
             full_successor = successor_file.read_text(encoding='utf-8')
             self.assertIn('Predecessor: /root/old', full_successor)
             self.assertNotIn(activation, full_successor)

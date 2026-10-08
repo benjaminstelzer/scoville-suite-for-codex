@@ -2,6 +2,12 @@
 
 
 
+## v2.4.4 - 2026-10-08
+
+- Read complete UTF-8 input in bounded parts and capture command output before display, including diagnostics and original failure status.
+- Tie stateful checks to the actual application store and keep evidence focused on decisions.
+- Keep reviewers from writing source captures, retain only relevant handoff facts and allow one effect-free builder correction after confirmed progress. Keep routine accepted-result bookkeeping with the manager.
+
 ## v2.4.3 - 2026-10-07
 
 - Give Workflow reviewers the assigned requirements and factual worker results without a proposed verdict. Keep reported checks usable as evidence and identify the review boundary explicitly.

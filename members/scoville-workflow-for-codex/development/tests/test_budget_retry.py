@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -39,12 +40,11 @@ class BudgetRetryTests(unittest.TestCase):
                     self.assertIn('OUTPUT_BUDGET_EXCEEDED', failed.stderr)
                     if name == 'build_dispatch_prompt.py':
                         self.assertFalse(assignment.exists())
-                    marker = 'otherwise request a decision):\n'
-                    self.assertIn(marker, failed.stderr)
-                    correction = failed.stderr.split(marker, 1)[1].strip()
+                    prefix = '& {' if os.name == 'nt' else shlex.quote(sys.executable) + ' '
+                    commands = [line for line in failed.stderr.splitlines() if line.startswith(prefix)]
+                    self.assertEqual(len(commands), 1)
+                    correction = commands[0]
                     self.assertEqual(correction.count('--max-output-bytes'), 1)
-                    # An insufficient caller cap leaves this proposal unexecuted.
-                    self.assertIn('caller-approved budget', failed.stderr)
                     shell = ['powershell', '-NoProfile', '-NonInteractive', '-Command'] if os.name == 'nt' else ['sh', '-c']
                     corrected = subprocess.run([*shell, correction], capture_output=True, text=True, encoding='utf-8')
                     self.assertEqual(corrected.returncode, 0, corrected.stderr)

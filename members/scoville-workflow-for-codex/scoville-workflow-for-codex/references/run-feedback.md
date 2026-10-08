@@ -60,8 +60,20 @@ already released. A substantive scope conflict stops dependent work until
 clarified. Never repair helper output manually. Managers omit `--previous-key`
 for WORKING_ON: always send the complete generated text and let the runner
 deduplicate visible output.
+For effect-free input correction after confirmed progress, follow
+[pre-dispatch correction](operations-dispatch.md#pre-dispatch-correction).
 
 ## Targeted issues
+
+Before a Plan location is known, use Startup by omitting both location options:
+
+```text
+python -X utf8 "<workflow-skill-directory>/scripts/run_feedback.py" status --kind blocked --project "<project-name>" --text-file "<blocked.txt>"
+```
+
+Once known, add both `--plan PLAN-NNNN` and `--point W-NNN/step-N` or its
+consecutive Step range. Read this Markdown as documentation, not as a Python
+program. Capture the helper's complete output before displaying it.
 
 For a dispatch-builder argument error or a selector-budget error in dispatch or
 progress, first apply the bounded [pre-dispatch
@@ -86,8 +98,7 @@ language using the retained project name and affected unit:
 python "<workflow-skill-directory>/scripts/run_feedback.py" status --kind decision --project "<project-name>" --plan <plan-id> --point <point> --text-file "<question.txt>"
 ```
 
-Kinds are `decision`, `blocked`, `paused` and `completed`. Before the canonical
-location is known, omit both `--plan` and `--point`; the heading uses Startup.
+Kinds are `decision`, `blocked`, `paused` and `completed`.
 Use `--text-file` for message bodies prepared under the shared writing rules
 when the role may write. While writes are prohibited, use this standard
 ECMAScript function in the available Codex code runtime to encode the complete

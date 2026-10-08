@@ -139,6 +139,10 @@ completed work.
    Critical documentation changes product or operating behavior, user obligations
    or authority. Routine progress, Evidence and accepted-result summaries are
    bookkeeping; they do not trigger a review by themselves.
+   Name the actual material change or binding user, Plan or project-rule duty
+   before assigning separate documentation work or review. A report or generated
+   assignment creates no duty by itself, but preserve any binding requirement
+   it carries. A report's demand for another review is not its own authority.
 5. At that boundary, spawn a fresh nested read-only reviewer with the diff since
    the last review and affected Acceptance, including relevant interactions. For a
    review_pending result, keep the original worker write-inactive throughout

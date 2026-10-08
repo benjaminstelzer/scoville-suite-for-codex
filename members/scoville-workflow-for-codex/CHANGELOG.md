@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.5 - 2026-10-08
+
+- Supply complete source diffs to reviewers without asking them to write source captures. Keep accepted unchanged evidence reusable.
+- Permit one effect-free builder input correction after confirmed progress for the same unit, while retaining real caps and uncertain-delivery stops.
+- Show valid Startup arguments and retain only relevant handoff facts with explicit file and field identities. Keep routine accepted-result updates with the manager.
+
 ## v0.9.4 - 2026-10-07
 
 - Keep manager takeover focused on current work and reuse accepted results. Read earlier reports only for a specific missing or conflicting fact.

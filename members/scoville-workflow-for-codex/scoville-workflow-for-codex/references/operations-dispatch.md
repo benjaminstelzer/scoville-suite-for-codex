@@ -132,6 +132,14 @@ Role-specific inputs name existing UTF-8 plain-text files:
   Acceptance. For a final review, add short references to earlier assessments
   for unchanged parts.
   Include every still-unreviewed change and relevant interaction.
+   The manager supplies complete UTF-8 source diffs before review. For tracked
+   files, `git diff --output="<diff-file>" <base> -- <paths>`
+   writes the complete scoped diff without first displaying it. Reviewers read
+   new untracked source files directly through their supplied paths and bounded reads.
+   Do not stage files merely to make a review diff. Reviewers read
+   supplied input completely through bounded reads, without writing their own
+   source captures. Unchanged accepted evidence needs only its identity and
+   applicable limit. Reopen it only for a named new claim, gap or contradiction.
   Supply applicable Goal parts, constraints and findings to verify, without a
   manager assessment, defence of the implementation or expected verdict.
 - For a correction worker, supply `--role executor --reviewer-result <result.txt>`.
@@ -178,16 +186,20 @@ no separate preview call.
 One corrected helper call before reporting BLOCKED is allowed for an explicit
 invalid-argument diagnostic from `build_dispatch_prompt.py`, or
 `OUTPUT_BUDGET_EXCEEDED` from that builder or `run_feedback.py progress`.
-No agent start or progress-message send may have been attempted, and the failed
-call must have produced no assignment file or other effects.
+No agent start may have been attempted, and the failed call must have produced
+no assignment file or other effects. Already confirmed WORKING_ON delivery for
+this same unchanged unit does not prevent the correction and must not be resent.
+Uncertain or failed progress delivery still blocks release.
 Use already verified facts, such as the absolute workspace path or retained
 original worker result. Correct the input, never failed output. Dispatch only
 the corrected call's complete successful output.
 
 For `OUTPUT_BUDGET_EXCEEDED`, the diagnostic supplies the complete shell-quoted
 corrected invocation with `--max-output-bytes <required_bytes>` and the retained
-arguments. Run it unchanged only within the caller-imposed budget. If its required
-size exceeds that limit, keep the operation open and request the decision first.
+arguments. An agent-chosen internal selection budget may be explicitly corrected
+to that required size. A binding user, Plan or host cap still applies; if exceeded,
+keep the operation open and request the decision first. This internal budget does
+not replace the actual tool-output limit or its complete capture before display.
 The helper never raises budgets automatically. The retry forwards the explicit
 budget to the selector and preserves complete context. Do not replace the selector
 with an adapter or truncate the result.

@@ -15,8 +15,10 @@ the normal role result without another checkpoint, even above the threshold.
 The coordinator's later review and Plan closure are not unfinished child work.
 Failed checks also end a batch.
 Check before a command expected to add substantial context unless just checked
-with no material growth. Finish running operations first. Save large outputs to
-a file; read the exit status, summary and relevant failures.
+with no material growth. Finish running operations first. Follow the shared
+writing rules for complete output capture and exit status before display.
+Reviewers do not write captured source output or diffs for their own reading;
+necessary oversized-result preparation and publication remain permitted there.
 
 `continue` resumes work. Missing telemetry also continues without guessing.
 `rollover_pending` records a measured threshold crossing but does not end or
@@ -92,10 +94,15 @@ Retain a compact substantive handoff locally with:
 - The exact workspace and Plan path, requested scope and exact project display name.
 - The unchanged run-report path and open issue IDs, including each pending user
   question, its source identity and whether its answer has arrived.
-- Checked effects and evidence limits, plus pending reviews and findings.
+- Accepted results the next action depends on: scoped outcome, review identity,
+  evidence path and open limits; plus pending reviews and findings.
 - Child IDs and whether each child is writing or stopped.
 - The next worker number and any recovery context.
 - Constraints, coordination authority and the next action.
+
+Do not carry old counts, hash inventories or resolved diagnostics unless the
+next action depends on them. Bind each needed
+hash to its exact file and field. Never guess a missing original source.
 
 Keep a received answer; never
 repeat a question solely because of takeover. The consumed checkpoint boundary

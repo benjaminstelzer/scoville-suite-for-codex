@@ -95,7 +95,8 @@ def build_arguments(args: argparse.Namespace) -> dict:
         'WORKING_ON carries only the generated key and one status line naming project, Plan and point. '
         'Read run-feedback.md after START; record user-relevant issues and resolutions in the same run report. '
         'Finalize that file only after requested-scope acceptance and closure. '
-        'Issue controls include the canonical Plan ID and affected Step or Step group (or Startup), '
+        'Issue controls use --plan PLAN-NNNN and --point W-NNN/step-N or W-NNN/steps-N-M '
+        'when known. For Startup, omit both --plan and --point; never pass Startup as --point. Include the '
         'exact question or diagnostic, reason and waiting work. Include no work results, '
         'diffs, evidence, Plan content or substantive handoffs, including in your final answer. '
         + context)

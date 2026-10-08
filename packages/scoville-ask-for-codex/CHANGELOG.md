@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.2 - 2026-10-08
+
+- Give native advisers complete bounded UTF-8 read commands for assignments and references. Keep source reads read-only and preserve necessary oversized-result delivery. The Claude delivery route is unchanged.
+
 ## v1.4.1 - 2026-10-07
 
 - Allow native advisers to check input size before large reads. Preserve Python launcher arguments in the shared size-check command and keep the Claude delivery route unchanged.
