@@ -95,11 +95,16 @@ already have one installed.
 ## Configuration
 
 To change the defaults, use Scoville Setup to view or save the project
-settings in `.scoville/config.json`. Under `workflow`, `manager` sets the
-manager's model and reasoning, `execute.CLASS` and `review.CLASS` set the worker
-and reviewer pairs, and `context` sets the
-rollover thresholds. Anything missing uses the bundled defaults, and starting
-a run doesn't create a configuration file.
+settings in `.scoville/config.json`. Under `workflow`:
+
+| Key | Controls |
+| --- | --- |
+| `manager` | Manager model and reasoning. |
+| `execute.CLASS` | Worker pair for that route. |
+| `review.CLASS` | Reviewer pair for that route. |
+| `context` | Rollover thresholds. |
+
+Missing values use bundled defaults. Starting a run creates no configuration file.
 
 The manager defaults to `gpt-6.1-sol` with `medium` reasoning, independently of
 the visible chat's model. An explicit manager pair for one run overrides saved

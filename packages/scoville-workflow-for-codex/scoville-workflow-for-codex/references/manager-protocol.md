@@ -72,18 +72,19 @@ send. On failed startup send STOP to the known new manager. If START might have
 arrived, establish quiescence of children and writers under SKILL.md's Stop
 rules before resuming. A blocked successor cannot write, including the run report.
 
-If canonical files resolve a discrepancy in recorded evidence, the successor
-confirms the correction with the predecessor or an actual user answer. Retain
-the inaccurate evidence and any required fresh review as pending work in the
-handoff. This resolved discrepancy does not block HANDOFF_ACCEPTED: after
-TAKEOVER_COMPLETE, correct and validate the Plan and complete the review before
-dispatching the next unit. Do not claim the old review proved a false fact. If
-the actual effect, authority, writer state or correction scope remains uncertain,
-send BLOCKED to the runner and keep both managers write-inactive until resolved
-or stopped. The predecessor remains available for read-only clarification and
-receipt during that state; elapsed wait time is not a reason to invent success.
+| Discrepancy | Required action |
+| --- | --- |
+| Canonical files resolve inaccurate recorded evidence | Successor confirms with predecessor or an actual user answer. Retain inaccurate evidence and required fresh review as pending handoff work. HANDOFF_ACCEPTED may proceed; after TAKEOVER_COMPLETE, correct and validate the Plan and finish review before next dispatch. Never claim the old review proved the false fact. |
+| Actual effect, authority, writer state or correction scope remains uncertain | Send BLOCKED to runner; both managers stay write-inactive until resolved or stopped. Predecessor remains available for read-only clarification and receipt. Elapsed time proves no success. |
 
 ## Complete handoff file
+
+```text
+Authenticated request → predecessor publishes complete handoff
+  → runner forwards metadata → successor verifies and reads
+  → HANDOFF_ACCEPTED → predecessor native final + successor RUNNING
+  → runner delivers queued input → TAKEOVER_COMPLETE
+```
 
 After authenticated HANDOFF_REQUEST, use this route when required handoff
 content cannot fit the shared pre-output size check, or its direct send
@@ -116,14 +117,14 @@ another manager.
 
 ## Steering and answers
 
-From accepted successor request through release, queue new steering and answers
-to predecessor-owned issues for the successor in received order. Preserve each
-issue's original source identity and answer and delivery state. Deliver once to the
-authenticated pending successor before TAKEOVER_COMPLETE, never also to the
-predecessor. Retain the queue and uncertain deliveries after a failed takeover.
-Answers to the pending successor's own issues go directly to that exact ID.
-Outside takeover, forward steering to the current manager and each answer once
-to its originating manager or verified current successor. Never broadcast.
+| Phase or input | Recipient and gate |
+| --- | --- |
+| Accepted successor request through release: steering and answers to predecessor-owned issues | Queue in received order for the authenticated pending successor. Deliver once before TAKEOVER_COMPLETE, never also to predecessor. |
+| Pending successor's own issue | Send the answer directly to that exact ID. |
+| Outside takeover | Steering goes to current manager; each answer goes once to its originating manager or verified current successor. Never broadcast. |
+| Failed takeover | Retain queue and uncertain deliveries. |
+
+Preserve each issue's original source identity, answer and delivery state.
 Use collaboration.followup_task for an idle recipient; collaboration.send_message does not wake it.
 
 The successor applies post-snapshot input before any write or dispatch and

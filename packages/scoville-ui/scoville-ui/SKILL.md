@@ -73,19 +73,16 @@ a redesign or a whole-product audit.
 
 ## Select the platform route
 
-WordPress admin route: for any request about a `wp-admin` surface, including
-classification and hypothetical implementation advice, first read the
-[routing contract](references/wordpress/routing.md). For a supported plugin-owned
-page, also read [the WordPress adapter](references/wordpress/adapter.md) before
-dependent advice or work. Classify surface, runtime per DOM region and supported
-versions separately; React does not imply WPDS. For an excluded host-owned
-surface, name its host owner and stop the plugin-page route; do not fall back to
-the general route. Resolve unknown ownership from accessible source first, then
-ask for the remaining decision-relevant fact.
+| Surface or request | Route and boundary |
+| --- | --- |
+| Any `wp-admin` concern, including classification and hypothetical advice | First read [routing](references/wordpress/routing.md). For supported plugin-owned pages, also read [adapter](references/wordpress/adapter.md) before dependent advice or work. |
+| Excluded host-owned admin surface | Name host owner and stop the plugin-page route; no general-route fallback. |
+| Unknown admin ownership | Inspect accessible source first, then ask for the remaining decision-relevant fact. |
+| Themes, site frontends, plugin frontend output, non-WordPress surfaces | General route; no admin references. |
+| Pure visual concept | Preserve design scope; no WordPress implementation or acceptance rules. |
 
-General route: themes, site frontends, plugin frontend output and non-WordPress
-surfaces; do not load admin references for them. Pure visual concepts keep their
-design scope without WordPress implementation or acceptance rules.
+Classify admin surface, runtime per DOM region and supported versions separately;
+React does not imply WPDS.
 
 Both routes use the same Quality and Validation contracts below. WordPress adds
 its local platform rules when their triggers apply, including
@@ -210,7 +207,10 @@ oversized read.
 The reader program is `scripts/check_text_size.py`; pass its document only as
 `--file`. Only named `.py` files may be Python program files. SKILL.md, references
 and assignments are documents, never programs.
-Python and every named helper are required. Missing dependencies or helper
-errors stop the affected operation. Do not substitute manual execution.
+
+| Condition | Required route |
+| --- | --- |
+| Python and every named helper are available | Use the bundled helper. |
+| Missing Python, script, dependency or helper error | Stop the affected operation; do not substitute manual execution. |
 
 Helpers: `scripts/check_text_size.py`.

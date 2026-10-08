@@ -46,6 +46,16 @@ remaining work first, preserving the pending handoff and exact agent ID.
 A context_handoff alone does not trigger review, but a checked product fix in
 that handoff follows the review cadence before dependent work continues.
 
+The recovery sequence is:
+
+```text
+Predecessor native final + writer quiescence
+  → manager verifies remaining assignment and spawns successor
+  → successor reads complete assignment and sends exact HANDOFF_ACCEPTED
+  → manager verifies receipt, authority and quiescence
+  → TAKEOVER_COMPLETE → successor finishes remaining assignment
+```
+
 The manager spawns a successor with the same role, remaining scope, workspace
 and launched model and reasoning effort, the compact handoff, and agent IDs of predecessor and manager.
 Supply only unfinished work, applicable acceptance, constraints, completed effects

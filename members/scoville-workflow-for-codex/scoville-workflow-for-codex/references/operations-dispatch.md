@@ -126,8 +126,17 @@ For recovery or correction, also supply both `--model <launched-model>` and
 `--thinking <launched-effort>` from the retained launched pair.
 Role-specific inputs name existing UTF-8 plain-text files:
 
-- For a fresh review, supply `--executor-result <result.txt>` with the worker's
-  complete result whose status is completed, progress_pending or review_pending.
+| Assignment | Required inputs |
+| --- | --- |
+| Fresh review | `--executor-result <result.txt>`: complete worker result with status completed, progress_pending or review_pending; review facts in supplemental context. |
+| Correction worker | `--role executor --reviewer-result <result.txt>`; assigned source findings and needed context in supplemental context. |
+| Authorized recovery | `--context-handoff <handoff.md> --predecessor-agent-id <id> --supplemental-context <facts.md>`; remaining work, completed effects and next action in the handoff. |
+| Necessary facts for any role | `--supplemental-context <facts.md>`. |
+
+For a fresh review:
+
+1. Retain the complete worker result in the required file.
+2. Prepare the review facts:
   In supplemental context, name the diff since the last review and affected
   Acceptance. For a final review, add short references to earlier assessments
   for unchanged parts.
@@ -146,25 +155,23 @@ Role-specific inputs name existing UTF-8 plain-text files:
   and sections in supplemental context. Reviewers may read only those assigned
   sources and the applicable Plan field rules for a native-field review. This
   grants no Plan maintenance, tests or unrestricted context search.
-- For a correction worker, supply `--role executor --reviewer-result <result.txt>`.
-  Put the assigned source findings and needed context in supplemental context.
-- For an authorized recovery continuation, supply
-  `--context-handoff <handoff.md> --predecessor-agent-id <id>` and
-  `--supplemental-context <facts.md>`. The handoff names remaining work, completed
-  effects and next action. The facts contain only applicable acceptance criteria,
-  constraints, permissions, evidence limits and required paths. A review
-  continuation needs no repeated full executor result; retain relevant findings
-  and the remaining review boundary in this compact context.
-- For necessary facts, supply `--supplemental-context <facts.md>`.
+For recovery, facts contain only applicable acceptance criteria, constraints,
+permissions, evidence limits and required paths. A review continuation needs no
+repeated full executor result; retain relevant findings and the remaining review
+boundary in this compact context.
 
-Prepare every input file under the shared writing rules. Finish and verify all
-inputs before invoking the builder. A preparation failure stops that call.
-Preserve technical literals and complete substantive content
-when transferring native results; ordinary Markdown formatting may change
-without changing meaning. The manager validates results before building
-the next assignment. The helper reads no stdin. A nonzero exit reports ERROR and
-stops dispatch; do not repair its output. Handle argument or selector-budget
-errors only under [pre-dispatch correction](#pre-dispatch-correction). For a new
+Before invoking the builder:
+
+1. Prepare every input file under the shared writing rules. Preserve technical
+   literals and complete substantive content of native results; Markdown
+   formatting may change without changing meaning.
+2. Finish and verify all inputs. The manager validates results before building
+   the next assignment. Preparation failure stops that call; the helper reads no stdin.
+3. Require a zero exit and complete successful output. A nonzero exit reports
+   ERROR and stops dispatch; never repair failed output. Handle argument or
+   selector-budget errors only under [pre-dispatch correction](#pre-dispatch-correction).
+
+For a new
 assignment the helper includes the complete selected Work Item once. For a
 continuation it validates the selected unit but omits the Work Item body and
 uses the compact handoff and required supplemental facts instead. The unit

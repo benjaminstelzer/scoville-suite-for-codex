@@ -46,14 +46,16 @@ Keep unrequested saved values. Report the actual returned values; a promise
 to use them later is not resolution. This reads settings without starting an
 adviser or saving configuration.
 
-For an explicit request to save settings, pass only the requested fields as a
-JSON object on stdin to the command below. Generate that object with a serializer
-(such as Python `json.dumps` or PowerShell `ConvertTo-Json -Depth 10 -Compress`); do not hand-write
-JSON text. Use UTF-8 for stdin. In PowerShell, set
-`$OutputEncoding = [System.Text.UTF8Encoding]::new($false)` before piping the
-serialized object so non-ASCII values reach the helper unchanged.
-The successful JSON response contains the saved
-effective settings and can be read directly:
+For an explicit save request:
+
+1. Include only requested fields in a JSON object. Generate it with a serializer,
+   such as Python `json.dumps` or PowerShell `ConvertTo-Json -Depth 10 -Compress`;
+   do not hand-write JSON.
+2. Use UTF-8 stdin. In PowerShell, set
+   `$OutputEncoding = [System.Text.UTF8Encoding]::new($false)` before piping so
+   non-ASCII values reach the helper unchanged.
+3. Pass the complete serialized object on stdin to `set` below.
+4. Read the successful JSON response: it contains saved effective settings.
 
 ```text
 python "<setup-skill-directory>/scripts/setup.py" set --project-root "<project-root>"
@@ -124,7 +126,10 @@ oversized read.
 The reader program is `scripts/check_text_size.py`; pass its document only as
 `--file`. Only named `.py` files may be Python program files. SKILL.md, references
 and assignments are documents, never programs.
-Python and every named helper are required. Missing dependencies or helper
-errors stop the affected operation. Do not substitute manual execution.
+
+| Condition | Required route |
+| --- | --- |
+| Python and every named helper are available | Use the bundled helper. |
+| Missing Python, script, dependency or helper error | Stop the affected operation; do not substitute manual execution. |
 
 Helpers: `scripts/setup.py`, `scripts/check_text_size.py`.

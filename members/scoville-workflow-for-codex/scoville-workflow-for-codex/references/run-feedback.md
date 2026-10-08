@@ -80,18 +80,20 @@ correction](operations-dispatch.md#pre-dispatch-correction). A successful
 correction needs no visible blocker or report entry. All unresolved failures
 follow the immediate relay rule below.
 
-The manager promptly sends every necessary user decision or blocking condition
-to the runner, whether from a child message or result, its own work, a helper
-failure, or takeover. Stop dependent work first. Use `status` with `--kind
-decision` for the exact question, reason and waiting work, or `--kind blocked`
-for the actual diagnostic, why work cannot continue and the necessary next
-action. Report the affected scope when independent authorized work can continue.
-Do not wait for final child results, unrelated checks or the next progress key.
-Children ask their manager, never the user directly. The runner authenticates
-the current or exact pending manager under the takeover rules; it alone presents
-the user question. Retain each issue's manager identity for answer routing,
-including during takeover. Generate the actual message body in the user's
-language using the retained project name and affected unit:
+For every necessary decision or blocker from a child, manager work, helper or takeover:
+
+1. Stop dependent work. Name affected scope if independent authorized work can continue.
+2. Generate `status --kind decision` with the exact question, reason and waiting
+   work, or `--kind blocked` with the diagnostic, blocked work and necessary action.
+3. Send promptly to the runner; wait neither for final child results, unrelated
+   checks nor a changed progress key.
+4. Retain the originating manager ID for answer routing, including during takeover.
+5. Save the issue and actual answer when the current report owner can safely
+   write; dependent work resumes only after necessary answer and persistence.
+
+Children ask only their manager. The runner authenticates the current or exact
+pending manager under takeover rules and alone presents the user question.
+Generate the body in the user's language with retained project name and unit:
 
 ```text
 python "<workflow-skill-directory>/scripts/run_feedback.py" status --kind decision --project "<project-name>" --plan <plan-id> --point <point> --text-file "<question.txt>"
@@ -159,15 +161,16 @@ does not authorize work beyond the user's actual answer. Dependent work remains
 paused while a necessary answer is absent. Preserve entries and IDs in the
 direct manager handoff. Never erase resolved issues to make a run look clean.
 
-For a stop, establish quiescence of children and writers first, then record the
-pause before STOPPED, generated with `status --kind paused`. While writes are
-prohibited, retain and relay the unsaved issue with the reason it cannot yet be
-saved. A pending successor keeps it unsaved until TAKEOVER_COMPLETE makes it the
-current owner. For a report-write failure, retain and relay the issue with the
-exact save diagnostic, marking it unsaved. Keep dependent work stopped until
-persistence and any necessary answer are secured; saving the report or Plan must
-never hide the condition from the runner. An unknown write outcome requires
-reading the existing report before retrying. Never accept partial helper stdout.
+| State | Persistence and relay |
+| --- | --- |
+| User stop | Establish child and writer quiescence, record pause, then generate STOPPED with `status --kind paused`. |
+| Writes prohibited | Retain and relay the unsaved issue and why it cannot yet be saved. |
+| Pending successor | Keep issue unsaved until TAKEOVER_COMPLETE makes it current owner. |
+| Report-write failure | Retain and relay the issue with exact save diagnostic; mark unsaved. |
+| Unknown write outcome | Read existing report before retrying. |
+
+Keep dependent work stopped until persistence and any necessary answer are secured.
+Saving report or Plan must never hide the condition. Never accept partial helper stdout.
 
 If startup fails before a manager can own the report, the runner records the
 user-relevant startup problem at `Startup` and generates its blocked display
@@ -183,11 +186,17 @@ one call with the actual retained Plan, last accepted point and completed scope:
 <verified-python> -X utf8 "<workflow-skill-directory>/scripts/check_text_size.py" --max-output-tokens <limit> --publish-full --project-root "<workspace_root>" --run -- <verified-python> -X utf8 "<workflow-skill-directory>/scripts/run_feedback.py" complete --report-file "<run-report.md>" --completed --project "<project-name>" --plan <plan-id> --point <point> --text-file "<completion.txt>"
 ```
 
-Prepare the complete UTF-8 body under the shared writing rules before this call.
-Use the same smallest applicable output limit in the checker and both host tools.
-Verify the returned capture hash and read every part through `last` before using
-its result. `complete` returns only `report_file`, `text` and `message`; the report
-stays in its file. Send the returned `message` unchanged. The helper validates the message and
+Manager completion:
+
+1. Prepare the complete UTF-8 body under the shared writing rules before the call.
+   Use the same smallest applicable output limit in checker and both host tools.
+2. Capture the complete result. Verify the capture hash and read all parts through
+   `last` before using file-delivered output. `complete` returns only `report_file`,
+   `text` and `message`; the report stays in its file.
+3. Send returned `message` unchanged; finish with its control-only native final
+   after children and writers are quiescent, under operations.md.
+
+The helper validates the message and
 report before saving. An empty report becomes exactly `No issues occurred
 during this run.`. Existing issues and resolutions stay unchanged. Repeating
 completion preserves the report and returns the same completion semantics.
@@ -208,10 +217,15 @@ read the retained file with a complete capture:
 <verified-python> -X utf8 "<workflow-skill-directory>/scripts/check_text_size.py" --max-output-tokens <limit> --publish-full --project-root "<workspace_root>" --run -- <verified-python> -X utf8 "<workflow-skill-directory>/scripts/run_feedback.py" read --report-file "<run-report.md>"
 ```
 
-Apply the same limit and complete-file reading rules as above. Require success
-and nonempty `display_text` before
-displaying the retained generated completion text. Then output `Run report:
-<absolute-path>` and the complete returned `display_text`. This field preserves
+Runner report output:
+
+1. Apply the same limit and complete-file reading rules as above.
+2. Require success and nonempty `display_text` before displaying the retained
+   generated completion text.
+3. Output `Run report: <absolute-path>` and the complete returned `display_text`.
+4. Only after successful output, end the runner role.
+
+This field preserves
 all report content except internal issue-marker lines; `text` retains the stored
 form for bookkeeping. A failed or empty read reports the problem and leaves
 completion unconfirmed. Only after successful output does the runner role end.

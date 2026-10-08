@@ -105,11 +105,13 @@ Missing facts, uncertain effects, another failure or any other creation error
 require immediate blocked display under run feedback. A successful correction
 creates no issue entry.
 
-For initial startup save the actual activation, requested scope and existing
-coordination authority in a UTF-8 request file in the workspace temporary area.
-Before preparing this file, read and apply the shared writing rules.
-Do not inspect Plan content to compose it. Absent a narrower scope the manager
-executes the whole active Plan.
+For initial startup:
+
+1. Apply the shared writing rules and save the actual activation, requested
+   scope and existing coordination authority in a UTF-8 request file in the
+   workspace temporary area. Do not inspect Plan content to compose it.
+   Absent a narrower scope, the manager executes the whole active Plan.
+2. Build the manager assignment with that verified file:
 
 ```text
 python "<workflow-skill-directory>/scripts/build_manager_handoff.py" --mode start --runner-id <actual-runner-id> --project-name "<project-name>" --manager-number 1 --project-root "<workspace_root>" --request-file "<request.txt>" --report-file "<run-report.md>"
@@ -137,6 +139,13 @@ file through takeover and completion. The manager reads the protocol before
 READY and the assignment only after START. A successor first sends its direct
 HANDOFF_REQUEST after START, then reads its assignment before other work.
 
+3. Read the manager protocol before spawning, using its runner column.
+4. Parse complete successful builder stdout, validate and retain its model pair
+   against exposed host capabilities, then spawn once with all five arguments
+   unchanged. Use direct collaboration tools, never `functions.exec`.
+5. Follow the protocol through authenticated READY and START; a successor stays
+   pending until verified takeover release.
+
 The builder returns all five `collaboration.spawn_agent` arguments: `task_name`, `message`,
 `fork_turns`, `model` and `reasoning_effort`. Pass all five unchanged, including
 `fork_turns="none"` and the model pair even when they match the runner. Omitting
@@ -144,20 +153,18 @@ The builder returns all five `collaboration.spawn_agent` arguments: `task_name`,
 new manager assignment has an automatic unique name suffix, even in a new run
 with the same manager number. Use that name without asking the user. Retain the
 returned arguments and never repeat a failed or uncertain spawn automatically.
-Parse complete successful stdout; never spawn truncated or failed output.
-Call collaboration tools directly, never from inside `functions.exec`.
+Never spawn truncated or failed output.
 Initial starts resolve `workflow.manager` from the project configuration
 and bundled defaults. An explicit pair in the user's request overrides both
 through paired `--model` and `--thinking` arguments. Retain the returned model
-and reasoning effort and validate them against exposed host capabilities before
-spawning. Every successor uses that launched pair through both arguments,
+and reasoning effort. Every successor uses that launched pair through both arguments,
 regardless of later runner or saved settings. Never use a worker route. A
 missing retained pair halts the start rather than guessing. The runner alone
 increments the manager number for each new manager start.
 
-Before spawning, read [manager protocol](references/manager-protocol.md).
-It owns startup, authenticated takeover, queued input and retired-manager
-clarification. Use its runner column; managers follow their own column.
+The [manager protocol](references/manager-protocol.md) owns startup,
+authenticated takeover, queued input and retired-manager clarification.
+Managers follow their own column.
 
 While a manager is working or takeover is pending, keep this runner turn active
 and use native waits for control messages, including after answering a status
@@ -185,25 +192,31 @@ progress and evidence.
 
 ## Steering, stop and resume
 
-Forward steering and answers under the manager protocol, preserving their
-original text and received order. A pending decision is not permission; resume
-its dependent work only on the user's answer. On STOP, stop further starts, tell
-all known managers (including both sides of an incomplete takeover) to stop
-their children, then use native interrupts if needed. Establish that children
-and writers stopped using known agent identities and `collaboration.list_agents`; interruption
-of a manager alone proves nothing about its children. Report any uncertain
-writer state and halt.
+Forward steering and answers under the manager protocol, preserving original
+text and received order. A pending decision is not permission; resume dependent
+work only on the user's answer.
+
+On STOP:
+
+1. Stop further starts. Tell every known manager, including both sides of an
+   incomplete takeover, to stop its children.
+2. Use native interrupts when needed. Establish child and writer quiescence
+   through known IDs and `collaboration.list_agents`; interrupting a manager
+   alone proves nothing about its children.
+3. Report uncertain writer state and halt.
 
 Resume only on explicit user activation. Resolve the state of existing known
 agents first. If spawn or writer state remains uncertain, keep the run halted
 and ask for the concrete recovery needed; never create a replacement on that
 uncertainty. Preserve an unanswered question and any answer already received.
-`COMPLETED` opens the runner's completion phase. Require the current manager's
-actual native final and confirmed quiescence of children and writers. Read
-run-feedback.md and use its report-read helper before announcing completion or
-leaving the runner role. A direct file read does not satisfy this operation.
-Only after successful report output return to normal assistance. This ends only
-the requested scope. A new problem does not reactivate Workflow.
+On `COMPLETED`:
+
+1. Keep the runner completion phase open until the current manager's actual
+   native final and confirmed child and writer quiescence.
+2. Follow run-feedback.md and its report-read helper before announcing
+   completion or leaving the runner role. A direct file read does not suffice.
+3. After successful report output, return to normal assistance. This ends only
+   the requested scope; a new problem does not reactivate Workflow.
 
 ## Manager entry
 
@@ -240,7 +253,10 @@ oversized read.
 The reader program is `scripts/check_text_size.py`; pass its document only as
 `--file`. Only named `.py` files may be Python program files. SKILL.md, references
 and assignments are documents, never programs.
-Python and every named helper are required. Missing dependencies or helper
-errors stop the affected operation. Do not substitute manual execution.
+
+| Condition | Required route |
+| --- | --- |
+| Python and every named helper are available | Use the bundled helper. |
+| Missing Python, script, dependency or helper error | Stop the affected operation; do not substitute manual execution. |
 
 Helpers: `scripts/build_dispatch_prompt.py`, `scripts/check_context_checkpoint.py`, `scripts/resolve_model_pair.py`, `scripts/select_context.py`, `scripts/build_manager_handoff.py`, `scripts/run_feedback.py`, `scripts/check_text_size.py`.

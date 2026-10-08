@@ -29,15 +29,15 @@ telemetry stays separate from requested settings.
 
 Do not infer free capacity from an assumed limit or idle-agent count. Unknown
 capacity permits an actual spawn attempt, not a claim that all advisers fit.
-For a capacity refusal, retain its diagnostic and running advisers; mark
-undispatched ones pending. Do not wake completed advisers for cleanup or retry
-automatically. Do not replace selected advisers,
-change settings, create Codex chats
-or assume a `close_agent` tool exists. A rejected spawn is a failure. For an
-ambiguous result, use `collaboration.list_agents` once to reconcile the exact
-retained task name with its returned handle. Do not
-retry an uncertain spawn or treat an unmatched agent as the requested adviser.
-If it cannot be reconciled, report that adviser unresolved with partial results.
+| Spawn result | Action |
+| --- | --- |
+| Capacity refusal | Retain the diagnostic and running advisers; mark undispatched ones pending. |
+| Rejected spawn | Retain the failure. |
+| Ambiguous result | Use `collaboration.list_agents` once to reconcile the exact retained task name with the returned handle; if unresolved, report that adviser unresolved with partial results. |
+
+Never retry automatically or treat an unmatched agent as the requested adviser.
+Do not wake completed advisers for cleanup, replace selected advisers, change
+settings, create Codex chats or assume a `close_agent` tool exists.
 
 ## Collect and follow up
 
@@ -54,10 +54,13 @@ If only a label repeats, use the retained assignment to identify the answer;
 a different reference or scope needs clarification. Never accept an earlier
 answer as the result of a later same-handle follow-up.
 
-A timeout ends only the wait. Continue waiting for active advisers; keep
-completed answers and failures visible. A real tool failure, user interruption
-or missing fact that requires the user may end collection with exact pending
-handles. Never count a question or failure as a completed review.
+| Collection state | Action |
+| --- | --- |
+| Timeout | Only the wait ended. Continue collecting active advisers; keep completed answers and failures visible. |
+| Missing or incomplete final | Retain exact pending handle; do not accept partial messages as the final. |
+| Tool failure, user interruption or missing fact requiring the user | Collection may end with exact pending handles. |
+
+Never count a question or failure as a completed review.
 
 Once its complete native final is received, send no routine acknowledgement,
 closure message or keepalive to the completed adviser. It has ended its turn.

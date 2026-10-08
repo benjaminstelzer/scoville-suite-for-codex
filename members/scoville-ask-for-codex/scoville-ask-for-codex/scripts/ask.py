@@ -200,10 +200,10 @@ def prepare_file(args):
 def main(argv=()):
     request = {}
     try:
-        parser = argparse.ArgumentParser(description=__doc__, epilog=(
+        parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter, epilog=(
             'Prepare: --project-root PATH --adviser claude --question-file question.txt '
             '--mode review --scope SCOPE --reference REF --output-file request.json. '
-            'Execute: --input-file request.json. Follow-up: replace --project-root/--adviser '
+            '\nExecute: --input-file request.json.\nFollow-up: replace --project-root/--adviser '
             'with --resume-request previous.json --session-id EXACT_ID.'))
         parser.add_argument('--input-file', type=Path)
         parser.add_argument('--project-root', type=Path)

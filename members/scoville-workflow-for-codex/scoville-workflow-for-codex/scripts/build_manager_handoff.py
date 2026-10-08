@@ -73,14 +73,17 @@ def build_arguments(args: argparse.Namespace) -> dict:
         f'You are Scoville manager {args.manager_number}. Runner agent: {runner}.\n'
         f'Project display name: {project}. Preserve it in progress, status messages and direct handoffs.\n'
         f'Launched manager pair: model={pair["model"]}, reasoning={pair["reasoning"]}. Preserve this pair at rollover.\n'
-        'FIRST ACTION: send READY to the supplied runner with send_message, then actively '
+        '\n## Before READY\n\n1. Load the shared manager protocol.\n'
+        '2. Send READY to the supplied runner with send_message, then actively '
         'wait_agent for START from that exact host sender. Before START, no project reads, '
-        'handoff requests, writes or children. Load the shared manager protocol before this action.\n'
+        'handoff requests, writes or children.\n\n'
         f'Manager protocol: {skill / "references" / "manager-protocol.md"}\n'
         f'Manager operations: {skill / "references" / "operations.md"}\n'
         f'Plan Skill: {plan}\n'
-        'After START, use this Plan Skill and its scripts/ helpers. Resolve other suite Skills '
+        '\n## After START\n\n1. Use this Plan Skill and its scripts/ helpers. Resolve other suite Skills '
         'from the same suite directory, preserving any explicit user override; do not substitute another installed build.\n'
+        '2. Read run-feedback.md; record user-relevant issues and resolutions in the same run report. '
+        'Finalize that file only after requested-scope acceptance and closure.\n\n'
         f'Writing rules (read after START before writing assignments, results or handoffs): {writing}\n'
         f'Rollover contract: {skill / "references" / "operations-rollover.md"}\n'
         f'Run feedback contract: {skill / "references" / "run-feedback.md"}\n'
@@ -92,9 +95,7 @@ def build_arguments(args: argparse.Namespace) -> dict:
         'or CLARIFICATION_REQUEST <retained-predecessor-id>. An oversized handoff or a confirmed one-way manager '
         'handoff routing rejection uses HANDOFF_FILE_READY and HANDOFF_FILE under '
         'manager-protocol.md; these carry only a file path, never handoff text. '
-        'WORKING_ON carries only the generated key and one status line naming project, Plan and point. '
-        'Read run-feedback.md after START; record user-relevant issues and resolutions in the same run report. '
-        'Finalize that file only after requested-scope acceptance and closure. '
+        'WORKING_ON carries only the generated key and one status line naming project, Plan and point.\n\n'
         'Issue controls use --plan PLAN-NNNN and --point W-NNN/step-N or W-NNN/steps-N-M '
         'when known. For Startup, omit both --plan and --point; never pass Startup as --point. Include the '
         'exact question or diagnostic, reason and waiting work. Include no work results, '
@@ -105,18 +106,18 @@ def build_arguments(args: argparse.Namespace) -> dict:
             'model': single_line(pair['model'], 'workflow.manager.model / --model'),
             'reasoning_effort': pair['reasoning']}
     target = assignment_path(args.assignment_file, report.parent.parent)
-    successor_step = (f'After START, first send HANDOFF_REQUEST directly to {predecessor}. '
+    successor_step = (f'3. After START, first send HANDOFF_REQUEST directly to {predecessor}.\n'
                       if args.mode == 'successor' else '')
     result['message'] = (
         f'You are Scoville manager {args.manager_number}. Runner agent: {runner}.\n'
         + 'Use this reader for each document below only at its stated permitted reading stage.\n'
         + file_read_instruction(target, skill / 'scripts' / 'check_text_size.py', sys.executable)
-        + '\n'
-        + f'Read the manager protocol before READY: {skill / "references" / "manager-protocol.md"}\n'
-        'Send READY to the exact runner, then wait for START. Before START, do not read project files, '
+        + '\n\n## Manager entry\n\n'
+        + f'1. Before READY, read the manager protocol: {skill / "references" / "manager-protocol.md"}\n'
+        '2. Send READY to the exact runner, then wait for START. Before START, do not read project files, '
         'request a handoff, write or start children.\n'
         + successor_step
-        + f'After START, read the complete UTF-8 manager assignment from {target} '
+        + f'{4 if args.mode == "successor" else 3}. After START, read the complete UTF-8 manager assignment from {target} '
           'before any other project work or status. '
         + 'Follow its bundled Skill paths and controls.\n')
     json.dumps(result, ensure_ascii=False).encode('utf-8', errors='strict')

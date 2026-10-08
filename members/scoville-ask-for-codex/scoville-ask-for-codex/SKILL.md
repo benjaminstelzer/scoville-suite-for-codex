@@ -22,15 +22,22 @@ Infer `review` or `consultation` from the actual question; an explicit mode wins
 intended outcome is ambiguous, clarify before dispatch. Do not ask again when
 the request already establishes the mode, advisers or permission.
 
-Resolve settings with `scripts/ask.py`, using unsaved request overrides above
-the selected project's `.scoville/config.json` (`ask` section), then
-[config.default.json](config.default.json). Select exactly the requested
-advisers, routes, models and efforts. Adviser IDs identify results; optional
-display names do not identify agent handles. An explicitly named adviser
-selects that preset even when the default adviser list contains another
-adviser. The default adviser list applies only when no adviser is named; it is
-not an allowlist. Resolve all selected presets in one call and report the
-settings for each adviser. Read
+Resolve settings with `scripts/ask.py`:
+
+| Priority | Settings source |
+| --- | --- |
+| 1 | Unsaved request overrides. |
+| 2 | Selected project's `.scoville/config.json`, `ask` section. |
+| 3 | [config.default.json](config.default.json). |
+
+| Adviser selection | Presets |
+| --- | --- |
+| Explicitly named | Exactly those presets, even if absent from the default list. |
+| None named | Default adviser list; it is not an allowlist. |
+
+Select exactly the requested routes, models and efforts. Adviser IDs identify
+results; display names are not agent handles. Resolve selected presets in one
+call and report each adviser's settings. Read
 [configuration and helper inputs](references/configuration.md) for resolution,
 migration or the first helper invocation.
 

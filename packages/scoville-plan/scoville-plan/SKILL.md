@@ -174,7 +174,10 @@ oversized read.
 The reader program is `scripts/check_text_size.py`; pass its document only as
 `--file`. Only named `.py` files may be Python program files. SKILL.md, references
 and assignments are documents, never programs.
-Python and every named helper are required. Missing dependencies or helper
-errors stop the affected operation. Do not substitute manual execution.
+
+| Condition | Required route |
+| --- | --- |
+| Python and every named helper are available | Use the bundled helper. |
+| Missing Python, script, dependency or helper error | Stop the affected operation; do not substitute manual execution. |
 
 Helpers: `scripts/select_context.py`, `scripts/validate_profile.py`, `scripts/check_text_size.py`.

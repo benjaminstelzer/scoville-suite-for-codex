@@ -60,18 +60,19 @@ begins that item's scoped reconciliation or preparation. Preserve observed Step
 statuses until their work actually starts. A merely selected item remains paused:
 report it as selected, not yet started.
 
-Before launching or resuming any writing child, including a correction or
-recovery worker, apply Scoville Plan's start and resume rules. The active Plan's
-`current_item` must name this Work Item, with `Status: in_progress` and written
-`in_progress` status on the actually started Step or jointly started group.
-Do not mark later Steps started merely because they appear in an assignment.
-For a confirmed correction in a nonterminal item, retain completed effects and
-the correction reason when returning an affected done Step to in_progress.
-Save and validate the Plan, then generate and send WORKING_ON for the actually
-started Step or Step group under run-feedback.md before every writing dispatch or
-resumption. Assignment labels retain the complete assigned range. Selection and
-progress messages do not update these records. A read-only reviewer does not
-restart completed Steps.
+Before any writing dispatch or resumption, including correction and recovery:
+
+1. Apply Plan's start or resume rules. The active `current_item` must name this
+   Work Item with `Status: in_progress`; mark only the actually started Step or
+   jointly started group `in_progress`. Assignment ranges do not start later Steps.
+2. For a confirmed correction in a nonterminal item, retain completed effects
+   and the correction reason when returning an affected done Step to in_progress.
+3. Save and validate the Plan.
+4. Generate and successfully send WORKING_ON for that Step or group under
+   run-feedback.md, then dispatch or resume the writer.
+
+Assignment labels retain the complete assigned range. Selection and progress
+messages do not change records. A read-only reviewer does not restart done Steps.
 
 Within a sequential multi-Step assignment, the worker returns progress_pending
 before starting a Step outside the recorded jointly started group. It stops
@@ -173,29 +174,27 @@ completed work.
      before point 7 closure and point 8 rollover.
    - Open findings, a user stop or an unanswered decision prevent resumption.
      Do not repeat unaffected passed checks.
-7. Save observed Step status, Evidence and fulfilled Instructions in the
-   canonical Plan. Under Plan's rules, mark completed Steps done and remove
-   fulfilled binding conditions. Unmarked Steps remain unknown; selection alone
-   is not start. Preserve completed effects during review, correction and
-   continuation. Record checked intermediate results without claiming final
-   acceptance. Mark the Work Item done only when its Acceptance and required
-   review pass. Keep Evidence brief: the observed outcome, that a required review
-   occurred, and confirmed open limits needed for further work. Review texts are
-   temporary input for development, never permanent Plan or report content.
-   Replace Instructions with only remaining conditions absent from Steps; do not
-   duplicate Steps as prose or prepend results to old text.
-   Record accepted results, pause or return state and the next owner during this
-   normal closure, after all children stop writing. Create no worker assignment,
-   extra review, report, hash chain or artifact inventory solely to synchronize
-   bookkeeping. A material change to an accepted finding still follows the
-   review and Decision rules.
-   Complete the Work Item and select its eligible successor in the same prepared
-   Plan change, honoring dependencies and recorded returns. Align current_item
-   with that selection; selection does not start the successor's work. For the
-   final item, close the Plan and index only after the whole requested scope
-   passes. Run the Plan validator and follow its concrete diagnostics. When
-   committing is authorized, inspect the staged diff and commit accepted changes
-   with their Plan records, respecting backups and hooks.
+7. Close the accepted boundary after all children stop writing:
+   - Save observed Step status and checked intermediate results under Plan's
+     rules. Mark completed Steps done; unmarked Steps stay unknown and selection
+     is not start. Preserve completed effects through review and continuation.
+   - Keep Evidence to the observed outcome, required review occurrence and open
+     limits needed next. Review text is temporary development input, never
+     permanent Plan or report content.
+   - Remove fulfilled Instructions; retain only conditions absent from Steps.
+     Add no Step recap or results. Record pause or return state and next owner
+     during this closure.
+   - Mark the Work Item done only after Acceptance and required review pass.
+     Select an eligible successor in the same prepared change, honoring
+     dependencies and returns. Align current_item; selection does not start work.
+     For the final item, close Plan and index only after the whole requested scope passes.
+   - Validate the coherent Plan update and follow its diagnostics. If commits
+     are authorized, inspect the staged diff and commit accepted changes with
+     their Plan records, respecting backups and hooks.
+
+   Create no worker, extra review, report, hash chain or artifact inventory solely
+   for bookkeeping. A material change to an accepted finding still follows review
+   and Decision rules. Intermediate checks do not establish final acceptance.
 8. Branch only after the complete selected Step or Step group, including required
    checks, due review, repairs, Plan updates and authorized commits:
    - If the authorized scope is complete, go to [Complete and exit](#complete-and-exit)
@@ -235,14 +234,17 @@ decisive checks, unverified behavior and next action if work remains. Report fac
 not a verdict that the work is correct or meets Acceptance. No marker,
 fixed field order, JSON or change flags are required.
 
-Worker statuses: completed, progress_pending, review_pending, blocked,
-needs_user_decision, context_handoff. Use completed when the worker's
-implementation and checks are done, including when only manager review or Plan
-closure remains. Review_pending requires a checked prior-code fix and named work
-still assigned to that same worker. Reviewer statuses: pass, changes_requested,
-blocked, needs_user_decision, context_handoff. Context_handoff requires an
-explicitly authorized transfer of unfinished work, never a context threshold
-alone. For pass, say only that the review was performed and found no defects;
+| Status | Role and meaning | Continuation |
+| --- | --- | --- |
+| completed | Worker implementation and checks are done; manager review or Plan closure may remain. | Assignment ends; due review and closure follow. |
+| progress_pending | Worker reached a Step boundary outside its recorded started group. | Same worker resumes only after validated progress and release, including due review. |
+| review_pending | Checked prior-code fix; named work remains with that worker. | Same worker stays paused through review and correction; resume after acceptance and release. |
+| pass | Reviewer found no defects or material acceptance gap. | Review ends. |
+| changes_requested | Reviewer identified open findings. | New correction worker handles source findings; manager handles Plan findings. |
+| blocked / needs_user_decision | Either role cannot continue without the named prerequisite or answer. | Stop dependent work and relay under run-feedback.md. |
+| context_handoff | Either role has an explicitly authorized transfer of unfinished work. A threshold alone never permits it. | Follow operations-rollover.md before any successor writes. |
+
+For pass, say only that the review was performed and found no defects;
 do not repeat files, checks, evidence or the worker's result. A pass has no
 unresolved defects or material acceptance gap. Otherwise transmit only open
 findings and the facts needed to address them, or the concrete blocker, decision
@@ -271,17 +273,19 @@ completed agents for cleanup or retry automatically.
 
 ## Complete and exit
 
-When the requested scope has passed acceptance and required closure is done,
-confirm children and writers are quiescent. Follow [run-feedback
-completion](run-feedback.md#completion): use one `complete` call to finish the
-same report and generate the completed status and send its returned `message`
-unchanged to the runner. Do not compose a separate `COMPLETED` message. A failed
-completion operation is BLOCKED, never completion. End with that message's
-control line only as the native final. Do not wait for a receipt or write after
-this completion. Keep substantive results and decisive evidence in the Plan; the
-runner tells the user that this Workflow run has ended. A bounded run can end
-while other Plan items remain open. Blockers, pauses and context handoffs are
-not completion.
+When the requested scope has passed acceptance and required closure is done:
+
+1. Confirm children and writers are quiescent. Keep substantive results and
+   decisive evidence in the Plan.
+2. Follow [run-feedback completion](run-feedback.md#completion). Use one
+   `complete` call to finish the same report and generate the completed status.
+3. Send its returned `message` unchanged to the runner. Do not compose a separate
+   `COMPLETED` message. A failed completion operation is BLOCKED, never completion.
+4. End with that message's control line only as the native final. Do not wait
+   for a receipt or write after completion; the runner tells the user the run ended.
+
+A bounded run can end while other Plan items remain open. Blockers, pauses and
+context handoffs are not completion.
 
 After completion, stop applying this Skill to later requests in the chat.
 Return to normal assistance without carrying over Workflow roles, dispatch,
