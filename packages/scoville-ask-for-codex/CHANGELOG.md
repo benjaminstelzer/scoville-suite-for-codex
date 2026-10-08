@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.6 - 2026-10-08
+
+- Make independent adviser dispatch and return handling easier to follow, with complete input and role boundaries preserved.
+
 ## v1.4.5 - 2026-10-08
 
 - Clarify the shared writing and document-reading instructions so the next action and its prerequisites are easier to identify.
