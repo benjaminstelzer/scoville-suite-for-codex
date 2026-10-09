@@ -91,7 +91,7 @@ python "<workflow-skill-directory>/scripts/run_feedback.py" create --project-roo
 
 Use this exact file across stops, resumptions and all manager starts. A new run
 after completion gets a new file. Read [run feedback](references/run-feedback.md)
-for display, issue handling and final report output. A failed creation keeps startup stopped. Unless the caller forbids correction,
+for display, issue handling and completion. A failed creation keeps startup stopped. Unless the caller forbids correction,
 an explicit argument-parser rejection before report creation and any manager
 start permits one corrected `run_feedback.py create` call using the documented
 syntax and verified workspace root. Change only the arguments. Continue only
@@ -210,7 +210,7 @@ On `COMPLETED`:
    native final and confirmed child and writer quiescence.
 2. Follow run-feedback.md and its report-read helper before announcing
    completion or leaving the runner role. A direct file read does not suffice.
-3. After successful report output, return to normal assistance. This ends only
+3. After the completion summary, return to normal assistance. This ends only
    the requested scope; a new problem does not reactivate Workflow.
 
 ## Manager entry

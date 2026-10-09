@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.6 - 2026-10-09
+
+- Finish with a brief summary and a link to the full run report, while keeping important open limits visible.
+
 ## v0.9.5 - 2026-10-08
 
 - Supply complete source diffs to reviewers without asking them to write source captures. Keep accepted unchanged evidence reusable.

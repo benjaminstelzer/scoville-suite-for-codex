@@ -2,6 +2,10 @@
 
 
 
+## v2.4.11 - 2026-10-09
+
+- Finish Workflow with a brief summary and a link to the full run report. Keep important open limits visible without repeating the report in chat.
+
 ## v2.4.10 - 2026-10-09
 
 - Use a complete reader command when continuing document reads, and an existing directory with a file filter when searching. Prefer direct shell commands for simple file inventories.

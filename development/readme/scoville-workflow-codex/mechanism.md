@@ -24,7 +24,7 @@ flowchart TD
     Q -->|No| A
     A --> E["Accept when required checks and reviews pass<br/>Commit when authorized"]
     E --> N("Requested work remains?")
-    N -->|No| D["Announce completion<br/>Show the run report"]
+    N -->|No| D["Summarize completion<br/>Link the full run report"]
     N -->|Yes| T("Context boundary reached?")
     T -->|No| C
     T -->|Yes| H["Hand over at the completed work boundary<br/>Next manager continues from the Plan and handoff"]

@@ -3,7 +3,7 @@
 Manager: send controls and issues only to the exact runner ID in your start
 assignment, never another project's runner or a chat selected by title.
 Children: return messages and results to your spawning manager.
-Runner: display questions and the final report in the original runner chat.
+Runner: display user feedback in the original runner chat.
 
 Use the same absolute report path supplied at every manager start. A successor
 verifies that its direct handoff names that file. Keep the actual overall scope
@@ -13,11 +13,11 @@ as free text through handoffs and steering. No report or display invents scope.
 line; blockers, questions, pauses and completion retain their explanatory body.
 The manager copies its returned `message` exactly into the native send argument.
 Its first line is a protocol control, including the key for WORKING_ON. After
-authenticating the sender, the runner removes that first line and copies the
-remaining Markdown (`text`) exactly into its visible response under the
-applicable state rules. Preserve its body, including plain paths; add no
-backticks, emphasis or rewording. Use these generated messages without separate
-startup, handshake or answer-forwarding status narration.
+authenticating the sender, the runner removes that first line. For progress,
+blockers, questions and pauses, copy the remaining Markdown (`text`) exactly
+under the applicable state rules, including plain paths; add no backticks,
+emphasis or rewording. Completion follows its section below. Use these messages
+without separate startup, handshake or answer-forwarding status narration.
 
 ## Progress
 
@@ -217,18 +217,12 @@ read the retained file with a complete capture:
 <verified-python> -X utf8 "<workflow-skill-directory>/scripts/check_text_size.py" --max-output-tokens <limit> --publish-full --project-root "<workspace_root>" --run -- <verified-python> -X utf8 "<workflow-skill-directory>/scripts/run_feedback.py" read --report-file "<run-report.md>"
 ```
 
-Runner report output:
+Apply the same limit and complete-file reading rules as above. After a successful
+read with nonempty `display_text`, give only a brief summary of the completed
+scope and any remaining user-relevant issues, with a clickable link to the full
+report. Then end the runner role.
 
-1. Apply the same limit and complete-file reading rules as above.
-2. Require success and nonempty `display_text` before displaying the retained
-   generated completion text.
-3. Output `Run report: <absolute-path>` and the complete returned `display_text`.
-4. Only after successful output, end the runner role.
-
-This field preserves
-all report content except internal issue-marker lines; `text` retains the stored
-form for bookkeeping. A failed or empty read reports the problem and leaves
-completion unconfirmed. Only after successful output does the runner role end.
+A failed or empty read reports the problem and leaves completion unconfirmed.
 Do not replace this helper operation with a direct file read or start a
 normal-assistance audit first. Read only on a requested inspection or
 completion, never as a progress poll. The runner's key and report path survive
