@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.11 - 2026-10-09
+
+- Keep the verified Python interpreter and all required arguments when capturing a helper command. Small direct calls remain available.
+
 ## v1.4.10 - 2026-10-09
 
 - Clarify the reader's program and document paths in adviser instructions, including source files read as text.

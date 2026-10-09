@@ -2,6 +2,10 @@
 
 
 
+## v2.4.15 - 2026-10-09
+
+- Keep the verified Python interpreter and all required arguments when capturing a helper command. Small direct calls remain available.
+
 ## v2.4.14 - 2026-10-09
 
 - Clarify the reader's two paths in Skill guidance and generated assignments: Python runs the checker; documents and source files are read through `--file`. Keep the complete command when continuing or switching documents.
