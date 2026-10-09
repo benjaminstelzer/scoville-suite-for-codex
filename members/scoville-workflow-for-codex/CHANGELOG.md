@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.8 - 2026-10-09
+
+- Clarify the reader's program and document paths in generated assignments, including source files read as text.
+
 ## v0.9.7 - 2026-10-09
 
 - Start a new run without requiring old agent IDs or shutdown proof. Concrete competing-writer evidence still blocks writing until resolved.

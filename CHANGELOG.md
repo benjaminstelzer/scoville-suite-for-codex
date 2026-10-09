@@ -2,6 +2,10 @@
 
 
 
+## v2.4.14 - 2026-10-09
+
+- Clarify the reader's two paths in Skill guidance and generated assignments: Python runs the checker; documents and source files are read through `--file`. Keep the complete command when continuing or switching documents.
+
 ## v2.4.13 - 2026-10-09
 
 - Reuse completed work and passing checks when their inputs and requirements are unchanged. Preserve necessary first independent reviews and checks that answer a new question.

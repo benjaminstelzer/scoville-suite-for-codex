@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.10 - 2026-10-09
+
+- Clarify the reader's program and document paths in adviser instructions, including source files read as text.
+
 ## v1.4.9 - 2026-10-09
 
 - Preserve command sessions, all output chunks and final exit status through adviser work. Keep the verified reader path unchanged between document parts or Skills.
