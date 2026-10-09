@@ -2,6 +2,10 @@
 
 
 
+## v2.4.12 - 2026-10-09
+
+- Start a new Workflow without requiring old agent IDs or proof that every earlier run stopped. Resolve concrete competing-writer evidence before writing, and preserve same-run recovery safeguards.
+
 ## v2.4.11 - 2026-10-09
 
 - Finish Workflow with a brief summary and a link to the full run report. Keep important open limits visible without repeating the report in chat.

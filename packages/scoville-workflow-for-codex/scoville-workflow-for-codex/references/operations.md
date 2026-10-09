@@ -11,6 +11,10 @@ supplied report path and actual overall scope. Read
 [dispatch](operations-dispatch.md) before assigning a unit and
 [rollover](operations-rollover.md) before a context boundary. The initial
 manager sends RUNNING after startup checks, before dispatching its first child.
+For a new run, inspect the current work state without reconstructing earlier
+agent trees or requiring their shutdown proof. Only concrete evidence of an
+active or uncertain competing writer in this checkout blocks writing. Missing
+historical IDs alone do not. Same-run recovery and takeover keep their rules.
 
 All Skills included in this suite must be installed and enabled. Use the
 applicable owner without checking sibling availability. Load only instructions

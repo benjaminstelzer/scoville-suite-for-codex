@@ -112,6 +112,11 @@ Missing facts, uncertain effects, another failure or any other creation error
 require immediate blocked display under run feedback. A successful correction
 creates no issue entry.
 
+An explicit new activation starts a new run, even when continuing existing Plan
+work. It needs no old agent inventory or proof that earlier runs stopped.
+Concrete evidence of an active or uncertain competing writer in the same
+checkout blocks writing until resolved; missing old IDs or history alone do not.
+
 For initial startup:
 
 1. Apply the shared writing rules and save the actual activation, requested

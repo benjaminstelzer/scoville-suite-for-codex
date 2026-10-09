@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.7 - 2026-10-09
+
+- Start a new run without requiring old agent IDs or shutdown proof. Concrete competing-writer evidence still blocks writing until resolved.
+
 ## v0.9.6 - 2026-10-09
 
 - Finish with a brief summary and a link to the full run report, while keeping important open limits visible.
