@@ -27,7 +27,7 @@ it from the Plan Goal or title. Only user steering changes it. After saving and
 validating Plan progress, generate before every writing dispatch or resumption:
 
 ```text
-python "<workflow-skill-directory>/scripts/run_feedback.py" progress --project "<project-name>" --project-root "<workspace_root>"
+<verified-python> -X utf8 "<workflow-skill-directory>/scripts/run_feedback.py" progress --project "<project-name>" --project-root "<workspace_root>"
 ```
 
 Send the returned `message` to the runner with `collaboration.send_message`. Require
@@ -68,17 +68,16 @@ For effect-free input correction after confirmed progress, follow
 Before a Plan location is known, use Startup by omitting both location options:
 
 ```text
-python -X utf8 "<workflow-skill-directory>/scripts/run_feedback.py" status --kind blocked --project "<project-name>" --text-file "<blocked.txt>"
+<verified-python> -X utf8 "<workflow-skill-directory>/scripts/run_feedback.py" status --kind blocked --project "<project-name>" --text-file "<blocked.txt>"
 ```
 
 Once known, add both `--plan PLAN-NNNN` and `--point W-NNN/step-N` or its
 consecutive Step range. Capture the helper's complete output before display.
 
-For a dispatch-builder argument error or a selector-budget error in dispatch or
-progress, first apply the bounded [pre-dispatch
-correction](operations-dispatch.md#pre-dispatch-correction). A successful
-correction needs no visible blocker or report entry. All unresolved failures
-follow the immediate relay rule below.
+For the correctable input or launch diagnostics named in [pre-dispatch
+correction](operations-dispatch.md#pre-dispatch-correction), apply that bounded
+correction first. A successful correction needs no visible blocker or report
+entry. All unresolved failures follow the immediate relay rule below.
 
 For every necessary decision or blocker from a child, manager work, helper or takeover:
 
@@ -96,7 +95,7 @@ pending manager under takeover rules and alone presents the user question.
 Generate the body in the user's language with retained project name and unit:
 
 ```text
-python "<workflow-skill-directory>/scripts/run_feedback.py" status --kind decision --project "<project-name>" --plan <plan-id> --point <point> --text-file "<question.txt>"
+<verified-python> -X utf8 "<workflow-skill-directory>/scripts/run_feedback.py" status --kind decision --project "<project-name>" --plan <plan-id> --point <point> --text-file "<question.txt>"
 ```
 
 Use `decision`, `blocked` or `paused`. Completion uses `complete` below;
@@ -143,7 +142,7 @@ dependent work resumes, when the current report owner can safely write.
 Save the relevant free text in a UTF-8 temporary file and run:
 
 ```text
-python "<workflow-skill-directory>/scripts/run_feedback.py" add --report-file "<run-report.md>" --kind question --location "<plan-id> / <point>" --text-file "<question.txt>"
+<verified-python> -X utf8 "<workflow-skill-directory>/scripts/run_feedback.py" add --report-file "<run-report.md>" --kind question --location "<plan-id> / <point>" --text-file "<question.txt>"
 ```
 
 Kinds are `question`, `pause` and `problem`. Retain the returned `issue_id` with
@@ -152,7 +151,7 @@ retry without another entry; a different issue under that ID is rejected.
 After the actual answer, resume or resolution is received, append it:
 
 ```text
-python "<workflow-skill-directory>/scripts/run_feedback.py" resolve --report-file "<run-report.md>" --issue-id <retained-id> --text-file "<clarification.txt>"
+<verified-python> -X utf8 "<workflow-skill-directory>/scripts/run_feedback.py" resolve --report-file "<run-report.md>" --issue-id <retained-id> --text-file "<clarification.txt>"
 ```
 
 The original issue stays, its status becomes Resolved and the clarification is

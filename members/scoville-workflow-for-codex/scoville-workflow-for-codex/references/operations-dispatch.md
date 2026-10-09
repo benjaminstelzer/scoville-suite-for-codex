@@ -198,8 +198,10 @@ no separate preview call.
 ### Pre-dispatch correction
 
 One corrected helper call before reporting BLOCKED is allowed for an explicit
-invalid-argument diagnostic from `build_dispatch_prompt.py`, or
-`OUTPUT_BUDGET_EXCEEDED` from that builder or `run_feedback.py progress`.
+invalid-argument diagnostic from `build_dispatch_prompt.py`,
+`OUTPUT_BUDGET_EXCEEDED` from that builder or `run_feedback.py progress`, or the
+capture helper's complete `PYTHON_INTERPRETER_REQUIRED child_started=false`
+diagnostic before an authorized helper call starts.
 No agent start may have been attempted, and the failed call must have produced
 no assignment file or other effects. Already confirmed WORKING_ON delivery for
 this same unchanged unit does not prevent the correction and must not be resent.
