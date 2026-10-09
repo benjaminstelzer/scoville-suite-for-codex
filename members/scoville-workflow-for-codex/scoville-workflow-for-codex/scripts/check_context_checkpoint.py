@@ -75,7 +75,7 @@ def main() -> int:
     configure_utf8()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--role", choices=("coordinator", "executor", "reviewer"), required=True)
-    parser.add_argument("--boundary", "--accepted-unit", dest="boundary", help="completed selected unit, including due review, repairs and closure")
+    parser.add_argument("--boundary", "--accepted-unit", dest="boundary", help="coordinator only: completed selected unit, including due review, repairs and closure; omit for executor and reviewer")
     parser.add_argument("--project-root", type=Path, default=Path.cwd())
     args = parser.parse_args()
     if args.role == "coordinator" and (not args.boundary or not args.boundary.strip()):

@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.8 - 2026-10-09
+
+- Use a complete reader command when continuing document reads, and an existing directory with a file filter when searching. Prefer direct shell commands for simple file inventories.
+
 ## v1.4.7 - 2026-10-09
 
 - Keep adviser inputs on the bounded reader route and deliver the adviser result separately. Preserve literal reader arguments, output limits and failure status.

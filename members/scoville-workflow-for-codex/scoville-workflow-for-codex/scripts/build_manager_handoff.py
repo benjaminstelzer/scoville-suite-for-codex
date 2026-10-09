@@ -148,7 +148,7 @@ def main() -> int:
     parser.add_argument('--runner-id', required=True)
     parser.add_argument('--project-name', required=True, help='actual project display name retained by the runner before startup')
     parser.add_argument('--manager-number', required=True, type=int)
-    parser.add_argument('--project-root', type=Path)
+    parser.add_argument('--project-root', type=Path, help='initial start only; omit for --mode successor')
     parser.add_argument('--request-file', type=Path, help='UTF-8 user activation and scope, initial start only')
     parser.add_argument('--report-file', type=Path, help='existing absolute per-run report, control metadata for every manager')
     parser.add_argument('--assignment-file', type=Path,
