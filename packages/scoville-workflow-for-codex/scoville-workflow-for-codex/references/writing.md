@@ -29,11 +29,12 @@ With an applicable limit:
    bundled reader:
    `<verified-python> -X utf8 "<skill-directory>/scripts/check_text_size.py" --file "<document>" --max-output-tokens <limit> --part 1`.
    It validates the complete UTF-8 file and budgets labels too.
-   The program is `scripts/check_text_size.py`; the document is its `--file`
-   argument. Copy the whole command: change only `--file` for another document
-   or `--part` to continue. Keep program, launcher and quoting unchanged.
-   Only named `.py` files may be Python program files; SKILL.md, references and
-   assignments are documents.
+   The program is `scripts/check_text_size.py`. Documents, including those of
+   other Skills, belong in `--file`. Keep the verified launcher, full checker
+   path and quoting unchanged. Copy the last correct complete command: change
+   only `--part` for the reported next part; for another document change `--file`
+   and reset `--part` to 1. Only named `.py` files may be Python programs; Skills,
+   references and assignments are documents.
 3. For multipart output, follow `part=N bytes=start:end/total next=M` with
    `--part M` through `last`,
    where end equals total. Read every unchanged part in order before dependent
@@ -65,7 +66,13 @@ For native Codex calls, forward rendered checker output unchanged as text.
 Do not JSON-encode it again or add unchecked status lines. Structured helper
 results and native tool arguments keep their own interfaces.
 
-Use one checked read or capture per outer call. This template selects 20000;
+Keep the complete `exec_command` result until the command ends, including
+`session_id`, every output chunk and the final exit status. Never shorten the
+call to `text((await tools.exec_command(...)).output)`: that discards process
+metadata. A completed outer script does not prove child completion. Use the
+template below for checked reads and captures, one per outer call.
+
+This template selects 20000;
 use the same smallest applicable limit in the generated command, both tools and
 outer directive. Before execution, replace `<command_json>` with one JSON string
 literal encoding the complete generated command, including quotes and backslashes.

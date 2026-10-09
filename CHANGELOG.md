@@ -2,6 +2,12 @@
 
 
 
+## v2.4.13 - 2026-10-09
+
+- Reuse completed work and passing checks when their inputs and requirements are unchanged. Preserve necessary first independent reviews and checks that answer a new question.
+- Retain running-command sessions, output chunks and final exit status. An outer script ending does not prove that its child process ended.
+- Keep reader commands intact between document parts or Skills, and limit guards to the requirements and failure risks they actually protect.
+
 ## v2.4.12 - 2026-10-09
 
 - Start a new Workflow without requiring old agent IDs or proof that every earlier run stopped. Resolve concrete competing-writer evidence before writing, and preserve same-run recovery safeguards.
