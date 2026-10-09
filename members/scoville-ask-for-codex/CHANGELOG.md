@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.7 - 2026-10-09
+
+- Keep adviser inputs on the bounded reader route and deliver the adviser result separately. Preserve literal reader arguments, output limits and failure status.
+
 ## v1.4.6 - 2026-10-08
 
 - Make independent adviser dispatch and return handling easier to follow, with complete input and role boundaries preserved.

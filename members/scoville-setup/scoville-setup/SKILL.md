@@ -31,8 +31,8 @@ Defaults are imported from Ask's
 [defaults](assets/ask.default.json) and Workflow's [defaults](assets/workflow.toml).
 Never maintain another copy of their values in these instructions.
 
-For a requested one-time Ask override, read Scoville Ask's
-`<ask-skill-directory>/references/configuration.md` and use its read-only
+For a requested one-time Ask override, read Scoville Ask for Codex's
+`references/configuration.md` and use its read-only
 settings resolution with the selected adviser and requested model or effort.
 Keep unrequested saved values. Report the actual returned values; a promise
 to use them later is not resolution. This reads settings without starting an

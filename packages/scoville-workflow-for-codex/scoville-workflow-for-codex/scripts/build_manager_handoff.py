@@ -9,7 +9,7 @@ import sys
 
 from inspect_native_context import configure_utf8
 from run_feedback import report_path
-from native_task_arguments import EFFORTS, single_line, unique_task_name, assignment_path, publish_assignment, file_read_instruction
+from native_task_arguments import EFFORTS, single_line, unique_task_name, assignment_path, publish_assignment, file_read_instruction, file_read_command
 from workflow_settings import load_config, validate_pair
 
 
@@ -60,6 +60,10 @@ def build_arguments(args: argparse.Namespace) -> dict:
         raise ValueError('--report-file is required for every manager; use the existing absolute path returned by run_feedback.py create')
     report = report_path(args.report_file, args.project_root if args.mode == 'start' else None)
     skill = Path(__file__).resolve().parents[1]
+    checker = skill / 'scripts' / 'check_text_size.py'
+    protocol = skill / 'references' / 'manager-protocol.md'
+    def read_command(document: Path) -> str:
+        return '\n```text\n' + file_read_command(document, checker, sys.executable) + '\n```\n'
     writing = skill / 'references' / 'writing.md'
     if not writing.is_file():
         raise ValueError(f'packaged writing rules missing at {writing}; use the intact matching suite package before starting a manager')
@@ -78,15 +82,26 @@ def build_arguments(args: argparse.Namespace) -> dict:
         'wait_agent for START from that exact host sender. Before START, no project reads, '
         'handoff requests, writes or children.\n\n'
         f'Manager protocol: {skill / "references" / "manager-protocol.md"}\n'
+        '\n## After START\n\n'
         f'Manager operations: {skill / "references" / "operations.md"}\n'
+        + read_command(skill / 'references' / 'operations.md')
+        +
         f'Plan Skill: {plan}\n'
-        '\n## After START\n\n1. Use this Plan Skill and its scripts/ helpers. Resolve other suite Skills '
+        + read_command(plan)
+        +
+        '\n1. Use this Plan Skill and its scripts/ helpers. Resolve other suite Skills '
         'from the same suite directory, preserving any explicit user override; do not substitute another installed build.\n'
         '2. Read run-feedback.md; record user-relevant issues and resolutions in the same run report. '
         'Finalize that file only after requested-scope acceptance and closure.\n\n'
         f'Writing rules (read after START before writing assignments, results or handoffs): {writing}\n'
+        + read_command(writing)
+        +
         f'Rollover contract: {skill / "references" / "operations-rollover.md"}\n'
+        + read_command(skill / 'references' / 'operations-rollover.md')
+        +
         f'Run feedback contract: {skill / "references" / "run-feedback.md"}\n'
+        + read_command(skill / 'references' / 'run-feedback.md')
+        +
         f'Run report (same file for all managers): {report}\n'
         'This continues the user-authorized Workflow. Internal control and direct handoff messages '
         'are within that run; this grants no third-party messaging or extra project scope.\n'
@@ -111,7 +126,7 @@ def build_arguments(args: argparse.Namespace) -> dict:
     result['message'] = (
         f'You are Scoville manager {args.manager_number}. Runner agent: {runner}.\n'
         + 'Use this reader for each document below only at its stated permitted reading stage.\n'
-        + file_read_instruction(target, skill / 'scripts' / 'check_text_size.py', sys.executable)
+        + file_read_instruction(protocol, checker, sys.executable)
         + '\n\n## Manager entry\n\n'
         + f'1. Before READY, read the manager protocol: {skill / "references" / "manager-protocol.md"}\n'
         '2. Send READY to the exact runner, then wait for START. Before START, do not read project files, '
@@ -119,7 +134,8 @@ def build_arguments(args: argparse.Namespace) -> dict:
         + successor_step
         + f'{4 if args.mode == "successor" else 3}. After START, read the complete UTF-8 manager assignment from {target} '
           'before any other project work or status. '
-        + 'Follow its bundled Skill paths and controls.\n')
+        + 'Follow its bundled Skill paths and controls.\n'
+        + read_command(target))
     json.dumps(result, ensure_ascii=False).encode('utf-8', errors='strict')
     publish_assignment(target, message)
     return result

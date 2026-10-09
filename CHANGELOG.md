@@ -2,6 +2,11 @@
 
 
 
+## v2.4.9 - 2026-10-09
+
+- Preserve literal arguments and original failure status in generated reader commands. Restart complete reads at part 1 when a binding output limit changes, and redact secrets throughout handoff text.
+- Keep manager takeover separate from worker recovery, check new Plan IDs immediately before creation, and distinguish plugin page category from runtime and host ownership.
+
 ## v2.4.8 - 2026-10-08
 
 - Make read, edit and manager-handoff prerequisites explicit in ordered instructions. Create usable handoff snapshots after permitted recovery while keeping missing facts visible and dependent receiver actions blocked.
