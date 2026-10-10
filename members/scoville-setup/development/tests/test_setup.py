@@ -88,11 +88,11 @@ class SetupTests(unittest.TestCase):
 
             result, initial = start()
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertEqual((initial['model'], initial['reasoning_effort']), ('gpt-6.1-sol', 'medium'))
+            self.assertEqual((initial['model'], initial['reasoning_effort']), ('gpt-6.1-sol', 'high'))
             result, saved = run(setup, 'set', '--project-root', project,
                                 patch={'workflow': {'manager': {'model': 'gpt-6-luna'}}})
             self.assertEqual(result.returncode, 0, result.stdout)
-            self.assertEqual(saved['effective']['workflow']['manager'], {'model': 'gpt-6-luna', 'reasoning': 'medium'})
+            self.assertEqual(saved['effective']['workflow']['manager'], {'model': 'gpt-6-luna', 'reasoning': 'high'})
             result, saved = run(setup, 'set', '--project-root', project,
                                 patch={'workflow': {'manager': {'reasoning': 'high'}}})
             self.assertEqual(result.returncode, 0, result.stdout)

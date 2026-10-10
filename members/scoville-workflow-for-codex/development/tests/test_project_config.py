@@ -17,7 +17,7 @@ class ProjectConfigTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             original = load_config(defaults, root)
-            self.assertEqual(original['manager'], {'model': 'gpt-6.1-sol', 'reasoning': 'medium'})
+            self.assertEqual(original['manager'], {'model': 'gpt-6.1-sol', 'reasoning': 'high'})
             self.assertFalse((root / ".scoville").exists())
             (root / ".scoville").mkdir()
             path = root / ".scoville/config.json"

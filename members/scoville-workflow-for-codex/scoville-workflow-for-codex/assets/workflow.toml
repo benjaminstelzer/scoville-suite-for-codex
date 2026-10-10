@@ -5,7 +5,7 @@ pin_threads = true
 
 [manager]
 model = "gpt-6.1-sol"
-reasoning = "medium"
+reasoning = "high"
 
 [context]
 # Manager: at or above; all children (workers, reviewers, repairs): strictly above.
@@ -18,12 +18,12 @@ model = "gpt-6-luna"
 reasoning = "medium"
 
 [review.ultra_low]
-model = "gpt-6.1-sol"
-reasoning = "low"
-
-[execute.low]
 model = "gpt-6-luna"
 reasoning = "high"
+
+[execute.low]
+model = "gpt-6.1-sol"
+reasoning = "low"
 
 [review.low]
 model = "gpt-6.1-sol"
@@ -31,23 +31,23 @@ reasoning = "medium"
 
 [execute.medium]
 model = "gpt-6.1-sol"
-reasoning = "medium"
+reasoning = "high"
 
 [review.medium]
-model = "gpt-6-astra"
-reasoning = "medium"
+model = "gpt-6.1-sol"
+reasoning = "high"
 
 [execute.high]
 model = "gpt-6.1-sol"
-reasoning = "high"
+reasoning = "xhigh"
 
 [review.high]
 model = "gpt-6-astra"
 reasoning = "high"
 
 [execute.ultra_high]
-model = "gpt-6.1-sol"
-reasoning = "xhigh"
+model = "gpt-6-astra"
+reasoning = "high"
 
 [review.ultra_high]
 model = "gpt-6-astra"
