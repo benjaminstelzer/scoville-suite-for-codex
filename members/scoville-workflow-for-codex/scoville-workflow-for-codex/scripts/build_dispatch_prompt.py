@@ -15,6 +15,10 @@ from resolve_model_pair import resolve
 from workflow_settings import ROUTES, load_config
 
 MAX_NON_GOALS_BYTES = 8192
+INTERNAL_COMMUNICATION = (
+    "Write commentary, messages and results for the spawning manager "
+    "as minimal labelled fields without narration."
+)
 
 
 def select_unit(selector: Path, root: Path, unit: str, max_output_bytes: int | None = None, retry_arguments: list[str] | None = None) -> dict:
@@ -127,7 +131,7 @@ def build_prompt(role: str, workspace: Path, coordinator: str, reference: str,
              "Work only in the named workspace on this assigned unit. The manager owns Plan, Decision and index edits, staging, commits and the run report. Do not write the report or message the runner. Do not create chats or agents, change Workflow or model settings, or dispatch other work. Product and test configuration may change only within the assigned scope and project constraints; reviewers must not change project files or execute tests, apart from the necessary delivery exception in this role contract.",
              "1. When work needs a user decision or cannot continue, stop dependent writes and promptly send needs_user_decision or blocked to your actual manager with send_message. Include the assigned point, exact question or diagnostic, why it prevents progress, and what is waiting. Do this during the assignment, without waiting for all unrelated checks or your final result. Do not call user-question tools or wait silently for user input in this child. \n2. Once running operations are quiescent, return the complete paused result with the same limitation. Only the manager relays the question to the visible runner and returns the actual user answer. A repeated message and native result describe one pending issue, not two requests.\n",
              "Perform only the assigned scope. For a continuation, context_handoff defines the remaining work and supplemental_context supplies its applicable acceptance criteria and constraints. Otherwise the Work Item is context for the named assigned range. The recorded and released Step or group within that range is the current execution unit; later unreleased Steps add no work to it. Preserve authored order. Reviewers assess the same assigned scope, not unfinished work outside it. Use supplied supplemental_context only for a necessary constraint or missing fact; Workers request material missing facts instead of expanding scope; reviewers include missing facts and their effect on the verdict in their one complete result. Follow applicable repository instructions and implementation Skills.",
-             "Work autonomously. Omit routine progress narration and tool announcements. If the host requires an update, send only the material change or blocker as one short field.",
+             "Work autonomously. " + INTERNAL_COMMUNICATION,
               "For bounded UTF-8 reads, command capture, size checks and oversized-result delivery, invoke the named Python interpreter and text-size checker even when they are outside the workspace. This exception permits no unrelated external inspection, commands or project writes; delivery follows this role contract and the shared complete-file procedure.",
              "Program: the named check_text_size.py. Document: only its --file value. Copy the entire reader command; change only --part for continuation. Start only named .py files as Python program files; never start a Skill, reference or assignment as a program.",
              "The named python and text_size_checker replace <verified-python> and <skill-directory>/scripts/check_text_size.py in the shared writing rules.",
@@ -262,16 +266,19 @@ def main() -> int:
             if args.assignment_file:
                 checker = Path(__file__).with_name('check_text_size.py')
                 read_check = file_read_instruction(args.assignment_file, checker, sys.executable)
-                read_only = ' Stay read-only for project files and do not execute tests. This role permits only necessary oversized-result preparation and publication under .scoville/temp. Follow the shared complete-file procedure.' if args.role == 'reviewer' else ''
+                read_only = (' No tests or project-file changes. Only prepare and publish necessary '
+                             'oversized results under .scoville/temp using shared complete-file rules.'
+                             if args.role == 'reviewer' else '')
                 read_gate = ('before any receipt or project work. If the file is inaccessible or your read is incomplete, '
                              'stop and report blocked to your actual manager; do not acknowledge takeover. '
                              'Retain its complete facts, then follow the takeover contract in that assignment. '
                              if args.context_handoff else 'before any project work. ')
-                message = (f'You are the assigned {args.role} (manager_agent_id={args.manager_agent_id}).{read_only} Read the complete UTF-8 assignment '
+                message = (f'You are the assigned {args.role} (manager_agent_id={args.manager_agent_id}).{read_only} '
+                           f'{INTERNAL_COMMUNICATION} Read the complete UTF-8 assignment '
                            f'from {args.assignment_file} {read_gate}'
                            f'{read_check}'
-                           'Follow that assignment and its '
-                           'bundled Skill paths, then return its required result to the spawning manager.\n'
+                           'Follow the assignment and '
+                           'bundled Skill paths; return its required result.\n'
                            f'Assignment: {title}\n')
             output = creation_arguments(message, task_name, args.model, args.thinking)
             payload = json.dumps(output, ensure_ascii=False) + '\n'

@@ -4,6 +4,7 @@
 
 ## Unreleased - 2026-10-10
 
+- Keep required child updates in minimal labelled fields, including before reading a file assignment. Preserve complete results and handoff facts.
 - Load the full reading procedure and host command guidance only when needed. Keep delivery permissions with their owning roles.
 - Check all member, Shared and packaged runtime tests before each source commit.
 - Let Workflow executors hand over unfinished assignments after a measured context crossing at a safe working boundary. Finish started changes and focused checks, preserve due reviews and release one fresh successor.

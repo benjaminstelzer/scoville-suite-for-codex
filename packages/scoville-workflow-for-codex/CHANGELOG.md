@@ -2,6 +2,7 @@
 
 ## Unreleased - 2026-10-10
 
+- Keep required child updates in minimal labelled fields, including before reading a file assignment. Preserve complete results and handoff facts.
 - Keep the full reading procedure in one reference and load host command details when needed. Preserve complete reads and existing permissions.
 - Hand over remaining work at a safe boundary after a measured context crossing, without requiring the whole assignment to finish. Keep started changes coherent, finish focused checks and preserve independent review before continuation.
 
