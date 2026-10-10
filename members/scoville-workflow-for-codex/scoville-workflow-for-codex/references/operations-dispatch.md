@@ -80,7 +80,11 @@ writer quiescence, ordinary fresh assignment facts identify retained effects,
 known remaining work and constraints; no transfer handshake is needed.
 
 Review facts name the unreviewed diff, affected Acceptance and relevant
-interactions. Supply exact Plan/Decision paths and sections only when needed as
+interactions. Omit generated output from that diff only when a passed check
+against its current source owner and any needed consumer evidence cover affected
+Acceptance. Name omitted paths and that evidence. Include generated content when
+it decides Acceptance or a discrepancy remains.
+Supply exact Plan/Decision paths and sections only when needed as
 review evidence. This grants reviewers no maintenance, tests or unrestricted
 search. For tracked files, `git diff --output="<diff-file>" <base> -- <paths>`
 prepares the complete scoped diff without displaying it. Reviewers read untracked

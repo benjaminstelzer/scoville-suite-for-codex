@@ -4,6 +4,7 @@
 
 ## Unreleased - 2026-10-11
 
+- Select generated review evidence through its current source owner and covered Acceptance. Keep decisive content and unresolved discrepancies in the diff.
 - Early review pauses use the complete executor result contract. Partial duplicate field lists are removed.
 
 ## Unreleased - 2026-10-10
