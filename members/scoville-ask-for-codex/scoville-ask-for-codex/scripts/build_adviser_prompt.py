@@ -67,13 +67,17 @@ def main() -> int:
     checker = ROOT / 'scripts' / 'check_text_size.py'
     if not checker.is_file():
         parser.error(f'packaged text-size checker is missing at {checker}; use the intact built Ask package containing scripts/check_text_size.py')
+    shell_rules = ROOT / 'references' / 'shell-commands.md'
+    if not shell_rules.is_file():
+        parser.error(f'packaged shell rules missing at {shell_rules}; use the intact built Ask package')
     prompt = ('\n\n'.join(rules)
               + f'\n\nmode: {args.mode}\nadviser_id: {args.adviser_id}'
               + f'\nworkspace_root: {args.workspace_root}'
               + f'\ntext_size_checker: {checker}\npython: {sys.executable}'
+              + f'\nshell_command_rules: {shell_rules}; read before the first shell command.'
               + f'\nconsultation_reference: {args.reference}\nscope: {args.scope}'
               + '\n\nInspect only the supplied scope in this workspace. Resolve relative evidence paths there.'
-              + '\nFor bounded UTF-8 reads, command capture, size checks and oversized-result delivery, invoke the named Python interpreter and text-size checker even when they are outside the workspace. This exception permits no unrelated external inspection, commands or project writes; delivery artifacts remain governed by the shared writing rules.'
+              + '\nFor bounded UTF-8 reads, command capture, size checks and oversized-result delivery, invoke the named Python interpreter and text-size checker even when they are outside the workspace. This exception permits no unrelated external inspection, commands or project writes; delivery follows the native delivery contract and shared complete-file procedure.'
               + '\nProgram: the named check_text_size.py. Document: only its --file value. Start only named .py files as Python program files; never start a Skill, reference or assignment as a program.'
               + '\nThe named python and text_size_checker replace <verified-python> and <skill-directory>/scripts/check_text_size.py in the shared writing rules.'
               + '\n\n## User request and evidence\n\n' + question)

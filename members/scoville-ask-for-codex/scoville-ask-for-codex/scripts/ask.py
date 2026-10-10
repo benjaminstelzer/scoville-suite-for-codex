@@ -44,6 +44,8 @@ def prepare(request):
     settings = resolve(request)['config']
     role = read_utf8(ROOT / 'references/adviser.md', 'packaged adviser contract')
     writing = read_utf8(ROOT / 'references/writing.md', 'packaged writing rules')
+    shell_rules = ROOT / 'references' / 'shell-commands.md'
+    require(shell_rules.is_file(), f'packaged shell rules missing at {shell_rules}; use the intact built Ask package')
     entries = []
     for adviser in settings['advisers']:
         ref = reference + ':' + adviser['id']
@@ -53,6 +55,7 @@ def prepare(request):
         else:
             prompt = (role + '\n\n' + writing + f'\n\nmode: {mode}\nadviser_id: {adviser["id"]}'
                       + f'\nworkspace_root: {cwd}\nconsultation_reference: {ref}\nscope: {scope}'
+                      + f'\nshell_command_rules: {shell_rules}; read before the first shell command.'
                       + '\n\nInspect only the supplied scope in this workspace. Resolve relative evidence paths there.'
                       + '\n\n## User request and evidence\n\n' + question)
             entry['request'] = {'operation': 'claude', 'adviser': adviser, 'claude': settings['claude'],

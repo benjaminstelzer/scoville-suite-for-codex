@@ -81,6 +81,10 @@
         {
           "source": "shared:runtime/check_text_size.py",
           "target": "scoville-code/scripts/check_text_size.py"
+        },
+        {
+          "source": "shared:prompting/shell-commands.md",
+          "target": "scoville-code/references/shell-commands.md"
         }
       ],
       "family": {
@@ -173,6 +177,10 @@
         {
           "source": "shared:runtime/check_text_size.py",
           "target": "scoville-handoff/scripts/check_text_size.py"
+        },
+        {
+          "source": "shared:prompting/shell-commands.md",
+          "target": "scoville-handoff/references/shell-commands.md"
         }
       ],
       "family": {
@@ -298,6 +306,10 @@
         {
           "source": "shared:runtime/check_text_size.py",
           "target": "scoville-plan/scripts/check_text_size.py"
+        },
+        {
+          "source": "shared:prompting/shell-commands.md",
+          "target": "scoville-plan/references/shell-commands.md"
         }
       ],
       "family": {
@@ -478,6 +490,10 @@
         {
           "source": "shared:runtime/check_text_size.py",
           "target": "scoville-ui/scripts/check_text_size.py"
+        },
+        {
+          "source": "shared:prompting/shell-commands.md",
+          "target": "scoville-ui/references/shell-commands.md"
         }
       ],
       "family": {
@@ -645,6 +661,10 @@
         {
           "source": "shared:runtime/check_text_size.py",
           "target": "scoville-workflow-for-codex/scripts/check_text_size.py"
+        },
+        {
+          "source": "shared:prompting/shell-commands.md",
+          "target": "scoville-workflow-for-codex/references/shell-commands.md"
         }
       ],
       "family": {
@@ -820,6 +840,10 @@
         {
           "source": "shared:runtime/check_text_size.py",
           "target": "scoville-ask-for-codex/scripts/check_text_size.py"
+        },
+        {
+          "source": "shared:prompting/shell-commands.md",
+          "target": "scoville-ask-for-codex/references/shell-commands.md"
         }
       ],
       "shared_helpers": [
@@ -938,6 +962,10 @@
         {
           "source": "shared:runtime/check_text_size.py",
           "target": "scoville-setup/scripts/check_text_size.py"
+        },
+        {
+          "source": "shared:prompting/shell-commands.md",
+          "target": "scoville-setup/references/shell-commands.md"
         }
       ],
       "shared_helpers": [
@@ -1035,6 +1063,10 @@
         {
           "source": "shared:runtime/check_text_size.py",
           "target": "scoville-project-context-cleanup/scripts/check_text_size.py"
+        },
+        {
+          "source": "shared:prompting/shell-commands.md",
+          "target": "scoville-project-context-cleanup/references/shell-commands.md"
         }
       ],
       "family": {

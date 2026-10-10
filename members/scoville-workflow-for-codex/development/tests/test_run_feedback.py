@@ -490,7 +490,7 @@ class RunFeedbackTests(unittest.TestCase):
                     self.assertEqual(fork_turns, 'none')
                     self.assertIn(str(assignment_file), message)
                     self.assertEqual(model, 'gpt-6.1-sol')
-                    self.assertEqual(reasoning_effort, 'medium')
+                    self.assertEqual(reasoning_effort, 'high' if number == 1 else 'medium')
                 spawn_agent(**arguments)
                 if number == 2:
                     self.assertNotIn('User activation and scope:', assignment)

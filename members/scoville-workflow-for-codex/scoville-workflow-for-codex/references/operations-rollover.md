@@ -3,8 +3,8 @@
 The checkpoint reads current-task telemetry and configured thresholds.
 Coordinator comparison is at-or-above; child comparison is strictly above.
 Crossing a threshold schedules rollover. Managers finish their selected Step or
-Step group through acceptance and closure. Children finish their current
-execution unit, review or repair, including required corrections and checks.
+Step group through acceptance and closure. Reviewers finish their review.
+Executors, including correction workers, use the safe boundary below.
 A broader assignment does not add later unreleased Steps to that unit.
 A user stop still takes effect immediately. Missing decisions and helper
 failures retain their blocking rules.
@@ -20,24 +20,35 @@ Check before a command expected to add substantial context unless just checked
 with no material growth. Finish running operations first. Follow the shared
 writing rules for complete output capture and exit status before display.
 Reviewers do not write captured source output or diffs for their own reading;
-necessary oversized-result preparation and publication remain permitted there.
+The child role contract permits only necessary oversized-result preparation
+and publication. Follow the shared complete-file procedure.
 
 `continue` resumes work. Missing telemetry also continues without guessing.
-`rollover_pending` records a measured threshold crossing but does not end or
-shorten the current unit. Retain it across compaction and finish the current
-execution unit, review or repair, including required corrections and checks.
-Then return the normal role result under operations.md and stop writing.
-Include the retained measurement when needed for rollover evidence. Do not return
-context_handoff with unfinished assigned work merely because of the threshold.
+`rollover_pending` records a measured crossing. Retain its measurement across
+compaction. A lower later reading does not cancel it.
 
-Each later assignment already uses a fresh child. Its predecessor's completed
-result is the quiescent boundary, so no separate child context_handoff or
-unfinished-work successor is required for a measured threshold crossing.
+An executor chooses the next safe boundary: finish the bounded change already
+started, the dependent edits needed to leave coherent files, and its focused
+checks. Finish running operations and capture their complete results. Start no
+new independent task or broad check. A failed check ends a batch without proving
+acceptance. Retain its failure and unfinished correction rather than starting
+another repair, except stabilization needed to finish the started change.
+At a quiescent boundary with work remaining, stop writing and return
+context_handoff with completed effects, changed paths, checks and failures,
+the retained measurement, remaining work, constraints, evidence limits and next
+action. A checked prior-code fix uses review_pending first with those same
+continuation facts. Its due review precedes dependent work and successor release.
+No remaining work means the normal result, without another checkpoint.
+
+Reviewers finish their current review, including required checks, then return
+the normal result and any needed retained measurement. Their threshold alone
+does not authorize transfer of an unfinished review.
 
 ## Authorized recovery handoff
 
 The continuation interface remains available for an explicitly authorized
-transfer of unfinished work. A context threshold alone never authorizes it.
+transfer of unfinished work, or an executor's retained measured crossing at the
+safe boundary above. Neither condition completes the assigned manager unit.
 Retain finished parts, changes, checks, unresolved facts, constraints and the next
 action, and confirm the predecessor has stopped writing before any successor.
 
@@ -47,6 +58,12 @@ handoff does not complete that unit or authorize manager rollover. Resume its
 remaining work first, preserving the pending handoff and exact agent ID.
 A context_handoff alone does not trigger review, but a checked product fix in
 that handoff follows the review cadence before dependent work continues.
+
+For a crossed review_pending result, retain its complete continuation facts as
+the handoff source. Complete due review and corrections first. Supply review
+acceptance and correction effects separately to the successor. Obtain a missing
+fact without releasing the predecessor's writes or inventing it. The native
+result and confirmed quiescence satisfy the predecessor handoff gate below.
 
 The recovery sequence is:
 

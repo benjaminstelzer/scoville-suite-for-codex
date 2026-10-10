@@ -106,13 +106,14 @@ settings in `.scoville/config.json`. Under `workflow`:
 
 Missing values use bundled defaults. Starting a run creates no configuration file.
 
-The manager defaults to `gpt-6.1-sol` with `medium` reasoning, independently of
+The manager defaults to `gpt-6.1-sol` with `high` reasoning, independently of
 the visible chat's model. An explicit manager pair for one run overrides saved
 settings. Successors keep the pair that started the run.
 
 By default, managers schedule a context handoff at 40% usage and workers or
-reviewers above 60%. They finish the current assignment and required checks
-before handing over. Setup can change these thresholds.
+reviewers above 60%. Managers finish their selected Step or group, and reviewers
+finish their review. Workers finish the bounded work already started and hand
+over remaining work at a safe point. Setup can change these thresholds.
 
 The [dispatch rules](scoville-workflow-for-codex/references/operations-dispatch.md)
 explain how tasks are classified and how explicit model choices work.

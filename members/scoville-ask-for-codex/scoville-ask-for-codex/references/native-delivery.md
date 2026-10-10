@@ -6,9 +6,12 @@ consultation_reference, unchanged scope and material evidence limits in either
 form. Report actual model and effort only when exposed by the host; otherwise
 they are unknown.
 
-For native Codex Ask advisers, the shared writing rules' temporary-artifact
-exception applies to the general adviser write ban. All other adviser
-restrictions remain. This delivery route does not apply to Ask Claude.
+Native Codex Ask advisers may discover Python and run the named checker for
+bounded reads, capture and size checks, including from outside the workspace.
+For necessary oversized-answer delivery only, they may prepare and publish
+complete temporary artifacts under the project's `.scoville/temp`. They may not
+change the reviewed subject or run its tests. Host tool restrictions still apply.
+This delivery exception does not apply to Ask Claude.
 
 End that turn after the native final. Do not wait for an acknowledgement or keep
 the agent active. The caller may resume the retained handle for a necessary

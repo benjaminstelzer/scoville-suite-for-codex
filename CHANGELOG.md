@@ -2,6 +2,12 @@
 
 
 
+## Unreleased - 2026-10-10
+
+- Load the full reading procedure and host command guidance only when needed. Keep delivery permissions with their owning roles.
+- Check all member, Shared and packaged runtime tests before each source commit.
+- Let Workflow executors hand over unfinished assignments after a measured context crossing at a safe working boundary. Finish started changes and focused checks, preserve due reviews and release one fresh successor.
+
 ## v2.4.19 - 2026-10-10
 
 - Reuse complete unchanged context reads and successful helper results; preserve required fresh checks and bind runtime evidence to protected dependencies and current package bytes.

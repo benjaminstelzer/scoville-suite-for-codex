@@ -14,12 +14,13 @@ The visible chat is the **runner**. It starts and monitors managers without
 reading the Plan, implementation, worker results or substantive handoffs.
 A **manager** owns Plan transitions, review decisions and authorized commits.
 Workers implement assigned units. Reviewers do not change project files or
-execute tests; 'read-only reviewer' throughout this Workflow includes only the
-shared writing rules' exception for necessary oversized-result artifacts under
-`.scoville/temp`. At most one worker writes, and the manager does not edit project
+execute tests. For necessary oversized-result delivery only, they may prepare
+and publish their complete result under `.scoville/temp` using the shared
+complete-file procedure. At most one worker writes, and the manager does not edit project
 files while it runs.
-Context thresholds schedule rollover after the complete current assignment,
-including required corrections and checks, at a boundary with no active writer.
+Managers finish their selected Step or group, and reviewers finish their review.
+An executor that crossed its context threshold hands off remaining work at the
+next safe boundary after finishing the bounded work already started.
 
 Worker and reviewer recovery uses [Authorized recovery handoff](references/operations-rollover.md#authorized-recovery-handoff),
 not runner startup. Assigned roles follow their own contracts without

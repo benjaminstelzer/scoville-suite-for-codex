@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - 2026-10-10
+
+- Keep the full reading procedure in one reference and load host command details when needed. Preserve complete reads and existing permissions.
+- Hand over remaining work at a safe boundary after a measured context crossing, without requiring the whole assignment to finish. Keep started changes coherent, finish focused checks and preserve independent review before continuation.
+
 ## v0.9.8 - 2026-10-09
 
 - Clarify the reader's program and document paths in generated assignments, including source files read as text.

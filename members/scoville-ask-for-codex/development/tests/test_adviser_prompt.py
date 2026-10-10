@@ -120,6 +120,25 @@ class AdviserPromptTests(unittest.TestCase):
             self.assertEqual(0, corrected.returncode, corrected.stderr)
             self.assertIn(str(checker.resolve()), json.loads(corrected.stdout)['message'])
 
+    def test_conditional_shell_reference_is_required_and_absolute(self):
+        with tempfile.TemporaryDirectory() as directory:
+            copy = Path(directory) / PACKAGE.name
+            shutil.copytree(PACKAGE, copy)
+            shell = copy / 'references/shell-commands.md'
+            original = shell.read_bytes()
+            shell.unlink()
+            script = copy / 'scripts/build_adviser_prompt.py'
+            failed = self.run_prompt(extra=self.SPAWN, script=script)
+            self.assertNotEqual(0, failed.returncode)
+            self.assertEqual('', failed.stdout)
+            self.assertIn(str(shell.resolve()), failed.stderr)
+            shell.write_bytes(original)
+            corrected = self.run_prompt(extra=self.SPAWN, script=script)
+            self.assertEqual(0, corrected.returncode, corrected.stderr)
+            prompt = json.loads(corrected.stdout)['message']
+            self.assertIn(f'shell_command_rules: {shell.resolve()}; read before the first shell command.', prompt)
+            self.assertNotIn(shell.read_text(encoding='utf-8'), prompt)
+
     def test_missing_spawn_fields_name_argument_and_corrected_call_succeeds(self):
         for flag in ('--task-name', '--model', '--effort'):
             args = self.SPAWN.copy()

@@ -302,15 +302,20 @@ class NativeCreationTests(unittest.TestCase):
                 result = self.consume(self.run_builder('build_dispatch_prompt.py', *common, '--unit', 'W-001/step-1', '--role', role, *extra))
                 self.assertIn(f'Assignment: {label}-7: Änderung 中文 · PLAN-0001/W-001/step-1', self.prompt(result))
                 self.assertRegex(result['task_name'], rf'^scoville_{role}_7_[0-9a-f]{{32}}$')
-                # These are generated instruction-contract checks, not proof
-                # that a live agent completes its assignment after crossing.
-                for rule in (
-                    'rollover_pending does not stop or shorten your assignment',
-                    'finish the current execution unit, review or repair, including required corrections and checks',
-                    'Do not return context_handoff with unfinished assigned work merely because a threshold was crossed',
-                ):
+                # Packaged role policy and delivery gates, not live rollover proof.
+                rules = (
+                    ('rollover_pending does not stop or shorten your assignment',
+                     'finish the current execution unit, review or repair, including required corrections and checks',
+                     'Do not return context_handoff with unfinished assigned work merely because a threshold was crossed')
+                    if role == 'reviewer' else
+                    ('finish the bounded change already started',
+                     'A lower later reading does not cancel it',
+                     'A retained measured crossing authorizes executor context_handoff',
+                     'Never transfer a partly written change or running operation'))
+                for rule in rules:
                     self.assertIn(rule, self.prompt(result))
                 if role == 'executor':
+                    self.assertNotIn('rollover_pending does not stop or shorten your assignment', self.prompt(result))
                     self.assertIn('Use completed when your assigned execution unit and checks are finished', self.prompt(result))
                     self.assertIn('even if manager review or Plan closure remains', self.prompt(result))
                     self.assertIn('work or required checks remaining within the current execution unit', self.prompt(result))
@@ -425,7 +430,7 @@ class NativeCreationTests(unittest.TestCase):
             shutil.copytree(SUITE_ROOT / 'members/scoville-plan/development/tests/fixtures/valid-profile', root)
             facts, result = root / 'facts.txt', root / 'result.txt'
             facts.write_text('Assigned group: fix previously checked product code if needed, then finish dependent tests. '
-                             'rollover_pending was measured before the fix; keep the full assigned group.', encoding='utf-8')
+                             'rollover_pending was measured before the fix; hand over remaining work after review.', encoding='utf-8')
             common = ['--project-root', root, '--format', 'create', '--manager-agent-id', '/root/manager',
                       '--project-name', 'Fixture', '--model', 'gpt-6-sol', '--thinking', 'high',
                       '--unit', 'W-001/steps-1-2', '--supplemental-context', facts]
@@ -435,6 +440,8 @@ class NativeCreationTests(unittest.TestCase):
                          'This pauses the same assignment', 'only after the manager confirms review acceptance',
                          'or review acceptance', 'completed, review_pending, blocked'):
                 self.assertIn(rule, self.prompt(worker))
+            self.assertIn('include the full continuation facts below', self.prompt(worker))
+            self.assertIn("manager's fresh successor after review acceptance", self.prompt(worker))
             self.assertNotIn('completes your assignment after focused checks', self.prompt(worker))
             self.assertIn('W-001/steps-1-2', self.prompt(worker))
             paused = 'review_pending: prior-code fix checked; dependent tests remain. Retained rollover_pending: 61/100 percent.'
@@ -451,6 +458,20 @@ class NativeCreationTests(unittest.TestCase):
                                   '--role', 'executor', '--worker-number', '8', '--reviewer-result', result))
             self.assertIn(finding, self.prompt(repair))
             self.assertNotEqual(worker['task_name'], repair['task_name'])
+            handoff = root / 'handoff.txt'
+            handoff.write_text(paused, encoding='utf-8')
+            facts.write_text('Review accepted; rollback correction checked. Only dependent tests remain. '
+                             'Preserve prior effects and checks. Acceptance: all dependent tests pass.', encoding='utf-8')
+            successor = self.consume(self.run_builder('build_dispatch_prompt.py', *common,
+                '--role', 'executor', '--worker-number', '9', '--context-handoff', handoff,
+                '--predecessor-agent-id', '/root/worker7'))
+            delivered = self.prompt(successor)
+            self.assertTrue(delivered.startswith('FIRST ACTION'))
+            self.assertIn('HANDOFF_ACCEPTED /root/worker7', delivered)
+            self.assertIn('TAKEOVER_COMPLETE', delivered)
+            self.assertIn(paused, delivered)
+            self.assertIn(facts.read_text(encoding='utf-8'), delivered)
+            self.assertNotIn('## Work Item context', delivered)
             # Manager review cadence is verified in native Workflow cases.
             # Rewording its instructions is not an exact-prose acceptance gate.
 
@@ -624,7 +645,7 @@ class NativeCreationTests(unittest.TestCase):
             self.assertIn(body, start['message'])
             self.assertIn(str(root), start['message'])
             self.assertEqual(start['model'], 'gpt-6.1-sol')
-            self.assertEqual(start['reasoning_effort'], 'medium')
+            self.assertEqual(start['reasoning_effort'], 'high')
             successor = self.consume_manager(self.run_builder('build_manager_handoff.py', *common,
                 '--mode', 'successor', '--predecessor-id', 'manager-exact-id',
                 '--model', 'gpt-6-astra', '--thinking', 'high'))
@@ -638,7 +659,7 @@ class NativeCreationTests(unittest.TestCase):
             self.assertNotIn('create_thread', successor['message'])
             for data in (start, successor):
                 self.assertIn('Project display name: Test 中文.', data['message'])
-                self.assertIn('send READY', data['message'])
+                self.assertRegex(data['message'], r'[Ss]end READY')
                 self.assertIn('for START from that exact host sender', data['message'])
                 self.assertIn('including in your final answer', data['message'])
                 protocol = PACKAGE / 'references/manager-protocol.md'
@@ -737,6 +758,37 @@ class NativeCreationTests(unittest.TestCase):
                     self.assertIn(str(root / 'manager-assignment.txt'), result['message'])
                     self.assertIn(str(writing.resolve()), (root / 'manager-assignment.txt').read_text(encoding='utf-8'))
                     self.assertEqual(original, writing.read_bytes())
+
+    def test_dispatch_conditional_shell_reference_is_required_and_absolute(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            root = base / 'project'
+            shutil.copytree(SUITE_ROOT / 'members/scoville-plan/development/tests/fixtures/valid-profile', root)
+            copy = base / 'suite' / PACKAGE.name
+            shutil.copytree(PACKAGE, copy)
+            shutil.copytree(PACKAGE.parent / 'scoville-code', copy.parent / 'scoville-code')
+            shutil.copytree(PACKAGE.parent / 'scoville-plan', copy.parent / 'scoville-plan')
+            shell = copy / 'references/shell-commands.md'
+            original = shell.read_bytes()
+            shell.unlink()
+            assignment = root / 'assignment.txt'
+            command = [sys.executable, str(copy / 'scripts/build_dispatch_prompt.py'),
+                       '--project-root', str(root), '--format', 'create',
+                       '--manager-agent-id', '/root/manager', '--project-name', 'Fixture',
+                       '--worker-number', '1', '--model', 'gpt-6-sol', '--thinking', 'high',
+                       '--unit', 'W-001/step-1', '--role', 'executor',
+                       '--assignment-file', str(assignment)]
+            failed = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
+            self.assertNotEqual(0, failed.returncode)
+            self.assertEqual('', failed.stdout)
+            self.assertFalse(assignment.exists())
+            self.assertIn(str(shell.resolve()), failed.stderr)
+            shell.write_bytes(original)
+            corrected = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
+            self.consume(corrected)
+            prompt = assignment.read_text(encoding='utf-8')
+            self.assertIn(f'shell_command_rules: {shell.resolve()}; read before the first shell command.', prompt)
+            self.assertNotIn(shell.read_text(encoding='utf-8'), prompt)
 
     def test_manager_plan_paths_feed_real_plan_consumers_in_both_layouts(self):
         for wrapped in (False, True):

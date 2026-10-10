@@ -1,6 +1,6 @@
 ---
 name: scoville-ask-for-codex
-description: Ask one or more configured advisers for independent read-only advice or reviews from Codex, through fresh Codex subagents or Claude CLI. Use when the user requests an Ask consultation, a second opinion, or a review by specified advisers. Ordinary questions to the current assistant do not trigger a consultation.
+description: Ask one or more configured advisers for independent advice or reviews from Codex, through fresh Codex subagents or Claude CLI. Use when the user requests an Ask consultation, a second opinion, or a review by specified advisers. Ordinary questions to the current assistant do not trigger a consultation.
 compatibility: "Codex desktop online, Python 3.11+ and filesystem access. Native advisers require collaboration agent tools. Claude advisers require authenticated Claude Code CLI; Opus 5.5 requires CLI 2.1.280+."
 ---
 
@@ -8,8 +8,7 @@ compatibility: "Codex desktop online, Python 3.11+ and filesystem access. Native
 
 Collect independent answers in the calling task. A review asks each adviser to
 assess the same evidence; a general consultation combines independent answers
-into a synthesis. The caller owns any subsequent changes. Advisers never repair
-the subject or delegate the consultation.
+into a synthesis. The caller owns any subsequent changes. Advisers keep the reviewed subject unchanged and never delegate the consultation.
 
 When writing adviser framing or reporting results, read and apply the
 [shared writing rules](references/writing.md). The helpers include those rules

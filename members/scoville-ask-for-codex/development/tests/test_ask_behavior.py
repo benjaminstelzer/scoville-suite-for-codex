@@ -75,7 +75,23 @@ class AskBehaviorTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'packaged writing rules.*writing.md.*readable UTF-8'):
                     ask.prepare(prepare_request([ADVISERS[1]]))
                 (root / 'references/writing.md').write_bytes((PACKAGE / 'references/writing.md').read_bytes())
+                (root / 'references/shell-commands.md').write_bytes((PACKAGE / 'references/shell-commands.md').read_bytes())
                 self.assertEqual('claude', ask.prepare(prepare_request([ADVISERS[1]]))['entries'][0]['request']['operation'])
+
+    def test_claude_conditional_shell_reference_is_required_and_absolute(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'references').mkdir()
+            for name in ('config.default.json', 'references/adviser.md', 'references/writing.md'):
+                (root / name).write_bytes((PACKAGE / name).read_bytes())
+            shell = root / 'references/shell-commands.md'
+            with mock.patch.object(ask, 'ROOT', root):
+                with self.assertRaisesRegex(ValueError, 'packaged shell rules missing.*shell-commands.md'):
+                    ask.prepare(prepare_request([ADVISERS[1]]))
+                shell.write_bytes((PACKAGE / 'references/shell-commands.md').read_bytes())
+                prompt = ask.prepare(prepare_request([ADVISERS[1]]))['entries'][0]['request']['prompt']
+                self.assertIn(f'shell_command_rules: {shell.resolve()}; read before the first shell command.', prompt)
+                self.assertNotIn(shell.read_text(encoding='utf-8'), prompt)
 
     def test_invalid_nested_timeout_does_not_echo_private_value(self):
         marker = 'TEST_PRIVATE_VALUE_NOT_FOR_DIAGNOSTICS'

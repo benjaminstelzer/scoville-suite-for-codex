@@ -14,9 +14,10 @@ consecutive Steps that can be implemented and checked together. Keep a large
 independent section separate. Preserve authored order within and across groups;
 finish and check one group before starting the next. Apply the review cadence
 in operations.md; no overlapping groups. Create one worker per assigned group.
-After completion the agent stays write-inactive. Context thresholds only schedule
-rollover after the complete assignment and its required corrections and checks.
-An explicitly authorized recovery handoff uses a successor for unfinished work.
+After completion the agent stays write-inactive. After a measured crossing, an
+executor transfers unfinished work at the safe boundary in operations-rollover.md.
+Managers finish their selected group and reviewers finish their review.
+An explicitly authorized recovery also uses a successor for unfinished work.
 The helper's `--unit` parameter accepts:
 
 - `W-001/step-5` for one Step.
@@ -82,6 +83,8 @@ and save its full factual content in a UTF-8 file for `--executor-result`.
 Preserve status, technical literals, changed effects, check results, findings,
 threshold measurements, constraints and evidence limits. Markdown punctuation
 may change, but meaning may not. Supplemental context does not replace this result.
+After a continuation, include the retained predecessor results needed to assess
+the same unit's effects, checks and limits alongside the final worker result.
 A recovery review uses the continuation inputs below.
 
 For every child created with `--format create`, including recovery, the
@@ -258,6 +261,13 @@ the unchanged role-result contract. Metadata alone is not an accepted result.
 Use the verified file's complete substantive content wherever these instructions
 require the worker or reviewer result. Do not use chat tools, title matching
 or repeated result requests for coordination.
+
+Children may discover Python and run the named checker for bounded reads,
+capture and size checks, including from outside the workspace. For necessary
+oversized-result or handoff delivery only, they may prepare and publish complete
+temporary artifacts under the project's `.scoville/temp`. Reviewers may not run
+tests or change the reviewed subject. Host restrictions, write ownership and
+takeover gates still apply.
 
 The child owns only assigned project changes. It cannot edit canonical Plan
 records, stage or commit, dispatch successors or change Workflow or model settings.

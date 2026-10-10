@@ -177,12 +177,14 @@ worker for later Steps, or repeat completed work.
    same failure survives two corrections, reassess its cause before trying again.
    Change the approach or model when justified; ask the user only for a material
    decision or a blocker that cannot be resolved within the assignment.
-   - Once the paused fix and required corrections are accepted and all other
-     children are write-inactive, apply Plan progress before execution. Then
-     resume that exact worker with `collaboration.followup_task`.
+   - Once the paused fix and required corrections are accepted and all children
+     are write-inactive, apply Plan progress before execution. Without a retained
+     crossing, resume that exact worker with `collaboration.followup_task`.
+     With a retained crossing, use its complete continuation facts and the
+     recovery gates in operations-rollover.md to start a fresh executor.
    - Supply review acceptance, correction effects, remaining scope and evidence
-     limits. Retain any measured rollover_pending and finish the selected unit
-     before point 7 closure and point 8 rollover.
+     limits. Preserve predecessor effects and checks needed for later review.
+     Finish the selected manager unit before point 7 closure and point 8 rollover.
    - Open findings, a user stop or an unanswered decision prevent resumption.
      Do not repeat unaffected passed checks.
 7. Close the accepted boundary after all children stop writing:
@@ -249,11 +251,11 @@ fixed field order, JSON or change flags are required.
 | --- | --- | --- |
 | completed | Worker implementation and checks are done; manager review or Plan closure may remain. | Assignment ends; due review and closure follow. |
 | progress_pending | A broader assignment reached the completed selected group boundary. | Due review and closure precede point 8; later groups use a fresh worker. |
-| review_pending | Checked prior-code fix; named work remains with that worker. | Same worker stays paused through review and correction; resume after acceptance and release. |
+| review_pending | Checked prior-code fix; named work remains. | Pause through review and correction. After acceptance, a retained crossing uses a fresh executor, otherwise resume the same worker. |
 | pass | Reviewer found no defects or material acceptance gap. | Review ends. |
 | changes_requested | Reviewer identified open findings. | New correction worker handles source findings; manager handles Plan findings. |
 | blocked / needs_user_decision | Either role cannot continue without the named prerequisite or answer. | Stop dependent work and relay under run-feedback.md. |
-| context_handoff | Either role has an explicitly authorized transfer of unfinished work. A threshold alone never permits it. | Follow operations-rollover.md before any successor writes. |
+| context_handoff | Executor has a retained measured crossing at a safe boundary, or either role has an explicitly authorized transfer. | Follow operations-rollover.md before any successor writes. |
 
 For pass, return only the status and any retained threshold measurement needed
 for rollover evidence; pass means the review ran and found no defects.
@@ -270,11 +272,13 @@ work; never turn unavailable evidence into success.
 
 Retain the complete native result and confirm the child is no longer writing
 before Plan changes, review or another writer. A completed role result ends that
-assignment; review_pending leaves the same assignment paused and unfinished.
+assignment; review_pending leaves the assignment paused and unfinished. A retained
+crossing routes its remaining work to a fresh executor after review acceptance.
+The predecessor stays write-inactive and its allocation ends at takeover.
 Progress_pending retains the broader assignment's pending scope; its allocation
 ends after acceptance and closure of the selected group, before point 8.
 Corrections and later assignments use new agents; necessary worker questions,
-user-decision and accepted-review resumptions within the current unit use
+user-decision resumptions and, without a retained crossing, accepted-review resumptions use
 `collaboration.followup_task` on the same ID. Do not reapply
 an already retained result after a duplicate notification. A context handoff
 keeps the predecessor write-inactive while its successor handles the remaining
