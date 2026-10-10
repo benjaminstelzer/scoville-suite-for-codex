@@ -115,8 +115,9 @@ worker for later Steps, or repeat completed work.
      review. Continue from its native completion; do not request the result again.
    - While a child runs and no independent work is available, use `collaboration.wait_agent`.
      A wait timeout establishes no outcome. Keep waiting for a native event or
-     user input without chat polling. Answer progress requests from received
-     facts.
+     user input without chat polling. The runner answers user status questions
+     from retained feedback. Do not send BLOCKED or extra progress merely to
+     answer one; relay actual decisions and blockers under run-feedback.md.
 3. Assess the result from the assigned agent by meaning, not formatting. Match
    the host sender identity to the retained spawn ID before accepting it.
    - For an idle worker, use `collaboration.followup_task` only to obtain a necessary missing

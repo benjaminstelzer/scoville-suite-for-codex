@@ -2,6 +2,7 @@
 
 ## Unreleased - 2026-10-10
 
+- Answer status questions with the last reported Working on position and known issues. Reserve Blocked for a concrete obstacle to dependent work.
 - Keep agent messages and internal commentary compact. Reference readable source text instead of copying it; preserve required facts and exact controls.
 - Keep required child updates in minimal labelled fields, including before reading a file assignment. Preserve complete results and handoff facts.
 - Keep the full reading procedure in one reference and load host command details when needed. Preserve complete reads and existing permissions.

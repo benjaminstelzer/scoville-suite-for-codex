@@ -4,6 +4,7 @@
 
 ## Unreleased - 2026-10-10
 
+- Answer Workflow status questions with the last reported Working on position and known issues. Reserve Blocked for a concrete obstacle to dependent work.
 - Keep agent messages and internal commentary compact. Reference readable source text instead of copying it; preserve required facts and exact controls.
 - Keep required child updates in minimal labelled fields, including before reading a file assignment. Preserve complete results and handoff facts.
 - Load the full reading procedure and host command guidance only when needed. Keep delivery permissions with their owning roles.

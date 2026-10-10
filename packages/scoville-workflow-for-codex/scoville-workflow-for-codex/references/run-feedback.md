@@ -9,7 +9,9 @@ Use the same absolute report path supplied at every manager start. A successor
 verifies that its direct handoff names that file. Keep the actual overall scope
 as free text through handoffs and steering. No report or display invents scope.
 
-`run_feedback.py` generates every visible status. WORKING_ON has only its status
+`run_feedback.py` generates automatic progress and issue statuses. Requested
+runner answers follow [User status questions](#user-status-questions) below.
+WORKING_ON has only its status
 line; blockers, questions, pauses and completion retain their explanatory body.
 The manager copies its returned `message` exactly into the native send argument.
 Its first line is a protocol control, including the key for WORKING_ON. After
@@ -63,7 +65,21 @@ deduplicate visible output.
 For effect-free input correction after confirmed progress, follow
 [pre-dispatch correction](operations-dispatch.md#pre-dispatch-correction).
 
+## User status questions
+
+For a user question asking only for status, the runner briefly repeats the last
+displayed Working on line and known pending issues or stops. Identify the position
+as last reported; it proves neither current activity nor absence of unreported
+blockers. Send no manager request, poll no files or chats, and create no progress
+event or report entry. Resume native waiting while work or takeover remains ongoing.
+Actual steering and issue answers keep their existing routes.
+
 ## Targeted issues
+
+Use `blocked` only for a concrete condition preventing named dependent work;
+include its diagnostic, affected scope and necessary action. Ongoing execution,
+ordinary child waits, reviews, repairs or remaining work do not by themselves
+establish a blocker.
 
 Before a Plan location is known, use Startup by omitting both location options:
 

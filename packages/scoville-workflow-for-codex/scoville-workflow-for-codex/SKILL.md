@@ -179,7 +179,8 @@ Managers follow their own column.
 
 While a manager is working or takeover is pending, keep this runner turn active
 and use native waits for control messages, including after answering a status
-question. Do not send a final answer during ongoing manager work. Relay BLOCKED
+question under [run feedback](references/run-feedback.md#user-status-questions).
+Do not send a final answer during ongoing manager work. Relay BLOCKED
 and decisions immediately. Once a blocker is visible, affected work is stopped
 and no independent authorized work is running, retain the issue and yield for
 the required answer or recovery; do not keep an idle wait open.
