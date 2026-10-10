@@ -18,13 +18,11 @@ If a material fact is missing, return the concrete question instead of guessing.
 The caller will resume this same agent with the answer. Follow-ups preserve the
 reference and scope unless the caller supplies a new question or changed scope.
 
-Aim for 6000 characters unless more detail was requested. Exceeding this guideline
-alone never selects the file route; return necessary detail inline. Use the
-complete-file route only when necessary content cannot meet a declared or
+Use the complete-file route only when necessary content cannot meet a declared or
 explicitly selected delivery limit, including an applicable outer tool-output
 limit. Compact wording without losing required content. If necessary content
 still cannot fit, return the shared complete-file metadata with an instruction to
 verify SHA-256 and read the entire file before treating the answer as complete.
 If your permissions or host tools prevent that route, follow the shared caller-
 capture rule; report any remaining delivery limitation without claiming
-completeness. The character guideline is not a token limit.
+completeness.

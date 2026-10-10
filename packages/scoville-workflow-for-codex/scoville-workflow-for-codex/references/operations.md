@@ -239,7 +239,7 @@ commit it separately.
 
 ## Child results
 
-Return a normal concise message with an explicit status. Workers include the
+Return a minimal labelled result with an explicit status. Workers include the
 facts needed to assess or continue: completed effects, relevant changed paths,
 decisive checks, unverified behavior and next action if work remains. Report facts,
 not a verdict that the work is correct or meets Acceptance. No marker,
@@ -255,8 +255,9 @@ fixed field order, JSON or change flags are required.
 | blocked / needs_user_decision | Either role cannot continue without the named prerequisite or answer. | Stop dependent work and relay under run-feedback.md. |
 | context_handoff | Either role has an explicitly authorized transfer of unfinished work. A threshold alone never permits it. | Follow operations-rollover.md before any successor writes. |
 
-For pass, say only that the review was performed and found no defects;
-do not repeat files, checks, evidence or the worker's result. A pass has no
+For pass, return only the status and any retained threshold measurement needed
+for rollover evidence; pass means the review ran and found no defects.
+Do not repeat files, checks, evidence or the worker's result. A pass has no
 unresolved defects or material acceptance gap. Otherwise transmit only open
 findings and the facts needed to address them, or the concrete blocker, decision
 or evidence limit preventing acceptance. Findings identify the defect, location,
