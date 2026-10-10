@@ -567,7 +567,8 @@
         },
         {
           "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/references/operations.md",
-          "target": "scoville-workflow-for-codex/references/operations.md"
+          "target": "scoville-workflow-for-codex/references/operations.md",
+          "runtime_role": "instruction"
         },
         {
           "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/build_dispatch_prompt.py",

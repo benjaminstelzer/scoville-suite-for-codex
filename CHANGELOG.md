@@ -2,6 +2,10 @@
 
 
 
+## v2.4.19 - 2026-10-10
+
+- Reuse complete unchanged context reads and successful helper results; preserve required fresh checks and bind runtime evidence to protected dependencies and current package bytes.
+
 ## v2.4.18 - 2026-10-10
 
 - Reject direct Python script capture before execution; permit one bounded correction for its explicit no-start diagnostic and use consistent verified-interpreter examples.

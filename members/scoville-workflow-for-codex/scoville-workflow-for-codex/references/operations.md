@@ -19,7 +19,10 @@ historical IDs alone do not. Same-run recovery and takeover keep their rules.
 {{ include: family.contract }}
 
 Use the inherited workspace. Preserve scope, Decisions, uncommitted changes and
-user authorization. Reuse unchanged rules and model selections. Resolve effective
+user authorization. Reuse your complete reads, complete successful helper results
+and model selections while their inputs and relevant conditions remain unchanged;
+repeat only the affected read or query after a relevant change, for a specific
+missing or conflicting fact, or under a binding protocol. Resolve effective
 settings once with:
 
 ```text
