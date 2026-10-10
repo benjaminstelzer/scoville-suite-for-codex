@@ -2,6 +2,10 @@
 
 
 
+## Unreleased - 2026-10-11
+
+- Early review pauses use the complete executor result contract. Partial duplicate field lists are removed.
+
 ## Unreleased - 2026-10-10
 
 - Delegate planning preparation to the read-only Explorer; the manager writes authorized Plan changes.
