@@ -1,25 +1,16 @@
 ## Configuration
 
-To change the defaults, use Scoville Setup to view or save the project
-settings in `.scoville/config.json`. Under `workflow`:
+Use Scoville Setup to show or save project settings in `.scoville/config.json`.
+Under workflow, execute.CLASS selects an executor pair and review.CLASS its
+reviewer pair. Missing fields use bundled defaults. Reading or starting a run
+creates no configuration file.
+Optional explore.CLASS overrides the Explorer pair. Unspecified fields inherit
+the effective execute.CLASS values, including project overrides.
 
-| Key | Controls |
-| --- | --- |
-| `manager` | Manager model and reasoning. |
-| `execute.CLASS` | Worker pair for that route. |
-| `review.CLASS` | Reviewer pair for that route. |
-| `context` | Rollover thresholds. |
-
-Missing values use bundled defaults. Starting a run creates no configuration file.
-
-The manager defaults to `gpt-6.1-sol` with `high` reasoning, independently of
-the visible chat's model. An explicit manager pair for one run overrides saved
-settings. Successors keep the pair that started the run.
-
-By default, managers schedule a context handoff at 40% usage and workers or
-reviewers above 60%. Managers finish their selected Step or group, and reviewers
-finish their review. Workers finish the bounded work already started and hand
-over remaining work at a safe point. Setup can change these thresholds.
+The visible chat is the manager; its model comes from the host. Legacy manager,
+context and pin_threads keys are ignored. An authorized Setup save removes
+those three keys while preserving unrelated settings. No rollover thresholds
+or automatic successor roles remain.
 
 The [dispatch rules](scoville-workflow-for-codex/references/operations-dispatch.md)
-explain how tasks are classified and how explicit model choices work.
+explain route classification and explicit model choices.

@@ -1,18 +1,5 @@
 # Bundled defaults; override workflow settings in project .scoville/config.json.
 schema_version = 1
-# Legacy compatibility field; native Workflow never changes sidebar pinning.
-pin_threads = true
-
-[manager]
-model = "gpt-6.1-sol"
-reasoning = "high"
-
-[context]
-# Manager: at or above; all children (workers, reviewers, repairs): strictly above.
-# Percent of the launched model's context window.
-coordinator_percent = 40
-worker_percent = 60
-
 [execute.ultra_low]
 model = "gpt-6-luna"
 reasoning = "medium"

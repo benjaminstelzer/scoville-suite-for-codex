@@ -17,7 +17,7 @@ which adds Workflow, Ask and Setup.
 
 | Skill | Purpose |
 | --- | --- |
-| [Workflow for Codex](#scoville-workflow-for-codex) | Runs a repository Plan through manager, worker and reviewer agents. |
+| [Workflow for Codex](#scoville-workflow-for-codex) | Runs a repository Plan through the visible manager, executor, reviewer and explorer agents. |
 | [Code](#scoville-code) | Keeps implementation, risk assessment and checks focused on what you asked for. |
 | [Plan](#scoville-plan) | Keeps longer work, decisions and progress easy to pick up again. |
 | [UI](#scoville-ui) | Builds and checks interfaces with their framework and design system. |

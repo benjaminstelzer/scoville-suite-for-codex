@@ -4,12 +4,22 @@
 
 ## Unreleased - 2026-10-10
 
-- Answer Workflow status questions with the last reported Working on position and known issues. Reserve Blocked for a concrete obstacle to dependent work.
+- Delegate planning preparation to the read-only Explorer; the manager writes authorized Plan changes.
+- Load command capture and large-result delivery only when needed; preserve complete outputs and role permissions.
+- Return Explorer results only through the native final answer, without a duplicate message.
+
+- Use English internally in Codex Workflow; manager replies follow the current user message, and Plans retain the task language.
+
+- Codex Workflow reports a finished assigned group as completed; obsolete broader-assignment status removed.
+
+- Add read-only Explorer inquiries and independent explore routes in Setup, inheriting unspecified effective execute fields.
+
+- Run Workflow in the existing visible manager chat: scoped executor, independent review, necessary correction and Plan progress. Remove separate manager starts, automatic rollover, context thresholds and the mandatory run-report protocol.
+- Ignore obsolete Workflow manager/context/pin settings on reads; remove only those keys on authorized Setup saves and preserve other settings. Update Workflow README and flow diagram.
 - Keep agent messages and internal commentary compact. Reference readable source text instead of copying it; preserve required facts and exact controls.
 - Keep required child updates in minimal labelled fields, including before reading a file assignment. Preserve complete results and handoff facts.
 - Load the full reading procedure and host command guidance only when needed. Keep delivery permissions with their owning roles.
 - Check all member, Shared and packaged runtime tests before each source commit.
-- Let Workflow executors hand over unfinished assignments after a measured context crossing at a safe working boundary. Finish started changes and focused checks, preserve due reviews and release one fresh successor.
 
 ## v2.4.19 - 2026-10-10
 

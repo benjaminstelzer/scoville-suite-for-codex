@@ -1,4 +1,4 @@
-"""Literal constraints through packaged dispatch, including recovery and limits."""
+"""Literal constraints through packaged dispatch, including corrections and limits."""
 import json
 from pathlib import Path
 import shutil
@@ -37,15 +37,12 @@ class NonGoalsTests(unittest.TestCase):
                 self.assertEqual(context['plan']['non_goals'], literal)
                 result_file = Path(directory) / 'result.txt'
                 result_file.write_text('Completed scoped work.', encoding='utf-8')
-                handoff = Path(directory) / 'handoff.txt'
-                handoff.write_text('Step 1 complete. Only Step 2 remains.', encoding='utf-8')
                 supplement = Path(directory) / 'supplement.txt'
-                supplement.write_text('Authorized recovery; preserve completed effects.', encoding='utf-8')
+                supplement.write_text('Preserve completed effects; only named remaining work is released.', encoding='utf-8')
                 routes = [('executor', []), ('reviewer', ['--executor-result', str(result_file), '--supplemental-context', str(supplement)]),
                           ('executor', ['--reviewer-result', str(result_file)])]
-                for role in ('executor', 'reviewer'):
-                    routes.append((role, ['--context-handoff', str(handoff), '--supplemental-context', str(supplement),
-                                          '--predecessor-agent-id', '/root/prior']))
+                routes.append(('executor', ['--supplemental-context', str(supplement)]))
+                routes.append(('explorer', ['--supplemental-context', str(supplement)]))
                 for role, extra in routes:
                     with self.subTest(role=role, extra=extra):
                         result = self.call(root, role, extra)
@@ -57,9 +54,6 @@ class NonGoalsTests(unittest.TestCase):
                         self.assertEqual(prompt.count(literal), 1)
                         self.assertNotIn('GOAL_SENTINEL', prompt)
                         self.assertNotIn('## Decisions', prompt)
-                        if '--context-handoff' in extra:
-                            self.assertTrue(prompt.startswith('FIRST ACTION:'))
-                            self.assertNotIn('## Work Item context', prompt)
                 assignment = Path(directory) / 'assignment.txt'
                 result = self.call(root, extra=['--format', 'create', '--model', 'gpt-6-sol', '--thinking', 'high',
                                                '--project-name', 'Fixture', '--worker-number', '1',
@@ -94,6 +88,19 @@ class NonGoalsTests(unittest.TestCase):
         context = {'plan': {}, 'work_item': {'unit': 'W-001', 'source_text': 'Work', 'context_text': 'Work'}}
         with self.assertRaisesRegex(ValueError, 'SELECTOR_INCOMPATIBLE'):
             prompt_builder.build_prompt('executor', PACKAGE, '/root/manager', '', context, {})
+
+    def test_explorer_context_rejects_oversized_exclusions(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.prepare(directory, '## Non-goals\n\n- ' + 'ü' * 4096)
+            facts = Path(directory) / 'question.txt'
+            facts.write_text('Question: identify the owner. Read-only.', encoding='utf-8')
+            assignment = Path(directory) / 'assignment.txt'
+            failed = self.call(root, role='explorer', extra=['--supplemental-context', str(facts),
+                '--format', 'create', '--model', 'gpt-6-sol', '--thinking', 'high',
+                '--project-name', 'Fixture', '--worker-number', '1', '--assignment-file', str(assignment)])
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn(b'NON_GOALS_TOO_LARGE', failed.stderr)
+            self.assertFalse(assignment.exists())
 
 
 if __name__ == '__main__':

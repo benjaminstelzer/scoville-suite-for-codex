@@ -10,13 +10,13 @@ import tempfile
 
 from ask_settings import merge_config_layer, resolve_settings
 from scoville_config import merge, read_config
-from workflow_settings import load_config, read_thresholds
+from workflow_settings import LEGACY_KEYS, load_config
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def read_patch() -> dict:
-    example = '{"workflow": {"context": {"coordinator_percent": 40}}}'
+    example = '{"workflow": {"execute": {"low": {"reasoning": "medium"}}}}'
     try:
         return json.load(sys.stdin)
     except json.JSONDecodeError as error:
@@ -36,9 +36,7 @@ def effective(project_root: Path) -> dict:
 
 
 def validate(project_root: Path) -> dict:
-    values = effective(project_root)
-    read_thresholds(ROOT / "assets/workflow.toml", project_root)
-    return values
+    return effective(project_root)
 
 
 def validate_setup_choices(value: dict, path: str = "patch") -> None:
@@ -69,18 +67,22 @@ def apply(project_root: Path, patch: dict) -> dict:
         if key in patch and not isinstance(patch[key], dict):
             raise ValueError(f"patch.{key} must be an object; provide nested settings as a JSON object")
     if "workflow" in patch:
-        unknown = sorted(set(patch["workflow"]) - {"manager", "execute", "review", "context", "pin_threads"})
+        obsolete = sorted(set(patch["workflow"]) & set(LEGACY_KEYS))
+        if obsolete:
+            raise ValueError(f"patch.workflow contains obsolete fields {obsolete}; omit them and use execute, review or explore")
+        unknown = sorted(set(patch["workflow"]) - {"execute", "review", "explore"})
         if unknown:
-            raise ValueError(f"patch.workflow has unsupported fields {unknown}; Setup accepts manager, execute, review and context")
+            raise ValueError(f"patch.workflow has unsupported fields {unknown}; Setup accepts execute, review and explore")
     if "pin_threads" in patch.get("ask", {}):
         raise ValueError("patch.ask.pin_threads is obsolete: native Ask advisers are subagents without sidebar chats; omit this field and use ask.advisers or ask.presets for adviser settings")
-    if "pin_threads" in patch.get("workflow", {}):
-        raise ValueError("patch.workflow.pin_threads is obsolete: Workflow roles are subagents without sidebar chats; omit this field and use workflow.execute, workflow.review or workflow.context for active settings")
     validate_setup_choices(patch)
     current = read_config(project_root)
     proposed = merge(current, patch)
     if "ask" in patch:
         proposed["ask"] = merge_config_layer(current.get("ask", {}), patch["ask"])
+    if "workflow" in proposed:
+        for key in LEGACY_KEYS:
+            proposed["workflow"].pop(key, None)
     # Reuse the consumers against the proposed file before touching the project.
     with tempfile.TemporaryDirectory(prefix="scoville-setup-") as temporary:
         candidate = Path(temporary)

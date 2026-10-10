@@ -1,17 +1,19 @@
 ## How to use
 
-With the suite installed in Codex, start Workflow in your saved project:
+With the suite installed in Codex, activate Workflow in this saved project:
 
 ```text
 Use $scoville-workflow-for-codex to execute the active Scoville Plan in this saved project.
 ```
 
-To limit the run, name a Work Item or the point where it should stop.
-Otherwise the manager works through the active Plan.
-
-You can ask questions or pause during the run. The chat shows the current
-project, Plan point and started Step. The run report under `.scoville` keeps
-questions, requested pauses and problems with their later resolutions.
-Completion gives a brief summary and a link to that report. A stop or blocker is not reported as finished.
+Name a Work Item or stopping point to limit scope. Otherwise the visible manager
+executes the active Plan. Ask questions or stop during execution. Changed work
+positions are brief; decisions go directly to you. Durable progress, unresolved
+questions and evidence stay in the Plan. Stops and blockers are not completion.
+Questions, change requests and planning preparation go to a read-only Explorer.
+The manager returns its findings, writes the Plan and keeps implementation within authorized scope.
 
 "Start Scoville Workflow" also activates it. "Execute the Plan" alone does not.
+
+Internal agent communication is English. The manager replies in the language
+of your current message; Plans use the task language.

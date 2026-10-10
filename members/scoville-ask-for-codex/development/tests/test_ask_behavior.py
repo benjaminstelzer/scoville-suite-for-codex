@@ -90,7 +90,7 @@ class AskBehaviorTests(unittest.TestCase):
                     ask.prepare(prepare_request([ADVISERS[1]]))
                 shell.write_bytes((PACKAGE / 'references/shell-commands.md').read_bytes())
                 prompt = ask.prepare(prepare_request([ADVISERS[1]]))['entries'][0]['request']['prompt']
-                self.assertIn(f'shell_command_rules: {shell.resolve()}; read before the first shell command.', prompt)
+                self.assertIn(f'shell_command_rules: {shell.resolve()}; read before shell commands, complete-file preparation or output that may exceed an applicable limit.', prompt)
                 self.assertNotIn(shell.read_text(encoding='utf-8'), prompt)
 
     def test_invalid_nested_timeout_does_not_echo_private_value(self):

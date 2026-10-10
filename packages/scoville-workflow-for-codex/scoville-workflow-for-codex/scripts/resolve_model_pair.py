@@ -16,9 +16,10 @@ from workflow_settings import ROUTES, EFFORTS, load_config
 
 def resolve(config: dict, role: str, route: str | None = None,
             override_model: str | None = None, override_reasoning: str | None = None) -> dict:
-    if role not in {"executor", "reviewer"} or route not in ROUTES:
-        raise ValueError(f"role={role!r}, route={route!r}: use --role executor or reviewer and --route with one of {', '.join(ROUTES)}; example: --role executor --route medium")
-    pair = dict(config["review" if role == "reviewer" else "execute"][route])
+    if role not in {"executor", "reviewer", "explorer"} or route not in ROUTES:
+        raise ValueError(f"role={role!r}, route={route!r}: use --role executor, reviewer or explorer and --route with one of {', '.join(ROUTES)}; example: --role executor --route medium")
+    section = {"executor": "execute", "reviewer": "review", "explorer": "explore"}[role]
+    pair = dict(config[section][route])
     if override_model is not None:
         pair["model"] = override_model
     if override_reasoning is not None:
@@ -30,7 +31,7 @@ def resolve(config: dict, role: str, route: str | None = None,
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--role", choices=("executor", "reviewer"))
+    parser.add_argument("--role", choices=("executor", "reviewer", "explorer"))
     parser.add_argument("--show-config", action="store_true", help="show effective Workflow settings without selecting a model")
     parser.add_argument("--route", choices=ROUTES)
     parser.add_argument("--override-model")
@@ -40,7 +41,7 @@ def main() -> int:
     if args.show_config and any((args.role, args.route, args.override_model, args.override_reasoning)):
         parser.error('--show-config cannot be combined with role, route or model overrides; use --show-config --project-root PATH')
     if not args.show_config and not args.role:
-        parser.error('supply --role executor|reviewer and --route CLASS, or use --show-config')
+        parser.error('supply --role executor|reviewer|explorer and --route CLASS, or use --show-config')
     try:
         config = load_config(Path(__file__).resolve().parents[1] / "assets" / "workflow.toml", args.project_root)
         if args.show_config:

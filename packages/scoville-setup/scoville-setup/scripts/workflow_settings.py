@@ -9,6 +9,7 @@ from scoville_config import merge, section as config_section
 
 ROUTES = ("ultra_low", "low", "medium", "high", "ultra_high")
 EFFORTS = {"none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"}
+LEGACY_KEYS = ("context", "manager", "pin_threads")
 
 
 def validate_pair(pair: dict, field: str) -> None:
@@ -23,32 +24,18 @@ def validate_pair(pair: dict, field: str) -> None:
 def load_config(path: Path, project_root: Path | str | None = None) -> dict:
     with path.open("rb") as stream:
         config = merge(tomllib.load(stream), config_section('workflow', project_root))
+    for key in LEGACY_KEYS:
+        config.pop(key, None)
     if type(config.get("schema_version")) is not int or config["schema_version"] != 1:
         raise ValueError(f"workflow.schema_version={type(config.get('schema_version')).__name__} is unsupported; use integer 1 for this configuration format")
-    if set(config) - {"schema_version", "context", "manager", "execute", "review", "pin_threads"}:
-        raise ValueError(f"unknown workflow configuration keys: {sorted(set(config) - {'schema_version', 'context', 'manager', 'execute', 'review', 'pin_threads'})}; use only schema_version, context, manager, execute, review and pin_threads")
-    if type(config.get('pin_threads')) is not bool:
-        raise ValueError('workflow.pin_threads must be a JSON boolean; use true or false')
-    validate_pair(config.get('manager'), 'workflow.manager')
-    for section in ("execute", "review"):
+    if set(config) - {"schema_version", "execute", "review", "explore"}:
+        raise ValueError(f"unknown workflow configuration keys: {sorted(set(config) - {'schema_version', 'execute', 'review', 'explore'})}; use only schema_version, execute, review and explore")
+    # Resolve after execute overrides so unspecified Explorer fields follow them.
+    config["explore"] = merge(config.get("execute", {}), config.get("explore", {}))
+    for section in ("execute", "review", "explore"):
         table = config.get(section)
         if not isinstance(table, dict) or set(table) != set(ROUTES):
             raise ValueError(f"{section} must contain exactly the five routes: {', '.join(ROUTES)}; supply an object with those keys, or omit the project override to retain defaults")
         for route, pair in table.items():
             validate_pair(pair, f'{section}.{route}')
     return config
-
-
-
-def read_thresholds(path: Path, project_root: Path | str | None = None) -> dict:
-    with path.open("rb") as stream:
-        config = merge(tomllib.load(stream), config_section('workflow', project_root))
-    if type(config.get("schema_version")) is not int or config["schema_version"] != 1:
-        raise ValueError(f"workflow.schema_version={type(config.get('schema_version')).__name__} is unsupported; use integer 1 for this configuration format")
-    thresholds = config.get("context")
-    if not isinstance(thresholds, dict) or set(thresholds) != {"coordinator_percent", "worker_percent"}:
-        raise ValueError(f"context={type(thresholds).__name__} requires exactly coordinator_percent and worker_percent; supply both integer percentages or omit context to keep defaults")
-    if any(type(value) is not int or not 1 <= value <= 99 for value in thresholds.values()):
-        invalid = {key: value for key, value in thresholds.items() if type(value) is not int or not 1 <= value <= 99}
-        raise ValueError(f"context percentages must be integers from 1 through 99; invalid fields: {list(invalid)}. Replace only those values with integers, without percent signs or quotes")
-    return thresholds

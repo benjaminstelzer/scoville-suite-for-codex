@@ -1,7 +1,7 @@
 # Scoville Workflow for Codex
 
 Scoville Workflow takes a prepared Plan through implementation, independent
-review and corrections. A manager assigns bounded work, workers implement it
+review and corrections. A manager assigns bounded work, executors implement it
 and reviewers check the result. Progress stays in the Plan across sessions.
 
 Use Plan and Ask to settle requirements and acceptance first, then assign the

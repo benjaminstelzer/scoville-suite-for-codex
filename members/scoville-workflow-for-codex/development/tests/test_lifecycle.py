@@ -45,13 +45,11 @@ class LifecycleTests(unittest.TestCase):
             finding=file('review.txt','changes_requested: example.py drops a space; preserve it and test adjacency.')
             correction=run(builder,*args,'--role','executor','--reviewer-result',finding,'--supplemental-context',scope)
             self.assertIn(finding.read_text(encoding='utf-8'),correction)
-            handoff=file('handoff.txt','Finished implementation and checks of step 1. Only final adjacency test remains.')
-            successor=run(builder,*args,'--role','executor','--context-handoff',handoff,
-                          '--predecessor-agent-id','/root/previous_worker',
-                          '--supplemental-context',scope)
-            self.assertIn(handoff.read_text(encoding='utf-8'),successor)
-            self.assertNotIn('## Work Item context',successor)
-            self.assertIn('/root/previous_worker',successor)
+            remaining=file('remaining.txt','Prior executor stopped. Step 1 implementation and checks passed. Only final adjacency test remains; no publication.')
+            continued=run(builder,*args,'--role','executor','--supplemental-context',remaining)
+            self.assertIn(remaining.read_text(encoding='utf-8'),continued)
+            self.assertIn('## Work Item context',continued)
+            self.assertNotIn('TAKEOVER_COMPLETE',continued)
             # The Plan writer owns these transitions; helpers only inspect them.
             plan=root/'docs/plans/0001-validate-profile.md'
             text=plan.read_text(encoding='utf-8')

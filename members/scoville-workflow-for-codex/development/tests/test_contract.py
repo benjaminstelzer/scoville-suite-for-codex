@@ -43,14 +43,14 @@ class NativeWorkflowContractTests(unittest.TestCase):
                 self.assertIn('--show-config', failed.stderr)
             corrected = subprocess.run(base + ['--show-config'], text=True, encoding='utf-8', capture_output=True)
             self.assertEqual(corrected.returncode, 0, corrected.stderr)
-            self.assertTrue(json.loads(corrected.stdout)['config']['pin_threads'])
+            self.assertEqual(set(json.loads(corrected.stdout)['config']), {'schema_version', 'execute', 'review', 'explore'})
 
     def test_model_resolver_rejects_malformed_user_config(self):
         source = (PACKAGE / "assets" / "workflow.toml").read_text(encoding="utf-8")
         for altered, diagnostic in (
             (source.replace('schema_version = 1', 'schema_version = true', 1), "schema_version"),
-            (source.replace('reasoning = "high"', 'reasoning = []', 1), "invalid workflow.manager values"),
-            (source.replace('reasoning = "high"', 'reasoning = { bad = true }', 1), "invalid workflow.manager values"),
+            (source.replace('reasoning = "high"', 'reasoning = []', 1), "invalid review.ultra_low values"),
+            (source.replace('reasoning = "high"', 'reasoning = { bad = true }', 1), "invalid review.ultra_low values"),
             (source.replace('[execute.ultra_low]\nmodel = "gpt-6-luna"\nreasoning = "medium"',
                             '[execute.ultra_low]\nmodel = "gpt-6-luna"\nreasoning = []', 1), "invalid execute.ultra_low values"),
         ):
@@ -62,7 +62,7 @@ class NativeWorkflowContractTests(unittest.TestCase):
 
     def test_models_preserve_five_routes_and_executor_overrides(self):
         config = model_resolver.load_config(PACKAGE / 'assets/workflow.toml', PACKAGE)
-        self.assertEqual(set(config), {'schema_version', 'context', 'manager', 'execute', 'review', 'pin_threads'})
+        self.assertEqual(set(config), {'schema_version', 'execute', 'review', 'explore'})
         expected = {
             'ultra_low': ('gpt-6-luna', 'medium', 'gpt-6-luna', 'high'),
             'low': ('gpt-6.1-sol', 'low', 'gpt-6.1-sol', 'medium'),
@@ -239,68 +239,23 @@ class NativeWorkflowContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '--executor-result'):
             prompt_builder.build_prompt('reviewer', PACKAGE, 'manager', '', context, {})
 
-    def test_authorized_recovery_supplies_manager_receipt_recipient(self):
-        context = {'plan': {'non_goals': '## Non-goals\n\n- No publication.'}, 'work_item': {'unit': 'W-001', 'source_text': 'Work', 'context_text': 'Work'}}
-        data = {'context_handoff': 'Checks A passed; B remains.', 'predecessor_agent_id': 'worker-a',
-                'supplemental_context': 'User authorized this recovery transfer. B must pass. Keep rollback limits.'}
-        for role in ('executor', 'reviewer'):
-            inputs = dict(data)
-            if role == 'reviewer': inputs['executor_result'] = 'Completed. See actual diff.'
-            prompt = prompt_builder.build_prompt(role, PACKAGE, 'manager', '', context, inputs)
-            self.assertIn('## predecessor_agent_id\nworker-a', prompt)
-            self.assertTrue(prompt.startswith('FIRST ACTION'))
-            self.assertIn('call collaboration.send_message with target=manager and message=HANDOFF_ACCEPTED worker-a', prompt)
-            self.assertNotIn('target=worker-a', prompt)
-            self.assertLess(prompt.index('send_message'), prompt.index('## Assigned unit'))
-            self.assertEqual(prompt.count('HANDOFF_ACCEPTED'), 1)
-            self.assertIn(data['context_handoff'], prompt)
-        del data['predecessor_agent_id']
-        with self.assertRaisesRegex(ValueError, '--predecessor-agent-id'):
-            prompt_builder.build_prompt('executor', PACKAGE, 'manager', '', context, data)
+    def test_obsolete_transfer_inputs_are_rejected(self):
+        context = {'plan': {'non_goals': '## Non-goals\n\n- No publication.'},
+                   'work_item': {'unit': 'W-001', 'source_text': 'Work', 'context_text': 'Work'}}
+        for obsolete in ('context_handoff', 'predecessor_agent_id'):
+            with self.subTest(obsolete=obsolete), self.assertRaisesRegex(ValueError, 'unknown role input'):
+                prompt_builder.build_prompt('executor', PACKAGE, 'manager', '', context, {obsolete: 'old'})
 
-    def test_continuation_cli_omits_completed_item_and_keeps_required_facts(self):
-        spec = importlib.util.spec_from_file_location('continuation_fixture',
-            SUITE_ROOT / 'members/scoville-plan/development/tests/test_select_context.py')
-        fixture = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(fixture)
-        with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
-            (root / 'docs/plans').mkdir(parents=True)
-            (root / 'docs/decisions').mkdir()
-            (root / 'PROJECT_INDEX.md').write_text('---\nformat_version: 1\nactive_plan: PLAN-0001\n---\n', encoding='utf-8')
-            (root / 'docs/plans/0001-test.md').write_text(fixture.plan(), encoding='utf-8')
-            (root / 'docs/decisions/0001-test.md').write_text(fixture.DECISION, encoding='utf-8')
-            handoff = 'Only inspect src/import.py final diff. Implementation and 34 checks passed. Return the result.'
-            facts = 'Acceptance: no unintended diff. Preserve pending user approval for deployment. Evidence: checks.log. No release or scan.'
-            (root / 'handoff.txt').write_text(handoff, encoding='utf-8')
-            (root / 'facts.txt').write_text(facts, encoding='utf-8')
-            selected = prompt_builder.select_unit(SELECTOR, root, 'W-003/steps-1-2')
-            for role in ('executor', 'reviewer'):
-                command = [sys.executable, '-B', str(PACKAGE / 'scripts/build_dispatch_prompt.py'),
-                    '--unit', 'W-003/steps-1-2', '--role', role, '--project-root', str(root),
-                    '--manager-agent-id', 'manager', '--predecessor-agent-id', 'previous',
-                    '--context-handoff', str(root / 'handoff.txt')]
-                failed = subprocess.run(command, text=True, encoding='utf-8', capture_output=True)
-                self.assertNotEqual(failed.returncode, 0)
-                self.assertEqual(failed.stdout, '')
-                self.assertIn('--supplemental-context', failed.stderr)
-                result = subprocess.run(command + ['--supplemental-context', str(root / 'facts.txt')],
-                    text=True, encoding='utf-8', capture_output=True)
-                self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertIn(handoff, result.stdout)
-                self.assertIn(facts, result.stdout)
-                self.assertIn('manager_agent_id=manager', result.stdout)
-                self.assertIn('## Assigned unit\nW-003/steps-1-2', result.stdout)
-                self.assertNotIn(selected['work_item']['context_text'].strip(), result.stdout)
-                self.assertNotIn(selected['work_item']['source_text'].strip(), result.stdout)
-                self.assertIn(f'scoville_role={role}', result.stdout.splitlines())
-            # Empty handoffs must not silently switch back to full-item dispatch.
-            (root / 'handoff.txt').write_text('  ', encoding='utf-8')
-            failed = subprocess.run(command + ['--supplemental-context', str(root / 'facts.txt')],
-                text=True, encoding='utf-8', capture_output=True)
-            self.assertNotEqual(failed.returncode, 0)
-            self.assertEqual(failed.stdout, '')
-            self.assertIn('--context-handoff', failed.stderr)
+    def test_failed_child_remaining_work_uses_ordinary_assignment(self):
+        context = {'plan': {'non_goals': '## Non-goals\n\n- No publication.'},
+                   'work_item': {'unit': 'W-001/step-2', 'source_text': 'Work', 'context_text': 'Work'}}
+        facts = 'Prior writer confirmed stopped. A and its checks passed. Only B remains; no release.'
+        prompt = prompt_builder.build_prompt('executor', PACKAGE, 'manager', '', context,
+                                             {'supplemental_context': facts})
+        self.assertIn(facts, prompt)
+        self.assertIn('## Work Item context', prompt)
+        for forbidden in ('HANDOFF_ACCEPTED', 'TAKEOVER_COMPLETE', 'rollover_pending', 'check_context_checkpoint'):
+            self.assertNotIn(forbidden, prompt)
 
 
 if __name__ == '__main__':

@@ -25,22 +25,6 @@ Reuse the project's terms, responsible sources, planning and decision records,
 test phases, and version-control cadence. Code owns engineering scope, source
 changes, required guarantees, failure risks and the evidence needed to check them.
 
-## Scoville Workflow runner
-
-While assigned as the runner of an active Scoville Workflow, use only Scoville
-Code, Scoville Workflow and Scoville Plan. Do not load or use any other Skill,
-including in response to status questions, forwarded results or inferred work.
-This role restriction takes precedence over Code's general Skill routing below.
-
-Apply Code's authority rules and this section, then follow the Workflow runner
-contract. Do not enter Code's engineering, implementation, review or validation
-routes. Plan work remains with the manager. Permission to use Plan does not
-permit reading Plan content or doing manager work through the runner.
-
-Keep this restriction through pauses, resumption and manager handoffs until the
-run ends. It applies to the runner only. Managers, workers and reviewers use
-the Skills required by their own assignments.
-
 All Skills included in this suite must be installed and enabled. Use the
 applicable owner without checking sibling availability. Load only instructions
 needed for the task. Explicit invocation gates and user exclusions still apply.

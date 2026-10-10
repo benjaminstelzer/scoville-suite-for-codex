@@ -1,277 +1,157 @@
 # Direct dispatch
 
-Before dispatch, inspect only what is needed to define the assignment, relevant
-context, Step grouping and model choice. Implementation diagnosis and test design
-belong to the worker. Read source code only to resolve a concrete question that
-prevents delegation; do not investigate the solution in advance.
+Inspect only facts needed for scope, grouping and model choice; implementation
+diagnosis and test design belong to the executor. Use supplied Step groups.
+Otherwise group consecutive related Steps with one coherent, checkable result;
+keep implementation and necessary checks together. Preserve order and finish
+one group, including due review and corrections, before releasing the next.
+Each released group gets one fresh executor. Work Item context grants no later
+Steps. Use `--unit W-001/step-5`, `W-001/steps-1-4` or `W-001` only when the
+whole item is actually released as one coherent group. Keep step/steps lowercase.
 
-Grouping should save repeated setup and handoffs while producing one coherent,
-checkable result. Keep implementation and necessary checks together.
-When choosing a group, identify the repeated setup it saves and the concrete
-result its final checks can prove. If either is unclear, revise the grouping.
-Use the planner's grouping when supplied. Otherwise group small, related
-consecutive Steps that can be implemented and checked together. Keep a large
-independent section separate. Preserve authored order within and across groups;
-finish and check one group before starting the next. Apply the review cadence
-in operations.md; no overlapping groups. Create one worker per assigned group.
-After completion the agent stays write-inactive. After a measured crossing, an
-executor transfers unfinished work at the safe boundary in operations-rollover.md.
-Managers finish their selected group and reviewers finish their review.
-An explicitly authorized recovery also uses a successor for unfinished work.
-The helper's `--unit` parameter accepts:
+## Model choice
 
-- `W-001/step-5` for one Step.
-- `W-001/steps-1-4` for consecutive Steps.
-- `W-001` for the whole item.
+Choose the highest applicable route for the released work and its checks:
 
-For a new implementation assignment, set `--unit` to the selected and released
-manager unit. The complete Work Item remains context, not additional assigned
-scope. Use a whole-item unit only when the whole item is actually selected and
-released as one coherent executable and checkable group.
+| Route | Minimum context |
+| --- | --- |
+| ultra_low | Bounded local change, trivial verification. |
+| low | Known owner and helpers, established mechanical checks; no ownership or test-harness diagnosis. |
+| medium | Unknown contracts or ownership, interacting owners, integration diagnosis or interpreted checks. |
+| high | Consequential state, authorization or integration contracts. |
+| ultra_high | Consequence or complexity beyond high. |
 
-Keep `step` and `steps` lowercase in parameters. Assignment labels preserve the
-exact unit casing. Select the route for the assigned scope, respecting its
-highest route minimum:
+Unknown low eligibility means at least medium. File count, generated files and
+test volume alone do not raise the route. Do not write inferred routes into the
+Plan. Preserve explicit user choices and route minimums. The builder resolves
+executor, reviewer and explorer routes; `--model`, `--thinking` or both override new routes.
+Correction requires both retained launched fields or an explicitly justified
+replacement for its actual work. Do not replace a child merely to lower its model.
+Validate selected pairs against exposed host capabilities without probing unused
+models. Reasoning accepts none, minimal, low, medium, high, xhigh, max and ultra;
+shipped routes use low through xhigh.
 
+## Prepare assignment
 
-- `ultra_low`: bounded local change with trivial verification.
-- `low`: nontrivial local work with one known owner, understood helpers and
-  established mechanical checks, without component or test-harness diagnosis.
-- `medium`: unresolved helper contracts, ownership discovery, interacting
-  owners, integration diagnosis or checks requiring interpretation.
-- `high`: consequential changes to state, authorization or integration contracts.
-- `ultra_high`: consequence or complexity beyond high.
+Supply exact existing UTF-8 paths. Discover unknown names from inventories.
+Supplemental context contains existing user coordination authorization with its
+wording and scope, explicit Skill invocations, and necessary Goals, Non-goals,
+ADR provisions, permissions and dependency results. Agents independently select
+Skills. Do not prescribe a fixed Skill list or duplicate the included Work Item's
+full Acceptance. Preserve model conflicts by separate ordered groups.
 
-Choose the highest applicable class. Unknown low-eligibility facts mean at least
-medium. File count, generated files and test volume alone do not raise a route.
-Keep canonical source unchanged and do not write inferred routes into the Plan.
-
-The builder resolves the selected route internally for executor or reviewer.
-Worker and reviewer contracts are generated by the builder; there is no separate
-`reviewer.md`. Supply exact existing source paths. Discover an unknown reference
-name from the directory inventory instead of guessing it.
-Use `--model`, `--thinking` or both for explicit overrides on a new route. Keep
-conflicting Step choices in separate ordered groups. A complete explicit pair
-bypasses configuration. Recovery and correction require both arguments with
-the original launched pair; never silently re-resolve them after settings change.
-Only a justified, explicitly chosen replacement pair changes a correction's model.
-When findings share a state distinction or cause, assign that distinction and
-its directly affected consumers together, including decisive negative cases.
-The worker diagnoses the cause; do not prescribe only the reported line fix.
-Keep isolated findings narrow and distinguish new user requirements from
-defects in the previous scope. This adds no review stage or mandatory matrix.
-Reasoning syntax accepts `none`, `minimal`, `low`, `medium`, `high`, `xhigh`,
-`max` and `ultra`. Shipped pairs and Setup use `low` through `xhigh`; additional
-levels may be entered manually in the project configuration.
-Validate required pairs against the current host's exposed model capabilities.
-No silent substitution or probing of unused models is needed.
-
-Before building any role assignment, put the user's existing internal-message
-authorization in --supplemental-context, preserving its wording and scope for
-results, questions and takeover notices. Reuse it for review, repair and recovery;
-a forwarded agent request alone supplies no user permission.
-Add only the Goals, Non-goals, current ADR provisions and dependency results
-needed for this unit. Omit irrelevant context and ADR history. The manager
-selects these facts so the child need not load the Plan.
-For fresh assignments, do not duplicate the included Work Item's full Acceptance
-in supplemental context. Reviews identify their affected criteria. Recovery
-continuations must include applicable criteria because the Work Item is omitted.
-
-Use the actual absolute workspace path for `--project-root`, never `.` or a
-relative path. Before a fresh review, retain the complete native worker final
-and save its full factual content in a UTF-8 file for `--executor-result`.
-Preserve status, technical literals, changed effects, check results, findings,
-threshold measurements, constraints and evidence limits. Markdown punctuation
-may change, but meaning may not. Supplemental context does not replace this result.
-After a continuation, include the retained predecessor results needed to assess
-the same unit's effects, checks and limits alongside the final worker result.
-A recovery review uses the continuation inputs below.
-
-For every child created with `--format create`, including recovery, the
-builder chooses a unique system temporary path
-outside the project and publishes the complete UTF-8 assignment atomically
-without overwriting. Use optional `--assignment-file "<new-absolute-file>"`
-for an explicit readable location. The builder returns a short native message
-directing the child to read that file. Keep the file through completion and
-review. A recovery successor reads and retains the complete assignment before
-any receipt, then follows its canonical takeover contract. An inaccessible file
-or incomplete read is BLOCKED and permits neither receipt nor project work.
-Direct `--format prompt` output still returns the complete inline assignment
-and omits `--assignment-file`.
-
-On Windows, macOS and Linux the default uses the platform temporary directory.
-The native child must be able to read that path under its actual sandbox. A
-publication failure emits no success arguments. An inaccessible consumer path
-is BLOCKED: select an explicitly readable location, never bypass the sandbox
-or silently copy the assignment.
-
-Build the child assignment once. The helper selects the unit internally; do not
-repeat selection to reconstruct its output or print the generated prompt as a
-second tool result before sending it:
+Use the actual absolute workspace path. Retain the complete native executor final
+and save all its substantive facts for `--executor-result`: status, literals,
+changed effects, checks, findings, constraints and evidence limits. Preserve
+relevant earlier results when multiple executors affected the reviewed unit.
+Formatting may change, meaning may not. Supplemental context does not replace
+this result.
 
 ```text
 python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-root "<absolute-workspace-root>" --unit <unit> --role executor --format create --manager-agent-id <own-agent-id> --project-name "<project name>" --worker-number <number> --route <class> --supplemental-context "<facts.txt>"
 ```
 
-For a fresh review, use the reviewed worker's number and retained result:
+Fresh independent review uses the reviewed executor's number:
 
 ```text
 python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-root "<absolute-workspace-root>" --unit <unit> --role reviewer --format create --manager-agent-id <own-agent-id> --project-name "<project name>" --worker-number <number> --route <class> --executor-result "<worker-result.txt>" --supplemental-context "<review-facts.txt>"
 ```
 
-The helper returns complete `spawn_agent` arguments as JSON: message, unique
-role task name, fork_turns="none", model and reasoning_effort.
-Every newly built native assignment has an automatic unique name suffix,
-including repeated reviews of the same worker. This changes no role label,
-scope or model. Use that generated name without requesting user permission.
-Retain the complete arguments; do not repeat a failed or uncertain spawn
-automatically. Validate and retain its actual model and reasoning_effort against
-the host capabilities before spawning; no separate resolver or copy step is needed.
-The message retains the project, canonical Plan ID and complete assigned range.
-Provide the next worker number, or the reviewed worker's number for a reviewer.
-A recovery continuation's task name includes its predecessor identity digest to avoid
-reusing a reviewer task name. The bundled selector and Plan root are derived.
-Supply the actual spawning manager ID explicitly with --manager-agent-id;
-CODEX_THREAD_ID identifies a rollout and is not assumed to be an agent address.
-For recovery or correction, also supply both `--model <launched-model>` and
-`--thinking <launched-effort>` from the retained launched pair.
-Role-specific inputs name existing UTF-8 plain-text files:
+For a user question, change request or planning preparation, assign one fresh read-only Explorer.
+Classify the investigation, not a hypothetical implementation. Its `explore`
+route inherits the effective `execute` pair except explicitly configured fields.
+Number Explorers separately. Supply the complete request and necessary scope,
+constraints and source paths in `--supplemental-context`. Add `--unit` only when
+the Work Item is needed; otherwise no Plan selection runs. No executor result is
+required. Mark facts affected by concurrent writes as provisional.
 
-| Assignment | Required inputs |
-| --- | --- |
-| Fresh review | `--executor-result <result.txt>`: complete worker result with status completed, progress_pending or review_pending; review facts in supplemental context. |
-| Correction worker | `--role executor --reviewer-result <result.txt>`; assigned source findings and needed context in supplemental context. |
-| Authorized recovery | `--context-handoff <handoff.md> --predecessor-agent-id <id> --supplemental-context <facts.md>`; remaining work, completed effects and next action in the handoff. |
-| Necessary facts for any role | `--supplemental-context <facts.md>`. |
+```text
+python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-root "<absolute-workspace-root>" --role explorer --format create --manager-agent-id <own-agent-id> --project-name "<project name>" --worker-number <explorer-number> --route <class> --supplemental-context "<question-and-facts.txt>"
+```
 
-For a fresh review:
+An Explorer answer informs the manager; it does not write the Plan, accept work or
+authorize implementation. The manager writes authorized Plan changes. Continue
+the normal executor/reviewer cycle for approved changes.
 
-1. Retain the complete worker result in the required file.
-2. Prepare the review facts:
-  In supplemental context, name the diff since the last review and affected
-  Acceptance. For a final review, add short references to earlier assessments
-  for unchanged parts.
-  Include every still-unreviewed change and relevant interaction.
-   The manager supplies complete UTF-8 source diffs before review. For tracked
-   files, `git diff --output="<diff-file>" <base> -- <paths>`
-   writes the complete scoped diff without first displaying it. Reviewers read
-   new untracked source files directly through their supplied paths and bounded reads.
-   Do not stage files merely to make a review diff. Reviewers read
-   supplied input completely through bounded reads, without writing their own
-   source captures. Unchanged accepted evidence needs only its identity and
-   applicable limit. Reopen it only for a named new claim, gap or contradiction.
-  Supply applicable Goal parts, constraints and findings to verify, without a
-  manager assessment, defence of the implementation or expected verdict.
-  When the review needs Plan or Decision source evidence, name its exact paths
-  and sections in supplemental context. Reviewers may read only those assigned
-  sources and the applicable Plan field rules for a native-field review. This
-  grants no Plan maintenance, tests or unrestricted context search.
-For recovery, facts contain only applicable acceptance criteria, constraints,
-permissions, evidence limits and required paths. A review continuation needs no
-repeated full executor result; retain relevant findings and the remaining review
-boundary in this compact context.
+Correction uses `--role executor --reviewer-result <result.txt>` and both
+`--model <launched-model> --thinking <launched-effort>`. Supply assigned defects
+and necessary context, not optional ideas. After a confirmed failed child and
+writer quiescence, ordinary fresh assignment facts identify retained effects,
+known remaining work and constraints; no transfer handshake is needed.
 
-Before invoking the builder:
+Review facts name the unreviewed diff, affected Acceptance and relevant
+interactions. Supply exact Plan/Decision paths and sections only when needed as
+review evidence. This grants reviewers no maintenance, tests or unrestricted
+search. For tracked files, `git diff --output="<diff-file>" <base> -- <paths>`
+prepares the complete scoped diff without displaying it. Reviewers read untracked
+sources directly from supplied paths through bounded reads. Do not stage solely
+for review or ask reviewers to capture source files. Reuse unchanged accepted
+assessments with their identity and limits; reopen only for a new claim, gap or
+contradiction. Supply facts without defending implementation or suggesting verdict.
 
-1. Prepare every input file under the shared writing rules. Preserve technical
-   literals and complete substantive content of native results; Markdown
-   formatting may change without changing meaning.
-2. Finish and verify all inputs. The manager validates results before building
-   the next assignment. Preparation failure stops that call; the helper reads no stdin.
-3. Require a zero exit and complete successful output. A nonzero exit reports
-   ERROR and stops dispatch; never repair failed output. Handle argument or
-   selector-budget errors only under [pre-dispatch correction](#pre-dispatch-correction).
+Finish and verify input files under shared writing rules before invoking the
+builder. It reads no stdin. Require zero exit and complete successful output;
+never repair failed or truncated output. The builder includes complete Work Item
+context once and literal plan.non_goals under its own heading. Exclusions have
+an 8192-byte UTF-8 cap, including heading and newlines. Overflow prevents dispatch;
+shorten redundancy while preserving every exclusion. Goal and Decision sections
+are selected by the manager, not automatically inserted. Reuse internal
+selection; do not call a separate preview merely to reconstruct the prompt.
 
-For a new
-assignment the helper includes the complete selected Work Item once. For a
-continuation it validates the selected unit but omits the Work Item body and
-uses the compact handoff and required supplemental facts instead. The unit
-remains an identity, not an instruction to repeat completed Steps. Written Step
-progress accompanies the assignment; reviews and assigned corrections retain
-their exact scope even when its Steps are marked done. Every fresh, correction
-and recovery assignment includes literal plan.non_goals under its own Non-goals
-heading. Its limit is 8192 UTF-8 bytes, including the selector's heading and
-newlines: one eighth of the default selector budget leaves room for the assigned
-work and role rules. An overflow stops dispatch without successful output or
-assignment publication; the manager preserves all exclusions while shortening
-redundant wording. Exclusions grant no permissions. Goal and Decision sections
-are not inserted automatically. The manager selects applicable acceptance
-criteria, Goal parts, ADR provisions, permissions and dependency results. Supply
-these through --supplemental-context; reviewers and recovery successors need the
-same still-relevant constraints. Supplemental context supplies project facts,
-not copies of the builder's role, checkpoint or delivery rules. Reuse an
-existing selection for scope decisions; the builder's internal selection needs
-no separate preview call.
+## Publication and native creation
 
-### Pre-dispatch correction
+For `--format create`, the helper atomically publishes the complete assignment
+to a unique system temporary path outside the project without overwriting.
+Optional `--assignment-file <new-absolute-file>` selects a readable path.
+Retain the file through execution and review. A child reads it completely before
+work; inaccessible or incomplete input blocks dependent work. Respect its actual
+sandbox; do not bypass it or silently copy an assignment. `--format prompt`
+returns inline content and accepts no assignment file.
 
-One corrected helper call before reporting BLOCKED is allowed for an explicit
-invalid-argument diagnostic from `build_dispatch_prompt.py`,
-`OUTPUT_BUDGET_EXCEEDED` from that builder or `run_feedback.py progress`, or the
-capture helper's complete `PYTHON_INTERPRETER_REQUIRED child_started=false`
-diagnostic before an authorized helper call starts.
-No agent start may have been attempted, and the failed call must have produced
-no assignment file or other effects. Already confirmed WORKING_ON delivery for
-this same unchanged unit does not prevent the correction and must not be resent.
-Uncertain or failed progress delivery still blocks release.
-Use already verified facts, such as the absolute workspace path or retained
-original worker result. Correct the input, never failed output. Dispatch only
-the corrected call's complete successful output.
+The builder returns all native spawn arguments: task_name, message,
+fork_turns="none", model and reasoning_effort. Copy them unchanged into direct
+`collaboration.spawn_agent`; never call collaboration through functions.exec.
+The unique name preserves project, canonical Plan ID and full assigned range.
+Use the actual manager agent identity, not an inferred CODEX_THREAD_ID. Retain
+exact returned child identity, unit, role and launched pair. Do not rebuild,
+reprint or paraphrase assignments before dispatch.
 
-For `OUTPUT_BUDGET_EXCEEDED`, the diagnostic supplies the complete shell-quoted
-corrected invocation with `--max-output-bytes <required_bytes>` and the retained
-arguments. An agent-chosen internal selection budget may be explicitly corrected
-to that required size. A binding user, Plan or host cap still applies; if exceeded,
-keep the operation open and request the decision first. This internal budget does
-not replace the actual tool-output limit or its complete capture before display.
-The helper never raises budgets automatically. The retry forwards the explicit
-budget to the selector and preserves complete context. Do not replace the selector
-with an adapter or truncate the result.
+A failed or uncertain spawn, including capacity refusal, blocks that operation.
+Retain the diagnostic and continuation state. Inspect known identities only;
+no automatic retry, replacement sidebar chat or completed-agent cleanup.
+No new writer starts until prior writes are quiescent. Children need no sidebar
+pins, archival or invented close tool.
 
-If required facts are missing, the correction fails, or effects or agent state
-are uncertain, retain the diagnostic and report the blocker under run-feedback.md.
-Do not invent a worker result, bypass validation or repeat a spawn. This exception
-does not cover other helper failures, capacity refusals or uncertain delivery.
+## Bounded pre-dispatch correction
 
-### Native dispatch and results
+One corrected call is allowed for an explicit invalid argument,
+OUTPUT_BUDGET_EXCEEDED from the builder, or complete
+PYTHON_INTERPRETER_REQUIRED child_started=false before the authorized call.
+No spawn may have been attempted and no assignment or other effect produced.
+Use verified facts; correct inputs, never failed output. Another failure, missing
+facts or uncertain effects stops the operation with its actual diagnostic.
 
-Call `spawn_agent` directly with the generated arguments. Collaboration tools
-are direct tool calls, not tools inside functions.exec. Check the builder's zero
-exit and complete output, then copy its JSON fields unchanged into the native
-call. Copy the returned fields exactly, including punctuation and
-whitespace; never paraphrase supplemental text. Do not print or rebuild another
-copy. Stop on truncated output or a helper error; never dispatch a partial prompt.
+A selector-budget error supplies a complete corrected invocation with explicit
+--max-output-bytes. An agent-selected internal cap may be raised to required size;
+a binding user, Plan or host cap needs the actual decision first. Preserve all
+context and actual tool-output limits. Never replace or truncate the selector.
+Other helper failures, capacity refusals and uncertain delivery grant no retry.
 
-Retain the exact returned agent ID with its role, unit and launched pair. Require
-one unambiguous identity. A failed or uncertain spawn, including capacity refusal,
-is BLOCKED. Preserve the diagnostic, retained results and unfinished assignment
-under operations.md. Inspect only known identities with `list_agents`; no
-automatic retry, completed-agent cleanup or replacement chat. No new writer
-starts until prior writes are quiescent.
-Native agents have no sidebar pins or archival step.
+## Results and permissions
 
-A fresh child starts its assignment on spawn. A recovery child first completes
-the manager receipt and release gate in operations-rollover.md. READY and START belong
-to manager startup, not child dispatch. Wait with `collaboration.wait_agent` for native completion or user input;
-a timeout is not failure or permission to start another child. Match the result's
-host sender identity to the assigned agent, retain it once, and apply operations.md.
-For shared complete-file delivery, require the assigned child's actual native
-final and completion, verify SHA-256 and read the entire file before applying
-the unchanged role-result contract. Metadata alone is not an accepted result.
-Use the verified file's complete substantive content wherever these instructions
-require the worker or reviewer result. Do not use chat tools, title matching
-or repeated result requests for coordination.
+Wait using native events and retained handles. Timeouts prove neither failure
+nor permission for another writer. Match native sender to assigned identity;
+retain results once and apply operations.md. For complete-file result delivery,
+require actual child completion, verify SHA-256 and read the entire file before
+accepting its contents. Metadata alone is not a result. Do not coordinate through
+sidebar chats, title matching or repeated result requests.
 
-Children may discover Python and run the named checker for bounded reads,
-capture and size checks, including from outside the workspace. For necessary
-oversized-result or handoff delivery only, they may prepare and publish complete
-temporary artifacts under the project's `.scoville/temp`. Reviewers may not run
-tests or change the reviewed subject. Host restrictions, write ownership and
-takeover gates still apply.
+Children may use the named Python and checker for bounded UTF-8 reads, capture
+and size checks even outside the workspace. Only necessary oversized-result
+preparation/publication permits writes under `.scoville/temp`; reviewers still
+cannot run tests or change the reviewed subject. Host restrictions apply.
 
-The child owns only assigned project changes. It cannot edit canonical Plan
-records, stage or commit, dispatch successors or change Workflow or model settings.
-Product and test configuration may change only within the assigned scope and
-project constraints; reviewers remain read-only. Its complete final answer is
-delivered natively to the spawning manager. Require native delegation, completion
-and interruption support before dispatch; never fall back to new chats.
+Children own only their assigned changes. They cannot edit Plan, Decision or
+index records, stage or commit, create agents/chats or change Workflow/model
+settings. Product/test configuration changes require assigned scope. Complete
+native finals deliver results directly to this visible manager.

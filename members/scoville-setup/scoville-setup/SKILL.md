@@ -1,6 +1,6 @@
 ---
 name: scoville-setup
-description: Show or change the selected project's Scoville Ask and Workflow settings. Use for saved models, effort, Claude limits and context rollover thresholds. Excludes running workflows, installations, updates and monitoring.
+description: Show or change the selected project's Scoville Ask and Workflow settings. Use for saved executor, reviewer and explorer models, effort and Claude limits. Excludes running workflows, installations, updates and monitoring.
 compatibility: "Codex Suite with Python 3.11+, bundled configuration helpers and filesystem access to the selected project. Configuration changes are local; this Skill starts no host tasks."
 ---
 
@@ -62,19 +62,16 @@ The object contains `ask`, `workflow` or both sections. The `ask` section suppor
 
 The `workflow` section supports:
 
-- `manager` for the manager's model and reasoning level.
-- `execute` and `review` for each route's model and reasoning level.
-- `context.coordinator_percent` for the manager threshold.
-- `context.worker_percent` for the child threshold.
+- `execute`, `review` and `explore` for each route's model and reasoning level.
+  Unspecified `explore` fields inherit the effective `execute` values.
 
-`workflow.manager` sets the manager independently of the runner. Missing fields use the bundled
-defaults. A one-time manager pair overrides saved settings for that run;
-successors retain the launched pair.
-Legacy `ask.pin_threads` and `workflow.pin_threads` remain readable but have
-no effect: native advisers and Workflow roles are subagents without sidebar rows.
-Explain this when showing those fields; do not offer to save pin settings.
-Preserve them when saving other choices. Claude CLI has no sidebar row.
-Percentages are integers from 1 through 99. An adviser list replaces the old
+The visible chat is the Workflow manager; the host chooses its model.
+Missing route fields use bundled defaults. Old Workflow manager, context and
+pin settings are ignored even if malformed, and removed only during an authorized save.
+Show remains read-only; new patches of these obsolete fields are rejected.
+Legacy `ask.pin_threads` remains readable and is preserved during unrelated
+saves; it has no effect on native advisers. Claude CLI has no sidebar row.
+An adviser list replaces the old
 selection. Ask or Workflow checks model and effort availability when used.
 
 The helper reuses consumer validation, preserves unrelated saved fields and

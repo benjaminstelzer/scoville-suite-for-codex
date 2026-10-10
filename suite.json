@@ -85,6 +85,14 @@
         {
           "source": "shared:prompting/shell-commands.md",
           "target": "scoville-code/references/shell-commands.md"
+        },
+        {
+          "source": "members/scoville-code/scoville-code/references/cost-and-cache.md",
+          "target": "scoville-code/references/cost-and-cache.md"
+        },
+        {
+          "source": "members/scoville-code/scoville-code/references/implementation-review.md",
+          "target": "scoville-code/references/implementation-review.md"
         }
       ],
       "family": {
@@ -494,6 +502,30 @@
         {
           "source": "shared:prompting/shell-commands.md",
           "target": "scoville-ui/references/shell-commands.md"
+        },
+        {
+          "source": "members/scoville-ui/scoville-ui/references/ui-wording.md",
+          "target": "scoville-ui/references/ui-wording.md"
+        },
+        {
+          "source": "members/scoville-ui/scoville-ui/references/ui-layout.md",
+          "target": "scoville-ui/references/ui-layout.md"
+        },
+        {
+          "source": "members/scoville-ui/scoville-ui/references/ui-interactions.md",
+          "target": "scoville-ui/references/ui-interactions.md"
+        },
+        {
+          "source": "members/scoville-ui/scoville-ui/references/ui-geometry-validation.md",
+          "target": "scoville-ui/references/ui-geometry-validation.md"
+        },
+        {
+          "source": "members/scoville-ui/scoville-ui/references/ui-consistency-audit.md",
+          "target": "scoville-ui/references/ui-consistency-audit.md"
+        },
+        {
+          "source": "members/scoville-ui/scoville-ui/references/wordpress/translation-delivery.md",
+          "target": "scoville-ui/references/wordpress/translation-delivery.md"
         }
       ],
       "family": {
@@ -591,14 +623,6 @@
           "target": "scoville-workflow-for-codex/scripts/build_dispatch_prompt.py"
         },
         {
-          "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/check_context_checkpoint.py",
-          "target": "scoville-workflow-for-codex/scripts/check_context_checkpoint.py"
-        },
-        {
-          "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/inspect_native_context.py",
-          "target": "scoville-workflow-for-codex/scripts/inspect_native_context.py"
-        },
-        {
           "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/resolve_model_pair.py",
           "target": "scoville-workflow-for-codex/scripts/resolve_model_pair.py"
         },
@@ -623,14 +647,6 @@
           "target": "scoville-workflow-for-codex/references/operations-dispatch.md"
         },
         {
-          "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/references/manager-protocol.md",
-          "target": "scoville-workflow-for-codex/references/manager-protocol.md"
-        },
-        {
-          "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/references/operations-rollover.md",
-          "target": "scoville-workflow-for-codex/references/operations-rollover.md"
-        },
-        {
           "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/workflow_settings.py",
           "target": "scoville-workflow-for-codex/scripts/workflow_settings.py"
         },
@@ -641,18 +657,6 @@
         {
           "source": "members/scoville-plan/scoville-plan/scripts/markdown_structure.py",
           "target": "scoville-workflow-for-codex/scripts/markdown_structure.py"
-        },
-        {
-          "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/build_manager_handoff.py",
-          "target": "scoville-workflow-for-codex/scripts/build_manager_handoff.py"
-        },
-        {
-          "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/run_feedback.py",
-          "target": "scoville-workflow-for-codex/scripts/run_feedback.py"
-        },
-        {
-          "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/references/run-feedback.md",
-          "target": "scoville-workflow-for-codex/references/run-feedback.md"
         },
         {
           "source": "shared:prompting/common.md",
@@ -684,12 +688,6 @@
         "scripts/build_dispatch_prompt.py": {
           "kind": "helper"
         },
-        "scripts/check_context_checkpoint.py": {
-          "kind": "helper"
-        },
-        "scripts/inspect_native_context.py": {
-          "kind": "library"
-        },
         "scripts/resolve_model_pair.py": {
           "kind": "helper"
         },
@@ -702,17 +700,11 @@
         "scripts/markdown_structure.py": {
           "kind": "library"
         },
-        "scripts/build_manager_handoff.py": {
-          "kind": "helper"
-        },
         "scripts/scoville_config.py": {
           "kind": "library"
         },
         "scripts/native_task_arguments.py": {
           "kind": "library"
-        },
-        "scripts/run_feedback.py": {
-          "kind": "helper"
         },
         "scripts/check_text_size.py": {
           "kind": "helper"

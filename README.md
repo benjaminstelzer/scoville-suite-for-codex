@@ -17,7 +17,7 @@ which adds Workflow, Ask and Setup.
 
 | Skill | Purpose |
 | --- | --- |
-| [Workflow for Codex](#scoville-workflow-for-codex) | Runs a repository Plan through manager, worker and reviewer agents. |
+| [Workflow for Codex](#scoville-workflow-for-codex) | Runs a repository Plan through the visible manager, executor, reviewer and explorer agents. |
 | [Code](#scoville-code) | Keeps implementation, risk assessment and checks focused on what you asked for. |
 | [Plan](#scoville-plan) | Keeps longer work, decisions and progress easy to pick up again. |
 | [UI](#scoville-ui) | Builds and checks interfaces with their framework and design system. |
@@ -29,7 +29,7 @@ which adds Workflow, Ask and Setup.
 ## Scoville Workflow for Codex
 
 Scoville Workflow takes a prepared Plan through implementation, independent
-review and corrections. A manager assigns bounded work, workers implement it
+review and corrections. A manager assigns bounded work, executors implement it
 and reviewers check the result. Progress stays in the Plan across sessions.
 
 Use Plan and Ask to settle requirements and acceptance first, then assign the
@@ -42,57 +42,53 @@ turns. Adding more cooks is only useful if dinner still arrives.
 
 ### How it works
 
-- Start from a prepared Plan and choose the whole Plan or a bounded part.
-- Let the manager arrange implementation, checks, review and corrections.
-- Follow progress in the chat and Plan. Questions and problems stay in the run
-  report, whose location is shown at startup.
-- Continue across context handoffs and finish when the requested work meets
-  its acceptance criteria.
+The existing visible chat manages a prepared Plan or its authorized part.
+Agents select relevant Skills themselves. Questions go directly to the user;
+concise progress and evidence stay in the Plan. Host compaction continues the
+same chat without automatic transfers or context thresholds.
+User questions, change requests and planning preparation go to a read-only Explorer.
+The manager answers the user, writes the Plan and decides authorized next work.
 
 ```mermaid
-%%{init: {'flowchart': {'nodeSpacing': 20, 'rankSpacing': 18}}}%%
 flowchart TD
-    P["Repository Plan"] --> C["Manager selects a bounded piece of work"]
-    C --> W["Worker implements and checks the result"]
-    W --> B("Review boundary reached?")
-    B -->|No| A
-    B -->|Yes| G("Review required?")
-    G -->|Yes| R["Fresh reviewer checks the result"]
-    G -->|No| A["Manager records checked progress<br/>and updates the Plan"]
-    R -->|Pass| A
-    R -->|Findings| F["Manager corrects Plan findings<br/>New worker corrects project findings"]
-    F --> Q("Follow-up review required?")
-    Q -->|Yes| R
-    Q -->|No| A
-    A --> E["Accept when required checks and reviews pass<br/>Commit when authorized"]
-    E --> N("Requested work remains?")
-    N -->|No| D["Summarize completion<br/>Link the full run report"]
-    N -->|Yes| T("Context boundary reached?")
-    T -->|No| C
-    T -->|Yes| H["Hand over at the completed work boundary<br/>Next manager continues from the Plan and handoff"]
-    H --> C
+    P["Visible manager selects authorized Step/group"] --> W["Executor implements and checks"]
+    Q["Question, change request or planning preparation"] --> E["Explorer investigates and proposes read-only"]
+    E --> M["Manager answers and writes authorized Plan changes"]
+    M --> P
+    W --> R["Fresh independent reviewer"]
+    R -->|Findings| F["Fresh executor corrects source findings<br/>Manager handles Plan findings"]
+    F --> R
+    R -->|Pass| A["Manager accepts and updates Plan<br/>Commits when authorized"]
+    A --> N{"Requested work remains?"}
+    N -->|Yes| P
+    N -->|No| D["Verify closure and writer quiescence<br/>Report completion"]
 ```
+
+Review cadence may require an earlier checked boundary. Clearly nonmaterial
+corrections can be accepted by bounded comparison when no binding rule requires
+another review. Bookkeeping creates no separate review phase.
 
 ### What it enforces
 
-- **Clear responsibility.** Managers maintain the Plan, workers implement and
-  reviewers assess. At most one worker writes in the shared checkout.
-- **Bounded work and review.** Assignments carry their scope and acceptance
-  criteria. Required reviews and corrections precede accepted completion.
-- **Your model choices.** Configured models and reasoning levels are respected.
-  Unsupported settings stop the affected operation rather than being replaced.
-- **Continuity.** Context handoffs preserve checked progress, open findings and
-  decisions. A successor verifies the current state before writing.
-- **Visible control.** You see current work, necessary questions and blockers.
-  Pauses preserve unfinished work. Completion gives a brief summary and report link.
+- **Responsibility.** The visible chat maintains the Plan; executors implement
+  and reviewers assess. At most one executor writes in the shared checkout.
+- **Bounded work.** Released Step groups finish checks, due review and corrections
+  before later groups start. Work Item context does not expand assignments.
+- **Model choices.** Configured executor, reviewer and explorer models and effort are respected.
+  Unsupported settings stop dependent work rather than being substituted.
+- **Continuity.** The same chat continues after compaction from concise Plan
+  state, known child identities, completed effects and open decisions.
+- **Visible decisions.** The manager asks necessary questions directly. Stops
+  preserve unfinished work; completion requires accepted scope and quiescent writers.
 
-Workflow starts only when explicitly requested and commits only when authorized.
+Workflow activates explicitly and commits only when authorized.
 The [operations reference](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-workflow-for-codex/scoville-workflow-for-codex/references/operations.md)
-contains the coordination and recovery details.
+contains execution, review and stop behavior.
 
 ### What it costs
 
-- Workers, reviews and handoffs add tokens and time. That coordination is useful for substantial, dependent work. There is no established typical overhead or guaranteed saving.
+Executors, independent reviews and necessary corrections add tokens and time.
+Use proportional groups and checks; no typical overhead or saving has been measured.
 
 [How to use Scoville Workflow for Codex](members/scoville-workflow-for-codex/README.md#how-to-use).
 

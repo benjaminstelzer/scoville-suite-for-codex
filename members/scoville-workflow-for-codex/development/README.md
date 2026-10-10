@@ -1,17 +1,19 @@
 # Development
 
-Early coordination put too much effort into passing instructions through
-helpers, message records and polling. Using the host's native agent operations
-removed layers that did little for the actual work. Context exhaustion and
-delivery failures then showed why handoffs need explicit ownership and retained
-progress. Simpler coordination helped, but it did not make host failures disappear.
+The visible chat now owns Plan execution through bounded executors, independent
+reviews and necessary corrections. Package tests cover model/config consumers,
+read-only Explorer inquiries and independent settings inheritance,
+complete UTF-8 assignment delivery, source scope, exclusions and failure paths.
+They do not establish native role behavior, compaction or stop compliance.
 
-Bounded tests cover helper validation, controlled context measurements and
-selected manager handoffs, not the full live agent lifecycle. Delivery
-failures, context compaction immediately after a handoff, stop handling and
-child completion after a measured context threshold still need separate
-live evidence.
+Use the authorized isolated [native probes](live-agent-probes.md) for those
+claims. Historical test-result reports describe earlier architectures; do not
+apply their removed contracts to a current run. No measured performance claim
+follows from shorter sources or passing unit tests.
 
-The [source](../scoville-workflow-for-codex/) and tests live in the suite. Install the built package.
+The [source](../scoville-workflow-for-codex/) and tests live in the suite.
+Install the verified built package. From this member directory run:
 
-From this member directory, run `python -B -m unittest discover -s development/tests`.
+```text
+python -B -m unittest discover -s development/tests
+```

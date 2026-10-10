@@ -2,11 +2,23 @@
 
 ## Unreleased - 2026-10-10
 
-- Answer status questions with the last reported Working on position and known issues. Reserve Blocked for a concrete obstacle to dependent work.
-- Keep agent messages and internal commentary compact. Reference readable source text instead of copying it; preserve required facts and exact controls.
-- Keep required child updates in minimal labelled fields, including before reading a file assignment. Preserve complete results and handoff facts.
-- Keep the full reading procedure in one reference and load host command details when needed. Preserve complete reads and existing permissions.
-- Hand over remaining work at a safe boundary after a measured context crossing, without requiring the whole assignment to finish. Keep started changes coherent, finish focused checks and preserve independent review before continuation.
+- Delegate planning preparation to the read-only Explorer; the manager writes authorized Plan changes.
+- Load command capture and large-result delivery only when needed; preserve complete outputs and role permissions.
+- Return Explorer results only through the native final answer, without a duplicate message.
+
+- Require English in all internal role communication; manager user replies follow the current message language.
+
+- Remove progress_pending and broader-assignment conditions: finished assigned groups return completed before manager review and closure.
+
+- Add read-only Explorer inquiries with optional Plan context; questions authorize neither implementation nor review acceptance.
+- Add independent explore route overrides inheriting unspecified effective execute fields through Setup.
+
+- Keep the existing visible chat as manager for scoped execution, independent review, corrections and Plan closure.
+- Remove separate manager startup, control relays, rollover thresholds, transfer handshakes and mandatory run reports from active contracts, helpers and exports.
+- Continue the same assignment after host compaction. Preserve exact child handles, complete results, scope, decisions and one-writer ownership.
+- Let children choose relevant Skills from the matching build; preserve explicit user invocations. Keep communication to facts needed for correct continuation.
+- Ignore legacy manager/context/pin settings on reads; authorized Setup saves remove only those fields.
+- Update README, flow diagram and package/runtime consumer tests for the direct manager.
 
 ## v0.9.8 - 2026-10-09
 

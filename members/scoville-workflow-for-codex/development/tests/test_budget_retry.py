@@ -14,7 +14,7 @@ from native_task_arguments import budget_retry, shell_command
 
 
 class BudgetRetryTests(unittest.TestCase):
-    def test_dispatch_and_progress_corrections_preserve_literal_arguments(self):
+    def test_dispatch_corrections_preserve_literal_arguments(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / "project ü ' $()"
             shutil.copytree(SUITE_ROOT / 'members/scoville-plan/development/tests/fixtures/valid-profile', root)
@@ -28,9 +28,7 @@ class BudgetRetryTests(unittest.TestCase):
                 ('build_dispatch_prompt.py', ['--project-root', str(root), '--unit', 'W-001/step-1',
                  '--role', 'executor', '--format', 'create', '--manager-agent-id', '/root/manager',
                  '--project-name', project, '--worker-number', '1', '--model', 'gpt-6-sol',
-                 '--thinking', 'high', '--assignment-file', str(assignment), '--max-output-bytes=512']),
-                ('run_feedback.py', ['progress', '--project', project, '--project-root', str(root),
-                 '--point', 'W-001/step-1', '--previous-key', 'a' * 64, '--max-output-bytes', '512'])]
+                 '--thinking', 'high', '--assignment-file', str(assignment), '--max-output-bytes=512'])]
             for name, args in commands:
                 with self.subTest(helper=name):
                     failed = subprocess.run([sys.executable, str(PACKAGE / 'scripts' / name), *args],
@@ -54,15 +52,6 @@ class BudgetRetryTests(unittest.TestCase):
                         self.assertIn(str(assignment), payload['message'])
                         self.assertIn(project, assignment.read_text(encoding='utf-8'))
                         self.assertEqual(payload['model'], 'gpt-6-sol')
-                    else:
-                        self.assertIn('Fixture "quoted"', payload['text'])
-                        self.assertIn('W-001/step-1', payload['text'])
-                        direct_args = [value for value in args]
-                        direct_args[-1] = '65536'
-                        direct = subprocess.run([sys.executable, str(PACKAGE / 'scripts' / name), *direct_args],
-                                                capture_output=True, text=True, encoding='utf-8')
-                        self.assertEqual(direct.returncode, 0, direct.stderr)
-                        self.assertEqual(payload, json.loads(direct.stdout))
 
     def test_shell_preserves_quotes_backslashes_empty_arguments_and_exit_code(self):
         values = ['"quoted"', 'slash\\"quote', 'two\\\\"quote', 'space tail\\', '', "a'b", '$()']

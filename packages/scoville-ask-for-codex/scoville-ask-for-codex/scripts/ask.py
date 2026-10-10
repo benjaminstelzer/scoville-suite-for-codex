@@ -55,7 +55,7 @@ def prepare(request):
         else:
             prompt = (role + '\n\n' + writing + f'\n\nmode: {mode}\nadviser_id: {adviser["id"]}'
                       + f'\nworkspace_root: {cwd}\nconsultation_reference: {ref}\nscope: {scope}'
-                      + f'\nshell_command_rules: {shell_rules}; read before the first shell command.'
+                      + f'\nshell_command_rules: {shell_rules}; read before shell commands, complete-file preparation or output that may exceed an applicable limit.'
                       + '\n\nInspect only the supplied scope in this workspace. Resolve relative evidence paths there.'
                       + '\n\n## User request and evidence\n\n' + question)
             entry['request'] = {'operation': 'claude', 'adviser': adviser, 'claude': settings['claude'],

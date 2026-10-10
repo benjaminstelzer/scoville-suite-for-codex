@@ -1,7 +1,7 @@
 # Scoville Workflow for Codex
 
 Scoville Workflow takes a prepared Plan through implementation, independent
-review and corrections. A manager assigns bounded work, workers implement it
+review and corrections. A manager assigns bounded work, executors implement it
 and reviewers check the result. Progress stays in the Plan across sessions.
 
 Use Plan and Ask to settle requirements and acceptance first, then assign the
@@ -14,69 +14,68 @@ turns. Adding more cooks is only useful if dinner still arrives.
 
 ## How it works
 
-- Start from a prepared Plan and choose the whole Plan or a bounded part.
-- Let the manager arrange implementation, checks, review and corrections.
-- Follow progress in the chat and Plan. Questions and problems stay in the run
-  report, whose location is shown at startup.
-- Continue across context handoffs and finish when the requested work meets
-  its acceptance criteria.
+The existing visible chat manages a prepared Plan or its authorized part.
+Agents select relevant Skills themselves. Questions go directly to the user;
+concise progress and evidence stay in the Plan. Host compaction continues the
+same chat without automatic transfers or context thresholds.
+User questions, change requests and planning preparation go to a read-only Explorer.
+The manager answers the user, writes the Plan and decides authorized next work.
 
 ```mermaid
-%%{init: {'flowchart': {'nodeSpacing': 20, 'rankSpacing': 18}}}%%
 flowchart TD
-    P["Repository Plan"] --> C["Manager selects a bounded piece of work"]
-    C --> W["Worker implements and checks the result"]
-    W --> B("Review boundary reached?")
-    B -->|No| A
-    B -->|Yes| G("Review required?")
-    G -->|Yes| R["Fresh reviewer checks the result"]
-    G -->|No| A["Manager records checked progress<br/>and updates the Plan"]
-    R -->|Pass| A
-    R -->|Findings| F["Manager corrects Plan findings<br/>New worker corrects project findings"]
-    F --> Q("Follow-up review required?")
-    Q -->|Yes| R
-    Q -->|No| A
-    A --> E["Accept when required checks and reviews pass<br/>Commit when authorized"]
-    E --> N("Requested work remains?")
-    N -->|No| D["Summarize completion<br/>Link the full run report"]
-    N -->|Yes| T("Context boundary reached?")
-    T -->|No| C
-    T -->|Yes| H["Hand over at the completed work boundary<br/>Next manager continues from the Plan and handoff"]
-    H --> C
+    P["Visible manager selects authorized Step/group"] --> W["Executor implements and checks"]
+    Q["Question, change request or planning preparation"] --> E["Explorer investigates and proposes read-only"]
+    E --> M["Manager answers and writes authorized Plan changes"]
+    M --> P
+    W --> R["Fresh independent reviewer"]
+    R -->|Findings| F["Fresh executor corrects source findings<br/>Manager handles Plan findings"]
+    F --> R
+    R -->|Pass| A["Manager accepts and updates Plan<br/>Commits when authorized"]
+    A --> N{"Requested work remains?"}
+    N -->|Yes| P
+    N -->|No| D["Verify closure and writer quiescence<br/>Report completion"]
 ```
+
+Review cadence may require an earlier checked boundary. Clearly nonmaterial
+corrections can be accepted by bounded comparison when no binding rule requires
+another review. Bookkeeping creates no separate review phase.
 
 ## What it enforces
 
-- **Clear responsibility.** Managers maintain the Plan, workers implement and
-  reviewers assess. At most one worker writes in the shared checkout.
-- **Bounded work and review.** Assignments carry their scope and acceptance
-  criteria. Required reviews and corrections precede accepted completion.
-- **Your model choices.** Configured models and reasoning levels are respected.
-  Unsupported settings stop the affected operation rather than being replaced.
-- **Continuity.** Context handoffs preserve checked progress, open findings and
-  decisions. A successor verifies the current state before writing.
-- **Visible control.** You see current work, necessary questions and blockers.
-  Pauses preserve unfinished work. Completion gives a brief summary and report link.
+- **Responsibility.** The visible chat maintains the Plan; executors implement
+  and reviewers assess. At most one executor writes in the shared checkout.
+- **Bounded work.** Released Step groups finish checks, due review and corrections
+  before later groups start. Work Item context does not expand assignments.
+- **Model choices.** Configured executor, reviewer and explorer models and effort are respected.
+  Unsupported settings stop dependent work rather than being substituted.
+- **Continuity.** The same chat continues after compaction from concise Plan
+  state, known child identities, completed effects and open decisions.
+- **Visible decisions.** The manager asks necessary questions directly. Stops
+  preserve unfinished work; completion requires accepted scope and quiescent writers.
 
-Workflow starts only when explicitly requested and commits only when authorized.
+Workflow activates explicitly and commits only when authorized.
 The [operations reference](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-workflow-for-codex/scoville-workflow-for-codex/references/operations.md)
-contains the coordination and recovery details.
+contains execution, review and stop behavior.
 
 ## What it costs
 
-- Workers, reviews and handoffs add tokens and time. That coordination is useful for substantial, dependent work. There is no established typical overhead or guaranteed saving.
+Executors, independent reviews and necessary corrections add tokens and time.
+Use proportional groups and checks; no typical overhead or saving has been measured.
 
 ## How it was developed
 
-Early versions spent too much effort coordinating agents. Real project work
-pushed development toward smaller assignments, clear responsibility and direct
-use of Codex's own agent tools. Handoffs also needed recorded progress so the
-next manager could continue without reconstructing the conversation.
-Coordination should help finish the work, not become the next work item.
+Earlier versions coordinated separate managers and context handoffs. The current
+workflow keeps management in the visible chat and assigns bounded work directly.
+Plan progress preserves completed effects, open reviews and decisions through
+host compaction. Executors and reviewers load relevant Skills independently.
 
 ## Compatibility
 
-Requires the complete Codex Suite, Python 3.11+ and native agent tools in a shared workspace. Fable, Astra, SOL or Opus (5.0+) are recommended. Selected native Workflow and recovery checks succeeded with Luna 6 and High reasoning in Codex. Full end-to-end runs have not passed, and earlier failures remain recorded. These checks do not establish reliable use across complete workflows or on other model routes or hosts.
+Requires the Codex Suite, Python 3.11+ and native agent tools in a shared
+workspace. Earlier Luna 6/high checks covered the former manager/handoff
+architecture. They do not establish acceptance of the current direct manager,
+complete workflows or other model routes and hosts. Current acceptance requires
+new isolated native execution, review, continuation and stop checks.
 
 ## Install
 
@@ -94,29 +93,20 @@ already have one installed.
 
 ## Configuration
 
-To change the defaults, use Scoville Setup to view or save the project
-settings in `.scoville/config.json`. Under `workflow`:
+Use Scoville Setup to show or save project settings in `.scoville/config.json`.
+Under workflow, execute.CLASS selects an executor pair and review.CLASS its
+reviewer pair. Missing fields use bundled defaults. Reading or starting a run
+creates no configuration file.
+Optional explore.CLASS overrides the Explorer pair. Unspecified fields inherit
+the effective execute.CLASS values, including project overrides.
 
-| Key | Controls |
-| --- | --- |
-| `manager` | Manager model and reasoning. |
-| `execute.CLASS` | Worker pair for that route. |
-| `review.CLASS` | Reviewer pair for that route. |
-| `context` | Rollover thresholds. |
-
-Missing values use bundled defaults. Starting a run creates no configuration file.
-
-The manager defaults to `gpt-6.1-sol` with `high` reasoning, independently of
-the visible chat's model. An explicit manager pair for one run overrides saved
-settings. Successors keep the pair that started the run.
-
-By default, managers schedule a context handoff at 40% usage and workers or
-reviewers above 60%. Managers finish their selected Step or group, and reviewers
-finish their review. Workers finish the bounded work already started and hand
-over remaining work at a safe point. Setup can change these thresholds.
+The visible chat is the manager; its model comes from the host. Legacy manager,
+context and pin_threads keys are ignored. An authorized Setup save removes
+those three keys while preserving unrelated settings. No rollover thresholds
+or automatic successor roles remain.
 
 The [dispatch rules](scoville-workflow-for-codex/references/operations-dispatch.md)
-explain how tasks are classified and how explicit model choices work.
+explain route classification and explicit model choices.
 
 ## Limitations
 
@@ -140,21 +130,23 @@ for continuation.
 
 ## How to use
 
-With the suite installed in Codex, start Workflow in your saved project:
+With the suite installed in Codex, activate Workflow in this saved project:
 
 ```text
 Use $scoville-workflow-for-codex to execute the active Scoville Plan in this saved project.
 ```
 
-To limit the run, name a Work Item or the point where it should stop.
-Otherwise the manager works through the active Plan.
-
-You can ask questions or pause during the run. The chat shows the current
-project, Plan point and started Step. The run report under `.scoville` keeps
-questions, requested pauses and problems with their later resolutions.
-Completion gives a brief summary and a link to that report. A stop or blocker is not reported as finished.
+Name a Work Item or stopping point to limit scope. Otherwise the visible manager
+executes the active Plan. Ask questions or stop during execution. Changed work
+positions are brief; decisions go directly to you. Durable progress, unresolved
+questions and evidence stay in the Plan. Stops and blockers are not completion.
+Questions, change requests and planning preparation go to a read-only Explorer.
+The manager returns its findings, writes the Plan and keeps implementation within authorized scope.
 
 "Start Scoville Workflow" also activates it. "Execute the Plan" alone does not.
+
+Internal agent communication is English. The manager replies in the language
+of your current message; Plans use the task language.
 
 ## Sources
 

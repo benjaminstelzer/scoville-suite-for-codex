@@ -1,32 +1,27 @@
 ## How it works
 
-- Start from a prepared Plan and choose the whole Plan or a bounded part.
-- Let the manager arrange implementation, checks, review and corrections.
-- Follow progress in the chat and Plan. Questions and problems stay in the run
-  report, whose location is shown at startup.
-- Continue across context handoffs and finish when the requested work meets
-  its acceptance criteria.
+The existing visible chat manages a prepared Plan or its authorized part.
+Agents select relevant Skills themselves. Questions go directly to the user;
+concise progress and evidence stay in the Plan. Host compaction continues the
+same chat without automatic transfers or context thresholds.
+User questions, change requests and planning preparation go to a read-only Explorer.
+The manager answers the user, writes the Plan and decides authorized next work.
 
 ```mermaid
-%%{init: {'flowchart': {'nodeSpacing': 20, 'rankSpacing': 18}}}%%
 flowchart TD
-    P["Repository Plan"] --> C["Manager selects a bounded piece of work"]
-    C --> W["Worker implements and checks the result"]
-    W --> B("Review boundary reached?")
-    B -->|No| A
-    B -->|Yes| G("Review required?")
-    G -->|Yes| R["Fresh reviewer checks the result"]
-    G -->|No| A["Manager records checked progress<br/>and updates the Plan"]
-    R -->|Pass| A
-    R -->|Findings| F["Manager corrects Plan findings<br/>New worker corrects project findings"]
-    F --> Q("Follow-up review required?")
-    Q -->|Yes| R
-    Q -->|No| A
-    A --> E["Accept when required checks and reviews pass<br/>Commit when authorized"]
-    E --> N("Requested work remains?")
-    N -->|No| D["Summarize completion<br/>Link the full run report"]
-    N -->|Yes| T("Context boundary reached?")
-    T -->|No| C
-    T -->|Yes| H["Hand over at the completed work boundary<br/>Next manager continues from the Plan and handoff"]
-    H --> C
+    P["Visible manager selects authorized Step/group"] --> W["Executor implements and checks"]
+    Q["Question, change request or planning preparation"] --> E["Explorer investigates and proposes read-only"]
+    E --> M["Manager answers and writes authorized Plan changes"]
+    M --> P
+    W --> R["Fresh independent reviewer"]
+    R -->|Findings| F["Fresh executor corrects source findings<br/>Manager handles Plan findings"]
+    F --> R
+    R -->|Pass| A["Manager accepts and updates Plan<br/>Commits when authorized"]
+    A --> N{"Requested work remains?"}
+    N -->|Yes| P
+    N -->|No| D["Verify closure and writer quiescence<br/>Report completion"]
 ```
+
+Review cadence may require an earlier checked boundary. Clearly nonmaterial
+corrections can be accepted by bounded comparison when no binding rule requires
+another review. Bookkeeping creates no separate review phase.

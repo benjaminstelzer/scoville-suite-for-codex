@@ -136,7 +136,7 @@ class AdviserPromptTests(unittest.TestCase):
             corrected = self.run_prompt(extra=self.SPAWN, script=script)
             self.assertEqual(0, corrected.returncode, corrected.stderr)
             prompt = json.loads(corrected.stdout)['message']
-            self.assertIn(f'shell_command_rules: {shell.resolve()}; read before the first shell command.', prompt)
+            self.assertIn(f'shell_command_rules: {shell.resolve()}; read before shell commands, complete-file preparation or output that may exceed an applicable limit.', prompt)
             self.assertNotIn(shell.read_text(encoding='utf-8'), prompt)
 
     def test_missing_spawn_fields_name_argument_and_corrected_call_succeeds(self):
