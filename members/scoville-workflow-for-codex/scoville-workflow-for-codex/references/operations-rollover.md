@@ -2,10 +2,12 @@
 
 The checkpoint reads current-task telemetry and configured thresholds.
 Coordinator comparison is at-or-above; child comparison is strictly above.
-Crossing a threshold schedules rollover. Finish the complete current assignment,
-including its required corrections and checks, before handing over. This applies
-to managers, workers, reviewers and repair workers. A user stop still takes effect
-immediately. Missing decisions and helper failures retain their blocking rules.
+Crossing a threshold schedules rollover. Managers finish their selected Step or
+Step group through acceptance and closure. Children finish their current
+execution unit, review or repair, including required corrections and checks.
+A broader assignment does not add later unreleased Steps to that unit.
+A user stop still takes effect immediately. Missing decisions and helper
+failures retain their blocking rules.
 
 ## Child rollover
 
@@ -22,9 +24,9 @@ necessary oversized-result preparation and publication remain permitted there.
 
 `continue` resumes work. Missing telemetry also continues without guessing.
 `rollover_pending` records a measured threshold crossing but does not end or
-shorten the assignment. Retain it across compaction and finish the assigned Step
-or Step group, review or repair, including required corrections and checks.
-Then return the normal `completed`, `pass` or `changes_requested` result and stop writing.
+shorten the current unit. Retain it across compaction and finish the current
+execution unit, review or repair, including required corrections and checks.
+Then return the normal role result under operations.md and stop writing.
 Include the retained measurement when needed for rollover evidence. Do not return
 context_handoff with unfinished assigned work merely because of the threshold.
 
@@ -93,7 +95,9 @@ manager threshold (default 40%), schedule rollover at the next completed unit
 boundary. Complete the selected Step or Step group, including required checks,
 due reviews, repairs, Plan updates and authorized commits, then stop project
 writes. Retain the complete child results and confirm all children are quiescent.
-Do not interrupt or transfer unfinished assignments to turn over the manager.
+Do not interrupt or transfer unfinished work within the current unit to turn
+over the manager. A broader assignment's accepted progress_pending group ends
+that worker's allocation under operations.md; later groups use fresh workers.
 Child thresholds remain strictly above their configured value (default 60%). Missing or stale telemetry
 means continue without inventing a measured boundary or claiming a switch.
 Retain a measured crossing across compaction. A decision or blocker that prevents

@@ -306,14 +306,14 @@ class NativeCreationTests(unittest.TestCase):
                 # that a live agent completes its assignment after crossing.
                 for rule in (
                     'rollover_pending does not stop or shorten your assignment',
-                    'finish the complete assigned Step or Step group, review or repair, including required corrections and checks',
+                    'finish the current execution unit, review or repair, including required corrections and checks',
                     'Do not return context_handoff with unfinished assigned work merely because a threshold was crossed',
                 ):
                     self.assertIn(rule, self.prompt(result))
                 if role == 'executor':
-                    self.assertIn('Use completed when your assigned implementation and checks are finished', self.prompt(result))
+                    self.assertIn('Use completed when your assigned execution unit and checks are finished', self.prompt(result))
                     self.assertIn('even if manager review or Plan closure remains', self.prompt(result))
-                    self.assertIn('specific work still assigned to you after review', self.prompt(result))
+                    self.assertIn('work or required checks remaining within the current execution unit', self.prompt(result))
                 self.assertIn(str((PACKAGE.parent / 'scoville-code' / 'SKILL.md').resolve()), self.prompt(result))
                 self.assertTrue((PACKAGE.parent / 'scoville-code' / 'SKILL.md').is_file())
                 self.assertIn('Treat a user stop as immediate', self.prompt(result))

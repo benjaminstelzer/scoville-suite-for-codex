@@ -81,15 +81,17 @@ Before any writing dispatch or resumption, including correction and recovery:
 Assignment labels retain the complete assigned range. Selection and progress
 messages do not change records. A read-only reviewer does not restart done Steps.
 
-Within a sequential multi-Step assignment, the worker returns progress_pending
-before starting a Step outside the recorded jointly started group. It stops
-writes and names observed completed Steps, checks and the next Step or Step
-group. Confirm quiescence, update and validate those Plan records, then resume
-the same unfinished worker with `collaboration.followup_task`, supplying the recorded progress
-and released next Step or Step group. Apply due review under points 4-6 before
-resumption. This progress boundary completes no assignment and triggers no
-manager rollover. Keep the full assignment and any measured crossing; repeat no
-completed work.
+The manager unit is the Step or consecutive Step group actually selected,
+recorded as started and released for execution. Work Item context, a broader
+child assignment and later unreleased Steps do not enlarge this unit.
+
+If a broader assignment returns progress_pending after completing this group,
+retain its complete native result and confirm writer quiescence. Finish the
+group's due reviews, corrections and closure, then apply point 8 before releasing
+later work. End that worker's allocation at the accepted group boundary; give
+the next group a fresh worker. Keep later Steps as pending authorized work.
+Do not claim the broader assignment or Work Item completed, reactivate that
+worker for later Steps, or repeat completed work.
 
 ## One unit through acceptance
 
@@ -100,7 +102,7 @@ completed work.
    for results, messages, resumption and interruption.
 2. The worker stops writing and returns its result. After fixing product code
    that was complete or checked before this assignment, it runs focused checks.
-   - If assigned work remains after that fix, review_pending pauses the same
+   - If work within the selected unit remains after that fix, review_pending pauses the same
      assignment; it neither completes it nor creates a handoff. Retain the
      checked fix, remaining scope, exact worker ID and any measured crossing.
      Do not complete the unit or roll over the manager. Review the fix under
@@ -116,8 +118,8 @@ completed work.
 3. Assess the result from the assigned agent by meaning, not formatting. Match
    the host sender identity to the retained spawn ID before accepting it.
    - For an idle worker, use `collaboration.followup_task` only to obtain a necessary missing
-     fact or resume its unfinished assignment after a validated progress
-     boundary, user decision or accepted review under point 6.
+     fact or resume unfinished work within the current unit after a user
+     decision or accepted review under point 6.
    - For a running worker, use `collaboration.send_message` for steering. If its state is
      unclear, check that exact handle once before sending; completion may still
      race with delivery. Never restart a completed assignment for a correction.
@@ -177,7 +179,7 @@ completed work.
      children are write-inactive, apply Plan progress before execution. Then
      resume that exact worker with `collaboration.followup_task`.
    - Supply review acceptance, correction effects, remaining scope and evidence
-     limits. Retain any measured rollover_pending and finish the full assignment
+     limits. Retain any measured rollover_pending and finish the selected unit
      before point 7 closure and point 8 rollover.
    - Open findings, a user stop or an unanswered decision prevent resumption.
      Do not repeat unaffected passed checks.
@@ -209,7 +211,7 @@ completed work.
    - Otherwise confirm that all children and writes are quiescent, then run the
      coordinator checkpoint before advancing any remaining unit, including
      manager-owned work. Its result controls continuation or rollover. A threshold
-     crossing schedules rollover and never ends an unfinished assignment:
+     crossing never permits abandoning unfinished work within the current unit:
 
 ```text
 python "<workflow-skill-directory>/scripts/check_context_checkpoint.py" --project-root "<workspace_root>" --role coordinator --boundary <completed-unit>
@@ -244,7 +246,7 @@ fixed field order, JSON or change flags are required.
 | Status | Role and meaning | Continuation |
 | --- | --- | --- |
 | completed | Worker implementation and checks are done; manager review or Plan closure may remain. | Assignment ends; due review and closure follow. |
-| progress_pending | Worker reached a Step boundary outside its recorded started group. | Same worker resumes only after validated progress and release, including due review. |
+| progress_pending | A broader assignment reached the completed selected group boundary. | Due review and closure precede point 8; later groups use a fresh worker. |
 | review_pending | Checked prior-code fix; named work remains with that worker. | Same worker stays paused through review and correction; resume after acceptance and release. |
 | pass | Reviewer found no defects or material acceptance gap. | Review ends. |
 | changes_requested | Reviewer identified open findings. | New correction worker handles source findings; manager handles Plan findings. |
@@ -266,9 +268,10 @@ work; never turn unavailable evidence into success.
 Retain the complete native result and confirm the child is no longer writing
 before Plan changes, review or another writer. A completed role result ends that
 assignment; review_pending leaves the same assignment paused and unfinished.
-Progress_pending likewise leaves that assignment unfinished at a Step boundary.
+Progress_pending retains the broader assignment's pending scope; its allocation
+ends after acceptance and closure of the selected group, before point 8.
 Corrections and later assignments use new agents; necessary worker questions,
-progress-boundary, user-decision and accepted-review resumptions use
+user-decision and accepted-review resumptions within the current unit use
 `collaboration.followup_task` on the same ID. Do not reapply
 an already retained result after a duplicate notification. A context handoff
 keeps the predecessor write-inactive while its successor handles the remaining

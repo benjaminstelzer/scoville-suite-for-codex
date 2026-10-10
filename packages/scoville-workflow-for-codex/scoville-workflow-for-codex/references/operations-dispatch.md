@@ -23,6 +23,11 @@ The helper's `--unit` parameter accepts:
 - `W-001/steps-1-4` for consecutive Steps.
 - `W-001` for the whole item.
 
+For a new implementation assignment, set `--unit` to the selected and released
+manager unit. The complete Work Item remains context, not additional assigned
+scope. Use a whole-item unit only when the whole item is actually selected and
+released as one coherent executable and checkable group.
+
 Keep `step` and `steps` lowercase in parameters. Assignment labels preserve the
 exact unit casing. Select the route for the assigned scope, respecting its
 highest route minimum:
