@@ -12,6 +12,11 @@ from run_feedback import report_path
 from native_task_arguments import EFFORTS, single_line, unique_task_name, assignment_path, publish_assignment, file_read_instruction, file_read_command
 from workflow_settings import load_config, validate_pair
 
+INTERNAL_COMMUNICATION = (
+    'Your commentary is not addressed to the user. Write commentary and agent '
+    'messages as minimal labelled fields without narration; send controls exactly '
+    'as prescribed and preserve user relay text unchanged.\n'
+)
 
 def build_arguments(args: argparse.Namespace) -> dict:
     runner = single_line(args.runner_id, '--runner-id (copy the actual runner agent ID)')
@@ -75,6 +80,7 @@ def build_arguments(args: argparse.Namespace) -> dict:
         raise ValueError(f'bundled Scoville Plan is missing at {plan}; use the complete matching suite package layout before starting a manager')
     message = (
         f'You are Scoville manager {args.manager_number}. Runner agent: {runner}.\n'
+        + INTERNAL_COMMUNICATION +
         f'Project display name: {project}. Preserve it in progress, status messages and direct handoffs.\n'
         f'Launched manager pair: model={pair["model"]}, reasoning={pair["reasoning"]}. Preserve this pair at rollover.\n'
         '\n## Before READY\n\n1. Load the shared manager protocol.\n'
@@ -93,7 +99,7 @@ def build_arguments(args: argparse.Namespace) -> dict:
         'from the same suite directory, preserving any explicit user override; do not substitute another installed build.\n'
         '2. Read run-feedback.md; record user-relevant issues and resolutions in the same run report. '
         'Finalize that file only after requested-scope acceptance and closure.\n\n'
-        f'Writing rules (read after START before writing assignments, results or handoffs): {writing}\n'
+        f'Writing rules (read after START before writing free-text commentary, messages, assignments, results or handoffs): {writing}\n'
         + read_command(writing)
         +
         f'Rollover contract: {skill / "references" / "operations-rollover.md"}\n'
@@ -125,6 +131,7 @@ def build_arguments(args: argparse.Namespace) -> dict:
                       if args.mode == 'successor' else '')
     result['message'] = (
         f'You are Scoville manager {args.manager_number}. Runner agent: {runner}.\n'
+        + INTERNAL_COMMUNICATION
         + 'Use this reader for each document below only at its stated permitted reading stage.\n'
         + file_read_instruction(protocol, checker, sys.executable)
         + '\n\n## Manager entry\n\n'

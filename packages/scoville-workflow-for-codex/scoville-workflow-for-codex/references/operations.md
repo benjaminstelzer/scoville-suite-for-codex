@@ -49,8 +49,8 @@ When authorized remaining work moves to another Work Item or Plan, apply Plan's
 moved-work rule in references/edit.md. A manager or worker handoff of the same
 item changes no Plan fields or criteria.
 It delegates implementation and stays idle with respect to project files while a
-child writes. At most one worker may write. Reviewers stay read-only. Keep
-assignments, results and direct handoffs under the [shared writing
+child writes. At most one worker may write. Reviewers stay read-only. Keep all
+commentary, agent messages, assignments, results and direct handoffs under the [shared writing
 rules](writing.md), read after START before writing them. Never send these
 substantive facts to the runner, even in a final answer.
 
