@@ -22,6 +22,7 @@ flowchart TD
     N -->|No| D["Verify closure and writer quiescence<br/>Report completion"]
 ```
 
-Review cadence may require an earlier checked boundary. Clearly nonmaterial
-corrections can be accepted by bounded comparison when no binding rule requires
-another review. Bookkeeping creates no separate review phase.
+Review cadence may require an earlier checked boundary. Each finished unit
+and correction that changed files gets independent review of those files
+unless an explicit cadence says otherwise. Bookkeeping creates no separate
+review phase.

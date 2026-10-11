@@ -56,20 +56,19 @@ and launched pairs.
    requires acceptance first. Dependent edits and focused checks of the same
    change stay together. Checked code alone, routine tests and Plan maintenance
    create no extra review phase.
-5. Spawn a fresh independent read-only reviewer for the unreviewed scoped diff,
-   affected Acceptance and relevant interactions. Review is required for code,
-   executables, configuration, critical documentation, explicit requirements or
-   unclear materiality. Critical documentation changes operating behavior,
-   obligations or authority. Routine Plan status and Evidence require no extra
-   review. Supply complete executor results and necessary sources without defending
-   implementation or suggesting a verdict. Reuse earlier assessments only where
-   reviewed content, requirements and supporting conditions remain unchanged.
+5. When review is due under Step 4, spawn a fresh independent read-only reviewer
+   for the finished Step or group, using the review boundary in dispatch. Routine
+   manager updates to Plan status and Evidence need no separate review. Supply
+   complete executor results and necessary sources without defending implementation
+   or suggesting a verdict. Unless a binding cadence or explicit requirement
+   requires review, a finished unit that changed no files needs no changed-file
+   review; assess its result against its Steps, and the closure check still
+   covers them.
 6. Assign source findings to a fresh correction executor; handle Plan findings
    as manager. Preserve explicit model choices and retain the executor pair
    unless the cause warrants a justified configured replacement. Check corrections
-   against findings. Material or unclear corrections and explicit requirements
-   need independent review; accept clearly nonmaterial corrections by bounded
-   comparison with a short reason. After two failed corrections, reassess cause.
+   against findings. Assign independent review of each finished correction before
+   acceptance. After two failed corrections, reassess cause.
    Do not repeat unaffected passed checks. After accepted early review, resume
    the same unfinished executor with acceptance, correction effects, remaining
    scope and evidence limits. Open findings, unanswered decisions and stops
@@ -78,7 +77,8 @@ and launched pairs.
    Mark completed Steps done; selection is not start and unmarked status is
    unknown. Evidence contains outcome, required review occurrence and open limits,
    not full review prose. Remove fulfilled Instructions. Mark Work Item done only
-   after Acceptance and required review pass. Validate the coherent Plan update.
+   after Acceptance, required reviews and the closure check pass. Validate the
+   coherent Plan update.
    If authorized, inspect staged changes and commit accepted changes with Plan
    records, respecting hooks and backups. Create no agent, review or report solely
    for bookkeeping.

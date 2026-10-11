@@ -79,8 +79,22 @@ and necessary context, not optional ideas. After a confirmed failed child and
 writer quiescence, ordinary fresh assignment facts identify retained effects,
 known remaining work and constraints; no transfer handshake is needed.
 
-Review facts name the unreviewed diff, affected Acceptance and relevant
-interactions. Omit generated output from that diff only when a passed check
+Review facts name only files changed by the reviewed unit's last executor,
+comparing their pre-work and final states, plus affected Acceptance and relevant
+interactions. After corrections, use the last correction executor's changes. If
+the pre-work state is unavailable, supply those files' diff against the last
+accepted baseline and state the limit. Supply open earlier findings. Reuse
+coverage from completed earlier reviews where content, requirements and
+supporting conditions are unchanged, including changes_requested; keep
+unresolved findings and stated limits. Reused coverage is not a pass. Read other
+files as necessary context for judging effects, not for another review. Missing
+coverage, including unreviewed changes of an earlier writer, must be reviewed
+before acceptance: name it in the next due review or assign a separate review.
+Before Work Item closure, assign a check of the current implementation and
+retained evidence against every Step and the full Work Item Acceptance. Combine
+it with the final unit's review when possible.
+
+Omit generated output from that diff only when a passed check
 against its current source owner and any needed consumer evidence cover affected
 Acceptance. Name omitted paths and that evidence. Include generated content when
 it decides Acceptance or a discrepancy remains.
@@ -89,9 +103,8 @@ review evidence. This grants reviewers no maintenance, tests or unrestricted
 search. For tracked files, `git diff --output="<diff-file>" <base> -- <paths>`
 prepares the complete scoped diff without displaying it. Reviewers read untracked
 sources directly from supplied paths through bounded reads. Do not stage solely
-for review or ask reviewers to capture source files. Reuse unchanged accepted
-assessments with their identity and limits; reopen only for a new claim, gap or
-contradiction. Supply facts without defending implementation or suggesting verdict.
+for review or ask reviewers to capture source files. Supply facts without defending
+implementation or suggesting verdict.
 
 Finish and verify input files under shared writing rules before invoking the
 builder. It reads no stdin. Require zero exit and complete successful output;
