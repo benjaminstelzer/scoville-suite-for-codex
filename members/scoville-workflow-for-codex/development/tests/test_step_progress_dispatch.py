@@ -44,6 +44,9 @@ class StepProgressDispatchTests(unittest.TestCase):
                     self.assertIn("Preserve the user's original approved wording.", run.stdout)
                     if not extra:
                         self.assertIn("Step 3: unknown (unmarked)", run.stdout)
+                    else:
+                        self.assertNotIn("Step 3: unknown (unmarked)", run.stdout)
+                        self.assertNotIn("3. Keep older work unknown.", run.stdout)
                     self.assertIn("1. [status: done] Write the approved text.", run.stdout)
                     self.assertIn("Preserve approved text and perform its document check.", run.stdout)
             # Position lookup uses the same installed selector used by dispatch.

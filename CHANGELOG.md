@@ -4,6 +4,7 @@
 
 ## Unreleased - 2026-10-11
 
+- Send selected Step texts unchanged with their binding Work Item fields. Keep other Steps and accumulated history out of Step assignments and reviews. Full context remains available for Work Item closure.
 - Review each finished Step or group and correction through the last executor's changed files. Reuse unchanged review coverage and preserve explicit review cadence.
 - Check every Step and full Acceptance when closing a Work Item. Missing required implementation is a correction finding, and the final Step review can include this closure check.
 - Select generated review evidence through its current source owner and covered Acceptance. Keep decisive content and unresolved discrepancies in the diff.

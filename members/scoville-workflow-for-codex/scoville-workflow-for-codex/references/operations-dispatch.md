@@ -6,8 +6,9 @@ Otherwise group consecutive related Steps with one coherent, checkable result;
 keep implementation and necessary checks together. Preserve order and finish
 one group, including due review and corrections, before releasing the next.
 Each released group gets one fresh executor. Work Item context grants no later
-Steps. Use `--unit W-001/step-5`, `W-001/steps-1-4` or `W-001` only when the
-whole item is actually released as one coherent group. Keep step/steps lowercase.
+Steps. Select `--unit W-001/step-5` or `W-001/steps-1-4`. Use `W-001` for
+execution only when the whole item is released as one coherent group, or for
+an explicit Work Item closure review. Keep step/steps lowercase.
 
 ## Model choice
 
@@ -90,9 +91,12 @@ unresolved findings and stated limits. Reused coverage is not a pass. Read other
 files as necessary context for judging effects, not for another review. Missing
 coverage, including unreviewed changes of an earlier writer, must be reviewed
 before acceptance: name it in the next due review or assign a separate review.
-Before Work Item closure, assign a check of the current implementation and
-retained evidence against every Step and the full Work Item Acceptance. Combine
-it with the final unit's review when possible.
+An ordinary Step review uses the same selected Step or group as its executor.
+Before Work Item closure, assign `--unit W-001 --role reviewer` to check the
+current implementation and retained evidence against every Step and the full
+Acceptance. Combine it with the final unit's review when possible, retaining
+the last executor's changed files as the delta-review boundary. Closure permits
+the necessary implementation reads, not a new general audit.
 
 Omit generated output from that diff only when a passed check
 against its current source owner and any needed consumer evidence cover affected
@@ -108,8 +112,10 @@ implementation or suggesting verdict.
 
 Finish and verify input files under shared writing rules before invoking the
 builder. It reads no stdin. Require zero exit and complete successful output;
-never repair failed or truncated output. The builder includes complete Work Item
-context once and literal plan.non_goals under its own heading. Exclusions have
+never repair failed or truncated output. The builder includes selected original
+Step texts unchanged, binding Work Item fields and optional Instructions; other
+Steps, accumulated Evidence and Work Item-wide Next action are excluded. Whole
+items retain complete context. Literal plan.non_goals has its own heading. Exclusions have
 an 8192-byte UTF-8 cap, including heading and newlines. Overflow prevents dispatch;
 shorten redundancy while preserving every exclusion. Goal and Decision sections
 are selected by the manager, not automatically inserted. Reuse internal

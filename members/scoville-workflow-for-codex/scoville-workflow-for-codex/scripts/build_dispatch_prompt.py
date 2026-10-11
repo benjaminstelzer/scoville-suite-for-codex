@@ -43,6 +43,33 @@ def select_unit(selector: Path, root: Path, unit: str, max_output_bytes: int | N
     return data
 
 
+def work_item_context(item: dict) -> str:
+    """Render selected original Steps with binding fields; keep whole items intact."""
+    unit = item.get('unit')
+    if not isinstance(unit, str) or not re.fullmatch(r'W-[0-9]{3}(?:/step-[1-9][0-9]*|/steps-[1-9][0-9]*-[1-9][0-9]*)?', unit):
+        raise ValueError('SELECTOR_INCOMPATIBLE: Plan must provide a valid unit')
+    source = item.get('source_text')
+    if not isinstance(source, str) or not source.strip():
+        raise ValueError('SELECTOR_INCOMPATIBLE: selected unit must contain source_text')
+    if '/' not in unit:
+        complete = item.get('context_text')
+        if not isinstance(complete, str) or not complete.strip():
+            raise ValueError('SELECTOR_INCOMPATIBLE: whole item requires context_text')
+        return complete.rstrip()
+    fields = []
+    for key in ('header', 'status', 'depends_on', 'blocked_by', 'decisions', 'outcome', 'acceptance'):
+        value = item.get(key)
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f'SELECTOR_INCOMPATIBLE: selected Steps require {key}')
+        fields.append(value)
+    if 'instructions' in item:
+        value = item['instructions']
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError('SELECTOR_INCOMPATIBLE: invalid instructions')
+        fields.append('Instructions: ' + value)
+    return '\n'.join(fields) + '\nSteps:\n' + source
+
+
 def result_contract(role: str) -> list[str]:
     statuses = ("pass, changes_requested, blocked, needs_user_decision"
                 if role == "reviewer" else "completed, review_pending, blocked, needs_user_decision")
@@ -90,7 +117,7 @@ def build_explorer_prompt(workspace: Path, manager: str, context: dict, role_inp
         if len(exclusions.encode('utf-8', errors='strict')) > MAX_NON_GOALS_BYTES:
             raise ValueError('NON_GOALS_TOO_LARGE: shorten redundancy while preserving every exclusion before exploration')
         lines.extend(['\n' + context['plan']['non_goals'],
-                      '\n## Work Item context\n' + context['work_item']['context_text']])
+                      '\n## Work Item context\n' + work_item_context(context['work_item'])])
     return '\n'.join(lines) + '\n'
 
 
@@ -112,10 +139,7 @@ def build_prompt(role: str, workspace: Path, coordinator: str, reference: str,
     if set(role_input) - allowed:
         raise ValueError("unknown role input")
     item = context.get("work_item", {})
-    if not isinstance(item.get("source_text"), str) or not item["source_text"].strip():
-        raise ValueError("selected unit must contain source_text")
-    if not isinstance(item.get("context_text"), str) or not item["context_text"].strip():
-        raise ValueError("selected unit must include its complete Work Item as context_text")
+    selected_context = work_item_context(item)
     exclusions = context.get('plan', {}).get('non_goals')
     if not isinstance(exclusions, str) or not exclusions.strip():
         raise ValueError('SELECTOR_INCOMPATIBLE: Plan must provide non-empty plan.non_goals; use matching Plan and Workflow packages')
@@ -166,7 +190,7 @@ def build_prompt(role: str, workspace: Path, coordinator: str, reference: str,
              *result_contract(role),
              "\n## Assigned unit\n" + item["unit"],
              "\n" + exclusions,
-             "\n## Work Item context\n" + item["context_text"].rstrip(),
+             "\n## Work Item context\n" + selected_context,
              *["\n## " + key + "\n" + value for key, value in role_input.items()]]
     if item.get("step_statuses"):
         progress = "\n".join(f"Step {entry['number']}: {entry['status'] or 'unknown (unmarked)'}"

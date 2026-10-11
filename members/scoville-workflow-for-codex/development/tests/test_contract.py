@@ -162,8 +162,17 @@ class NativeWorkflowContractTests(unittest.TestCase):
                     self.assertEqual(completed.returncode, 0, completed.stderr)
                     prompt = completed.stdout
                     embedded = prompt.split('## Work Item context\n', 1)[1]
-                    self.assertEqual(embedded.rstrip() + '\n', context['work_item']['context_text'])
-                    self.assertEqual(prompt.count(context['work_item']['context_text'].rstrip()), 1)
+                    item = context['work_item']
+                    if '/' not in unit:
+                        self.assertEqual(embedded.rstrip() + '\n', item['context_text'])
+                        self.assertEqual(prompt.count(item['context_text'].rstrip()), 1)
+                    else:
+                        self.assertIn('Steps:\n' + item['source_text'], embedded)
+                        for step in prompt_builder.select_unit(SELECTOR, root, 'W-003')['work_item']['steps']:
+                            if step not in item['steps']:
+                                self.assertNotIn(step, embedded)
+                        self.assertNotIn('Evidence:', embedded)
+                        self.assertNotIn('Next action:', embedded)
                     self.assertIn('## Assigned unit\n' + unit, prompt)
                     self.assertFalse(prompt.startswith('{'))
                     for decision in context['decisions']:
@@ -248,7 +257,11 @@ class NativeWorkflowContractTests(unittest.TestCase):
 
     def test_failed_child_remaining_work_uses_ordinary_assignment(self):
         context = {'plan': {'non_goals': '## Non-goals\n\n- No publication.'},
-                   'work_item': {'unit': 'W-001/step-2', 'source_text': 'Work', 'context_text': 'Work'}}
+                   'work_item': {'unit': 'W-001/step-2', 'source_text': '2. Work\n',
+                     'header': '### W-001 Work', 'status': 'Status: in_progress',
+                     'depends_on': 'Depends on: []', 'blocked_by': 'Blocked by: []',
+                     'decisions': 'Decisions: []', 'outcome': 'Outcome: B works.',
+                     'acceptance': 'Acceptance: B checked.'}}
         facts = 'Prior writer confirmed stopped. A and its checks passed. Only B remains; no release.'
         prompt = prompt_builder.build_prompt('executor', PACKAGE, 'manager', '', context,
                                              {'supplemental_context': facts})

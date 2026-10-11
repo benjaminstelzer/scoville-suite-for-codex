@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased - 2026-10-11
+
+- Send selected Step texts unchanged with their binding Work Item fields. Keep other Steps and accumulated history out of Step assignments and reviews. Full context remains available for Work Item closure.
+
 ## Unreleased - 2026-10-10
 
 - Delegate planning preparation to the read-only Explorer; the manager writes authorized Plan changes.
