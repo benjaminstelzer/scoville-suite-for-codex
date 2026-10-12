@@ -118,19 +118,20 @@ status: done | blocked
 changes:
 - path: <each changed path to report>
   before: <exact lines or diff hunk before the reported change, or "new file">
-  after: <exact lines or diff hunk after the reported change, or "deleted file">
+  after: <exact lines or diff hunk after the reported change, "current file" for a new file created by this assignment, or "deleted file">
 checks: <each decisive command or observation and its actual result>
 problems: <cause and effect, or none>
 limits: <missing baseline or other evidence limit, or none>
+For a new file created by this assignment, use before: "new file" and after: "current file"; do not repeat its content.
 A behavior description is not before/after evidence. Normally report only changes made by this assignment. If reviewer_result is blocked only for missing change evidence, this is an evidence-only follow-up: report the original reviewed change completely using executor_result and reviewer_result. Change no files and repeat no unchanged successful checks solely for that evidence. If required original evidence is unavailable, return blocked naming it. Use changes: none when no file changed, except for that evidence-only follow-up. Preserve unrelated changes. Do not claim attribution you cannot prove."""),
         "Return the complete result through your native final only, then stay inactive until the manager gives the next helper assignment. Do not also send a duplicate result.",
     ]
 
 
-def build_explorer_prompt(workspace: Path, context: dict, role_input: dict, language: str) -> str:
+def build_explorer_prompt(workspace: Path, context: dict, role_input: dict, language: str, *, reuse: bool = False) -> str:
     if set(role_input) != {'supplemental_context'} or not role_input['supplemental_context'].strip():
         raise ValueError('exploration requires --supplemental-context with the complete question or change request; no executor or reviewer result flags')
-    return role_prompt('explorer', workspace, context, role_input, language)
+    return role_prompt('explorer', workspace, context, role_input, language, reuse=reuse)
 
 
 def binding_context(context: dict) -> list[str]:
@@ -157,7 +158,19 @@ def binding_context(context: dict) -> list[str]:
     return lines
 
 
-def role_prompt(role: str, workspace: Path, context: dict, role_input: dict, language: str) -> str:
+def role_prompt(role: str, workspace: Path, context: dict, role_input: dict, language: str, *, reuse: bool = False) -> str:
+    single_line(language, '--communication-language')
+    if role == 'reviewer':
+        mode = 'Step review' if '/' in context['work_item']['unit'] else 'Closure review'
+        task = [f'Task: {mode} of the assigned unit.']
+    else:
+        task = ['Task: investigate the supplied request.' if role == 'explorer' else 'Task: execute the assigned unit.']
+    if role != 'explorer':
+        task.append('## Assigned unit\n' + context['work_item']['unit'])
+    task.extend(binding_context(context))
+    task.extend('## ' + key + '\n' + value for key, value in role_input.items())
+    if reuse:
+        return '\n'.join(task + [f'Communication language: {language}.']) + '\n'
     skill = Path(__file__).resolve().parents[1]
     checker = skill / 'scripts/check_text_size.py'
     shell = skill / 'references/shell-commands.md'
@@ -166,51 +179,40 @@ def role_prompt(role: str, workspace: Path, context: dict, role_input: dict, lan
         if not file.is_file():
             raise ValueError(f'bundled dependency missing: {file}; use the intact matching suite package before dispatch')
     writing = writing_path.read_text(encoding='utf-8')
+    shell_text = shell.read_text(encoding='utf-8')
     suite = skill.parent.parent if skill.parent.name == skill.name else skill.parent
     lines = [
         f'scoville_role={role}', 'dispatch_contract=SCOVILLE_AGENT_DISPATCH_V1',
         f'workspace_root={workspace}',
         f'python: {sys.executable}', f'text_size_checker: {checker}',
-        f'shell_command_rules: {shell}; read before shell commands other than file reads, complete-file preparation or output that may exceed an applicable limit.',
+        f'shell_command_rules: {shell}; complete text embedded below.',
         f'suite_directory: {suite}',
         'Choose appropriate Skills yourself. Resolve selected suite Skills from suite_directory in this matching build, preserving explicit user invocations and overrides. Skill selection grants no extra permissions. Load only the references needed for this assignment.',
         'Do not activate Workflow or Handoff or assume manager permissions. The manager owns Plan, Decision and index edits, staging, commits and dispatch. Do not edit those records, change Workflow settings or create agents/chats. Follow repository constraints. A selected Skill grants no extra role permissions.',
         'Use the named interpreter and checker for command capture, size checks and complete result delivery, even outside the workspace. Only necessary oversized-result preparation/publication under .scoville/temp is permitted for read-only roles; no source captures or unrelated external access.',
-        "The complete matching writing rules below satisfy selected suite Skills' writing read. Read another copy only for an explicit reload, changed rules or a different required build.",
-        writing,
+        "The complete matching writing and shell-command rules below satisfy their required reads.",
+        'Retain your role, writing, shell-command and result rules for later tasks; later assignments contain only the next task. Do not reload already read rules or Skills for each message.',
+        writing, shell_text,
     ]
     if role == 'explorer':
-        lines.extend([
-            'Investigate only the supplied question, change request or planning preparation. Read necessary sources; do not implement, change project files, run tests, edit Plan records, change settings or create agents. Planning preparation returns proposals, scope and open questions; the manager writes the Plan. Mark facts affected by possible concurrent executor writes as provisional.',
-            'Return minimal labelled fields, no narration:\nstatus: done | blocked\nanswer: <answer, recommendation, or planning proposals with scope and open questions>\nevidence: <decisive source locations>\nblocker: <only for blocked: missing prerequisite or decision>\nlimits: <material limits, or none>\nNo review acceptance.',
-            result_contract(role)[-1],
-        ])
-    else:
-        unit = context['work_item']['unit']
-        closure = '/' not in unit
-        lines.append('## Assigned unit\n' + unit)
-        if role == 'executor':
-            lines.append('Implement only the ONE selected original Step and its required checks. Preserve unrelated changes and completed effects. Do not advance to later Steps or rewrite the assignment. Review findings are additional context for this Step, not new scope. Before each edit, retain the exact original changed lines for your result. Stop writing before your result.')
-        elif closure:
-            lines.append("""Closure review: stay read-only; run no tests.
-1. For EVERY original Step and each criterion of the FULL Work Item Acceptance, inspect the sources and evidence needed to verify it; no unrelated general audit.
-2. Verify required preservation against a baseline matching the Work Item start or equivalent direct evidence. Git status or diff counts only when its base matches that start. Reported passing tests do not prove unchanged test sources.
-3. Missing required evidence prevents pass; return blocked naming it.
-Retained earlier review coverage is evidence, not a current pass. Keep open findings. Executor results are reports, not approval. A missing implementation finding without a matching Step uses affected Step: none.""")
-        else:
-            lines.append('Step review: stay read-only; run no tests. Review the actual changes of the selected Executor assignment against this SAME original Step and affected Acceptance. An evidence-only follow-up continues review of the original change. Use the LAST Executor final as evidence and the supplied review result as open findings. If direct evidence shows an omitted change from that assignment, return blocked naming the path and missing attribution. First check its evidence for each changed path. Missing exact before and after lines, or a new-file or deleted-file fact: return blocked naming the path and missing evidence. A behavior description is not before/after evidence. Return changes_requested for actual implementation defects. Read unchanged files only for relevant effects or dependencies. Preserve open earlier findings. Do not review unrelated or unattributed changes, other Steps, the whole Plan or cumulative Step diffs. Executor results are reports, not approval; assess whether their reported checks support their claims.')
+        lines.extend(['Investigate only the supplied question, change request or planning preparation. Read necessary sources; do not implement, change project files, run tests, edit Plan records, change settings or create agents. Planning preparation returns proposals, scope and open questions; the manager writes the Plan. Mark facts affected by possible concurrent executor writes as provisional.', 'Return minimal labelled fields, no narration:\nstatus: done | blocked\nanswer: <answer, recommendation, or planning proposals with scope and open questions>\nevidence: <decisive source locations>\nblocker: <only for blocked: missing prerequisite or decision>\nlimits: <material limits, or none>\nNo review acceptance.', result_contract(role)[-1]])
+    elif role == 'executor':
+        lines.append('Implement only the ONE selected original Step and its required checks. Preserve unrelated changes and completed effects. Do not advance to later Steps or rewrite the assignment. Review findings are additional context for this Step, not new scope. Before each edit, retain the exact original changed lines for your result. Stop writing before your result.')
         lines.extend(result_contract(role))
-    lines.extend(binding_context(context))
-    lines.extend('## ' + key + '\n' + value for key, value in role_input.items())
+    else:
+        lines.append('The Task line selects Step review or Closure review; apply only that one.')
+        lines.extend(['Step review: stay read-only; run no tests. Review the actual changes of the selected Executor assignment against this SAME original Step and affected Acceptance. An evidence-only follow-up continues review of the original change. Use the LAST Executor final as evidence and the supplied review result as open findings. If direct evidence shows an omitted change from that assignment, return blocked naming the path and missing attribution. First check its evidence for each changed path. Missing exact before and after lines, or a new-file or deleted-file fact: return blocked naming the path and missing evidence. For before "new file" with after "current file", read that complete file as its after lines. This applies only to files created by the reported assignment. If that file is missing, unreadable, inconsistent with the reported assignment or not attributable to it, return blocked naming the path and missing evidence. A behavior description is not before/after evidence. Return changes_requested for actual implementation defects. Read unchanged files only for relevant effects or dependencies. Preserve open earlier findings. Do not review unrelated or unattributed changes, other Steps, the whole Plan or cumulative Step diffs. Executor results are reports, not approval; assess whether their reported checks support their claims.', 'Closure review: stay read-only; run no tests.\n1. For EVERY original Step and each criterion of the FULL Work Item Acceptance, inspect the sources and evidence needed to verify it; no unrelated general audit.\n2. Verify required preservation against a baseline matching the Work Item start or equivalent direct evidence. Git status or diff counts only when its base matches that start. Reported passing tests do not prove unchanged test sources.\n3. Missing required evidence prevents pass; return blocked naming it.\nRetained earlier review coverage is evidence, not a current pass. Keep open findings. Executor results are reports, not approval. A missing implementation finding without a matching Step uses affected Step: none.'])
+        lines.extend(result_contract(role))
+    lines.extend(task)
     lines.append('## Communication\n' + communication_rule(language))
     lines.append('Before acting, check this assignment, role rights, scope, required reads and prerequisites. Before communicating, check language, required result fields and evidence for each claim. Correct a mismatch; stop dependent work on a missing prerequisite. Do not claim an unperformed check or output a checklist transcript.')
     lines.append('On user stop, stop dependent work and return actual retained effects. Host compaction continues this same assignment; preserve completed effects and checks. Do not replace yourself, choose another Step or perform threshold handovers.')
     return '\n'.join(lines) + '\n'
 
 
-def build_prompt(role: str, workspace: Path, context: dict, role_input: dict, language: str) -> str:
+def build_prompt(role: str, workspace: Path, context: dict, role_input: dict, language: str, *, reuse: bool = False) -> str:
     if role == 'explorer':
-        return build_explorer_prompt(workspace, context, role_input, language)
+        return build_explorer_prompt(workspace, context, role_input, language, reuse=reuse)
     unit = context.get('work_item', {}).get('unit', '')
     if not isinstance(unit, str):
         raise ValueError('SELECTOR_INCOMPATIBLE: Plan must provide a valid unit')
@@ -228,7 +230,7 @@ def build_prompt(role: str, workspace: Path, context: dict, role_input: dict, la
         allowed.add('executor_result')
     if set(role_input) - allowed:
         raise ValueError('unknown role input; executor/reviewer accept only complete role results. --supplemental-context is for Explorer requests, not rewritten dispatch text')
-    return role_prompt(role, workspace, context, role_input, language)
+    return role_prompt(role, workspace, context, role_input, language, reuse=reuse)
 
 
 def resolve_creation_pair(args: argparse.Namespace, context: dict | None = None) -> None:
@@ -357,7 +359,7 @@ def main() -> int:
                 raise ValueError('agent context is at or above threshold; spawn a new associated agent instead of followup')
             if (args.model, args.thinking) != (measurement['model'], measurement['reasoning_effort']):
                 raise ValueError('followup model/thinking differs from the measured retained pair; use the launched pair or explicitly choose a fresh agent')
-        prompt = build_prompt(args.role, args.workspace_root, context, role_input, args.communication_language)
+        prompt = build_prompt(args.role, args.workspace_root, context, role_input, args.communication_language, reuse=bool(args.agent_id))
         if args.format == 'create':
             if args.role == 'executor':
                 validate_execution_start(args.plan_root or args.workspace_root, context)
@@ -382,6 +384,9 @@ def main() -> int:
                            'Reading this external assignment file is permitted. Choose your reading method. '
                            'Follow the assignment and '
                            'bundled Skill paths; return its required result.\n'
+                           f'Assignment: {title}\n')
+            if args.agent_id:
+                message = (f'Next task: read the complete UTF-8 file {args.assignment_file} before any project work; reading it is permitted.\n'
                            f'Assignment: {title}\n')
             output = ({'target': args.agent_id, 'message': message} if args.agent_id else
                       creation_arguments(message, task_name, args.model, args.thinking))

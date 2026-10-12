@@ -4,6 +4,10 @@
 
 ## Unreleased - 2026-10-12
 
+- Initialize Workflow agents once and send only task context on reuse for
+  Executor, Reviewer and Explorer. Keep both review levels available.
+- Use readable new-file content instead of copying it into Executor results;
+  preserve exact change attribution and modified/deleted-file evidence.
 - Make internal Workflow recipients and result fields concrete.
 - Keep declared private planning and test records out of public source exports.
 - Classify Plan profiles before proposal inventory, remove obsolete reading

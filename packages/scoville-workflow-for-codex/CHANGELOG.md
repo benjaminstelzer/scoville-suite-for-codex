@@ -2,6 +2,11 @@
 
 ## Unreleased - 2026-10-12
 
+- Set up role, Writing/Shell and result rules once per fresh agent. Reuse sends
+  only the next original task and its evidence; retain both Reviewer policies.
+- Report newly created files by their complete readable path instead of copying
+  source into the Executor result. Keep exact modified/deleted-file evidence.
+- Reuse fully retained matching rules across selected suite Skills.
 - Name the manager as the internal recipient and provide concrete commentary and
   Explorer result fields.
 - Retain exact changed lines before editing. Deliver both original results to

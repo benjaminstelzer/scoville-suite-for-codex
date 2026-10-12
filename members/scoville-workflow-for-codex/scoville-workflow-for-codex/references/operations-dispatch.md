@@ -55,7 +55,7 @@ missing-result questions:
 
    | Result | Dispatch arguments |
    | --- | --- |
-   | `reuse`: strictly below Setup threshold | Same agent: `--agent-id`, both retained `--model` and `--thinking`. |
+   | `reuse`: strictly below Setup threshold | Same agent: `--agent-id`, both retained `--model` and `--thinking`. If Workflow rules or the build changed since spawn, use fresh `--replacement-of` with that pair instead. |
    | `spawn`: at or above threshold | Fresh agent: `--replacement-of` from `replacement_of`, `--model` from `model`, `--thinking` from `reasoning_effort`. Keep the old agent idle. |
    | `blocked` or nonzero exit | No dispatch: report the technical problem. Neither reuse nor replacement is permitted, including a fresh pair-change route. |
 
@@ -75,7 +75,7 @@ followup_task cannot change model or reasoning. Reuse omits `--route`;
 `--replacement-of` combines with neither `--agent-id` nor `--override-reason`.
 For reuse, the builder re-measures and verifies the retained pair before
 publication. Fresh replacements retain pair checks but are not re-measured:
-the manager must establish a `spawn` result or complete confirmed-failure recovery steps 1–3 first.
+the manager must establish a `spawn` result, a `reuse` result with such a standing-rule/build change, or complete confirmed-failure recovery steps 1–3 first.
 A mismatch or failed reuse measurement publishes nothing.
 
 ## Build the assignment
@@ -86,6 +86,14 @@ and accepted linked Decisions. Only the selected Step body is included in a
 Step assignment. Other Step bodies, accumulated Evidence and Work Item-wide
 Next action are excluded. Closure includes the full original Work Item.
 Do not compose, shorten, translate or rewrite those texts.
+
+A fresh spawn or replacement receives role, writing, shell-command and result
+rules once. Codex supplies applicable project instructions; do not add a second
+AGENTS.md loader. A fresh Reviewer receives both Step and closure policies. Reuse through
+`--agent-id` sends only the next task, original binding context, complete role
+inputs and communication language. Do not reload project or role rules, already
+loaded Skills or shared rules on reuse. Read current sources and newly needed
+specialized references for the task. Never add rules to a reused assignment.
 
 ```text
 python "<workflow>/scripts/build_dispatch_prompt.py" --project-root "<absolute-workspace>" --plan PLAN-NNNN --unit W-001/step-2 --role executor --communication-language "<language>" --format create --project-name "<project>" --worker-number <number> --route <class>

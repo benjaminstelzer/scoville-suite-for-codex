@@ -51,9 +51,9 @@ manager does not rewrite the assignment. Agents choose relevant Skills themselve
 flowchart TD
     S["Manager selects ONE Step"] --> ST["Manager saves execution start/resume state"]
     ST --> E{"Executor for current Work Item exists?"}
-    E -->|No| EN["Spawn selected Executor"]
+    E -->|No| EN["Spawn and initialize Executor once"]
     E -->|Yes| EC{"Measured context below threshold?"}
-    EC -->|Yes| ER["Reuse Executor"]
+    EC -->|Yes| ER["Reuse Executor; next task only"]
     EC -->|Valid at or above| EE["Replace Executor; retain pair"]
     EC -->|Measurement error| B["Stop dispatch; report technical problem"]
     EN --> H["Helper validates start and sends original Step"]
@@ -63,9 +63,9 @@ flowchart TD
     W --> WR{"Executor result"}
     WR -->|blocked| BP["Manager resolves prerequisite; stop dependent work"]
     WR -->|done| R{"Reviewer for current Work Item exists?"}
-    R -->|No| RN["Spawn selected Reviewer"]
+    R -->|No| RN["Spawn and initialize Reviewer once"]
     R -->|Yes| RC{"Measured context below threshold?"}
-    RC -->|Yes| RR["Reuse Reviewer"]
+    RC -->|Yes| RR["Reuse Reviewer; next task only"]
     RC -->|Valid at or above| RE["Replace Reviewer; retain pair"]
     RC -->|Measurement error| B
     RN --> V["Helper sends SAME Step and Executor result"]
@@ -86,9 +86,9 @@ flowchart TD
     K --> F
     P -->|pass| D["Accept Work Item; next authorized Work Item or finish"]
     Q["Question, idea or planning preparation"] --> X{"Explorer for Manager thread exists?"}
-    X -->|No| XN["Spawn selected Explorer"]
+    X -->|No| XN["Spawn and initialize Explorer once"]
     X -->|Yes| XC{"Measured context below threshold?"}
-    XC -->|Yes| XR["Reuse Explorer"]
+    XC -->|Yes| XR["Reuse Explorer; next task only"]
     XC -->|Valid at or above| XE["Replace Explorer; retain pair"]
     XC -->|Measurement error| B
     XR --> XP["Investigate read-only; report to Manager"]
@@ -99,6 +99,10 @@ flowchart TD
 
 Executor and Reviewer stay associated with one Work Item; Explorer with the
 manager thread. One threshold applies before all subagent assignments.
+Fresh agents receive role, writing, shell-command and result rules once.
+Reuse sends only the next task and its binding context and evidence; it does
+not reload those rules or already loaded Skills. Codex supplies project rules.
+The Reviewer retains both Step and closure policies from its first assignment.
 Establish completion and idle state before measuring an associated agent.
 No existing agent means first creation. A valid measurement below threshold means
 reuse; at or above means replace with the retained pair. Replacement does not

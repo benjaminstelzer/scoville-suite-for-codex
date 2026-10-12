@@ -20,7 +20,12 @@ temporary writes by read-only roles. At most one executor writes. The manager
 edits records only after the writer stops. It stages and commits only when
 authorized. There is no Runner, successor manager or mid-assignment rollover.
 
-Apply the [shared writing rules](references/writing.md). All roles communicate
+Apply the [shared writing rules](references/writing.md). A complete read of
+these rules and their linked shell-command rules also satisfies that read for
+other suite Skills of the matching build. Read another copy after an explicit
+reload, changed rules or a different build, or when the retained text is
+missing, incomplete or uncertain.
+All roles communicate
 in the language of the user's current message unless the user requests another
 language. Keep internal messages minimal and clearly labelled. Preserve required
 field names, status values, quotes, relay text and technical literals exactly.

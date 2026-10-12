@@ -562,7 +562,7 @@ class NativeCreationTests(unittest.TestCase):
                 self.consume(corrected)
                 self.assertEqual(original, writing.read_bytes())
 
-    def test_dispatch_conditional_shell_reference_is_required_and_absolute(self):
+    def test_fresh_dispatch_embeds_required_shell_rules_once_and_keeps_absolute_reference(self):
         with tempfile.TemporaryDirectory() as directory:
             base = Path(directory)
             root = base / 'project'
@@ -592,7 +592,7 @@ class NativeCreationTests(unittest.TestCase):
             self.consume(corrected)
             prompt = assignment.read_text(encoding='utf-8')
             self.assertIn(f'shell_command_rules: {shell.resolve()};', prompt)
-            self.assertNotIn(shell.read_text(encoding='utf-8'), prompt)
+            self.assertEqual(prompt.count(shell.read_text(encoding='utf-8')), 1)
 
 
 
