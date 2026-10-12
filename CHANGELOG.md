@@ -5,6 +5,8 @@
 ## Unreleased - 2026-10-12
 
 - Review only Steps that changed files, configuration or behavior; closure covers unchanged Steps. Keep retained Step effects and open reviews through existing result inputs.
+- Apply test-expectation criteria to affected existing assertions as well as new
+  tests, preserving independent contracts and required guarantees.
 - Keep tests open to equivalent implementations: justify internal-work bounds,
   verify measurements and preserve exact contractual guarantees.
 
