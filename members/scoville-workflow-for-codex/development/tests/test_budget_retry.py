@@ -25,10 +25,10 @@ class BudgetRetryTests(unittest.TestCase):
             assignment = root / "assignment ü ' $().txt"
             project = 'Fixture "quoted" ü \' $() \\"tail'
             commands = [
-                ('build_dispatch_prompt.py', ['--project-root', str(root), '--unit', 'W-001/step-1',
-                 '--role', 'executor', '--format', 'create', '--manager-agent-id', '/root/manager',
-                 '--project-name', project, '--worker-number', '1', '--model', 'gpt-6-sol',
-                 '--thinking', 'high', '--assignment-file', str(assignment), '--max-output-bytes=512'])]
+                ('build_dispatch_prompt.py', ['--communication-language', 'German', '--project-root', str(root), '--unit', 'W-001/step-1',
+                 '--role', 'executor', '--format', 'create', '--project-name', project, '--worker-number', '1', '--model', 'gpt-6-sol',
+                 '--thinking', 'high', '--override-reason', 'Fixture explicit role choice',
+                 '--assignment-file', str(assignment), '--max-output-bytes=512'])]
             for name, args in commands:
                 with self.subTest(helper=name):
                     failed = subprocess.run([sys.executable, str(PACKAGE / 'scripts' / name), *args],

@@ -623,6 +623,10 @@
           "target": "scoville-workflow-for-codex/scripts/build_dispatch_prompt.py"
         },
         {
+          "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/check_agent_context.py",
+          "target": "scoville-workflow-for-codex/scripts/check_agent_context.py"
+        },
+        {
           "source": "members/scoville-workflow-for-codex/scoville-workflow-for-codex/scripts/resolve_model_pair.py",
           "target": "scoville-workflow-for-codex/scripts/resolve_model_pair.py"
         },
@@ -653,6 +657,10 @@
         {
           "source": "members/scoville-plan/scoville-plan/scripts/select_context.py",
           "target": "scoville-workflow-for-codex/scripts/select_context.py"
+        },
+        {
+          "source": "members/scoville-plan/scoville-plan/scripts/validate_profile.py",
+          "target": "scoville-workflow-for-codex/scripts/validate_profile.py"
         },
         {
           "source": "members/scoville-plan/scoville-plan/scripts/markdown_structure.py",
@@ -686,6 +694,12 @@
       ],
       "helper_contracts": {
         "scripts/build_dispatch_prompt.py": {
+          "kind": "helper"
+        },
+        "scripts/validate_profile.py": {
+          "kind": "helper"
+        },
+        "scripts/check_agent_context.py": {
           "kind": "helper"
         },
         "scripts/resolve_model_pair.py": {

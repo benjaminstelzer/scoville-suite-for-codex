@@ -20,6 +20,8 @@ class LifecycleTests(unittest.TestCase):
             shutil.copytree(fixture, root)
             env = {**os.environ, 'CODEX_THREAD_ID': '01a0e778-0c80-7660-b8b9-c8ce59a9fed4'}
             def run(script, *args, good=True):
+                if script.name == 'build_dispatch_prompt.py':
+                    args = (*args, '--communication-language', 'German')
                 result = subprocess.run([sys.executable, str(script), *map(str,args)],
                     env=env, capture_output=True, text=True, encoding='utf-8')
                 if good:
@@ -34,22 +36,24 @@ class LifecycleTests(unittest.TestCase):
                                 '--role','executor','--route','medium'))
             self.assertIn('model',pair);self.assertIn('thinking',pair)
             builder=PACKAGE/'scripts/build_dispatch_prompt.py'
-            args=['--project-root',root,'--unit','W-001/steps-1-2', '--manager-agent-id', '/root/manager']
+            args=['--project-root',root,'--unit','W-001/step-1', ]
             executor=run(builder,*args,'--role','executor')
-            self.assertIn('manager_agent_id=/root/manager',executor)
+            self.assertNotIn('manager_agent_id',executor)
             result=file('worker.txt','completed: café ✓ changed; targeted checks passed; live use unverified.')
             scope=file('scope.txt','Review only the scoped change in example.py and its acceptance; read-only.')
-            review=run(builder,*args,'--role','reviewer','--executor-result',result,'--supplemental-context',scope)
+            review=run(builder,*args,'--role','reviewer','--executor-result',result)
             self.assertIn(result.read_text(encoding='utf-8'),review)
-            self.assertIn(scope.read_text(encoding='utf-8'),review)
             finding=file('review.txt','changes_requested: example.py drops a space; preserve it and test adjacency.')
-            correction=run(builder,*args,'--role','executor','--reviewer-result',finding,'--supplemental-context',scope)
+            correction=run(builder,*args,'--role','executor','--reviewer-result',finding)
             self.assertIn(finding.read_text(encoding='utf-8'),correction)
-            remaining=file('remaining.txt','Prior executor stopped. Step 1 implementation and checks passed. Only final adjacency test remains; no publication.')
-            continued=run(builder,*args,'--role','executor','--supplemental-context',remaining)
-            self.assertIn(remaining.read_text(encoding='utf-8'),continued)
-            self.assertIn('## Work Item context',continued)
-            self.assertNotIn('TAKEOVER_COMPLETE',continued)
+            second=run(builder,'--project-root',root,'--unit','W-001/step-2',
+                       '--role','executor')
+            self.assertIn('2. Check the local record shapes.',second)
+            closure=run(builder,'--project-root',root,'--unit','W-001',
+                        '--role','reviewer','--executor-result',result)
+            self.assertIn('EVERY original Step',closure)
+            self.assertIn('1. Read the canonical files.',closure)
+            self.assertIn('2. Check the local record shapes.',closure)
             # The Plan writer owns these transitions; helpers only inspect them.
             plan=root/'docs/plans/0001-validate-profile.md'
             text=plan.read_text(encoding='utf-8')

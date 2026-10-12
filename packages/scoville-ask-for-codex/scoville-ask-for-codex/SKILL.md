@@ -48,7 +48,7 @@ Use that executable wherever examples say `python` or `<verified-python>`,
 including Python commands after `--run --`.
 Report a missing runtime only when no suitable installed interpreter is found.
 
-Before shell calls, follow [shell command rules](references/shell-commands.md).
+Before helper calls, follow [shell command rules](references/shell-commands.md).
 
 Native spawn_agent validates the requested model and effort on the actual host.
 Report a host rejection without substituting another model or route.
@@ -110,9 +110,6 @@ and opt-in web access are described in references/claude.md.
 
 Use the bundled helpers for their operations. Read their invocation instructions,
 not their source, unless diagnosing a failure.
-
-When a host output limit applies and a file may exceed it, read it with the bundled reader.
-Follow the [large-read rules](references/writing.md#large-reads) before the first such read.
 
 | Condition | Required route |
 | --- | --- |

@@ -27,25 +27,21 @@ class StepProgressDispatchTests(unittest.TestCase):
             facts = Path(directory) / "facts.txt"
             facts.write_text("Preserve the user's original approved wording. Acceptance: saved document must preserve its title.", encoding="utf-8")
             modes = [
-                ("executor", "W-001", []),
-                ("reviewer", "W-001/step-1", ["--executor-result", str(worker), "--supplemental-context", str(facts)]),
+                ("executor", "W-001/step-1", []),
+                ("reviewer", "W-001/step-1", ["--executor-result", str(worker)]),
                 ("executor", "W-001/step-1", ["--reviewer-result", str(finding)]),
-                ("executor", "W-001/steps-1-2", ["--supplemental-context", str(facts)]),
+                ("reviewer", "W-001", ["--executor-result", str(worker)]),
             ]
             for role, unit, extra in modes:
                 with self.subTest(role=role, unit=unit, extra=extra):
                     run = subprocess.run([sys.executable, str(PACKAGE / "scripts/build_dispatch_prompt.py"),
-                        "--project-root", str(root), "--manager-agent-id", "actual-manager",
-                        "--role", role, "--unit", unit, *extra], text=True, encoding="utf-8", capture_output=True)
+                        "--communication-language", "German", "--project-root", str(root), "--role", role, "--unit", unit, *extra], text=True, encoding="utf-8", capture_output=True)
                     self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
                     self.assertIn(unit, run.stdout)
-                    self.assertIn("Step 1: done", run.stdout)
-                    self.assertIn("explicitly assigned review or correction", run.stdout)
                     self.assertIn("Preserve the user's original approved wording.", run.stdout)
-                    if not extra:
-                        self.assertIn("Step 3: unknown (unmarked)", run.stdout)
+                    if unit == "W-001":
+                        self.assertIn("3. Keep older work unknown.", run.stdout)
                     else:
-                        self.assertNotIn("Step 3: unknown (unmarked)", run.stdout)
                         self.assertNotIn("3. Keep older work unknown.", run.stdout)
                     self.assertIn("1. [status: done] Write the approved text.", run.stdout)
                     self.assertIn("Preserve approved text and perform its document check.", run.stdout)

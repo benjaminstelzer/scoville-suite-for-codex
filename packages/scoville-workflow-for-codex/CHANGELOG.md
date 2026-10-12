@@ -1,7 +1,43 @@
 # Changelog
 
+## Unreleased - 2026-10-12
+
+- Name the manager as the internal recipient and provide concrete commentary and
+  Explorer result fields.
+- Retain exact changed lines before editing. Deliver both original results to
+  evidence follow-ups, including fresh Executors; keep the original review scope.
+- Review actual assignment changes, including attributable omissions, and verify
+  required preservation during closure before accepting the Work Item.
+
 ## Unreleased - 2026-10-11
 
+- Validate saved execution state before publishing Executor assignments. Keep
+  read-only assignments and valid corrections available.
+
+- Use the user's communication language across all roles. Pass it explicitly in
+  every helper assignment and check role, scope, prerequisites and evidence
+  before actions and results.
+
+- Show saved and validated execution start/resume state before initial execution and corrections in the Manager flow.
+
+- Use short role names with continuing numbers. Resolve native context sessions from the returned agent handle and Manager environment; remove copied session IDs and unused Manager-ID prompt fields.
+
+- Use one ordered agent check, a compact Manager flow and concrete result fields. Preserve complete native finals; block reviews without required change attribution.
+
+- Include minimal attributable change evidence in Executor results so reviewers can inspect the native result without Manager-composed evidence.
+- Read required files completely with an agent-chosen method. Remove the document-reading helper and multipart protocol; keep output capture and result delivery separate.
+- Give Explorer the same final-only result delivery contract as Executor and Reviewer; prevent duplicate result messages.
+- Keep each role's model pair through threshold replacements. Distinguish first
+  creation from replacement and return bound replacement arguments from context checks.
+- Measure native child context while validating inherited parent metadata;
+  keep measurements bound to the child's completed turn.
+- Preserve unchanged role inputs on interrupted-child recovery and keep
+  replacement pairs separate from explicit user model overrides.
+
+- Execute and review exactly one original Step at a time, then check all Steps and full Acceptance before Work Item closure.
+- Reuse Executor and Reviewer within their Work Item and Explorer within the manager thread, using one Setup threshold and bound completed-turn telemetry.
+- Use a shared 50% context default. Verify retained context and model pairs before follow-up; keep manager model choices separate from subagent settings.
+- Generate unchanged spawn or follow-up assignments through the same helper. Remove active grouped dispatch, always-fresh agents and early-review branches.
 - Send selected Step texts unchanged with their binding Work Item fields. Keep other Steps and accumulated history out of Step assignments and reviews. Full context remains available for Work Item closure.
 
 ## Unreleased - 2026-10-10
@@ -9,10 +45,6 @@
 - Delegate planning preparation to the read-only Explorer; the manager writes authorized Plan changes.
 - Load command capture and large-result delivery only when needed; preserve complete outputs and role permissions.
 - Return Explorer results only through the native final answer, without a duplicate message.
-
-- Require English in all internal role communication; manager user replies follow the current message language.
-
-- Remove progress_pending and broader-assignment conditions: finished assigned groups return completed before manager review and closure.
 
 - Add read-only Explorer inquiries with optional Plan context; questions authorize neither implementation nor review acceptance.
 - Add independent explore route overrides inheriting unspecified effective execute fields through Setup.
@@ -265,3 +297,5 @@
 - Hand over before context exhaustion, preserve results across compaction and avoid repeated no-progress transfers.
 - Keep assignments focused on their Steps and relevant Decisions. Review product changes without requiring a separate reviewer for every routine record edit.
 - Keep the coordinator visible through completion so its report reaches the user.
+- Keep child reports in English after quoted user requests. The manager translates
+  Explorer findings for the user; project content retains its requested language.

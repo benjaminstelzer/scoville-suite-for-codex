@@ -26,7 +26,7 @@ Use that executable wherever examples say `python` or `<verified-python>`,
 including Python commands after `--run --`.
 Report a missing runtime only when no suitable installed interpreter is found.
 
-Before shell calls, follow [shell command rules](references/shell-commands.md).
+Before helper calls, follow [shell command rules](references/shell-commands.md).
 
 Run the bundled helper with Python 3.11+:
 
@@ -57,7 +57,9 @@ For an explicit save request:
    `$OutputEncoding = [System.Text.UTF8Encoding]::new($false)` before piping so
    non-ASCII values reach the helper unchanged.
 3. Pass the complete serialized object on stdin to `set` below.
-4. Read the successful JSON response: it contains saved effective settings.
+4. Compare the returned `file` and requested `effective` values with the selected
+   project and requested changes before reporting success. Report a mismatch;
+   do not repeat or broaden the save automatically.
 
 ```text
 python "<setup-skill-directory>/scripts/setup.py" set --project-root "<project-root>"
@@ -74,9 +76,12 @@ The `workflow` section supports:
 
 - `execute`, `review` and `explore` for each route's model and reasoning level.
   Unspecified `explore` fields inherit the effective `execute` values.
+- `context_threshold_percent`, one integer from 1 to 100 for all subagents.
+  Before a new assignment, reuse an idle agent strictly below the threshold;
+  at or above it, start a new one. This does not interrupt ongoing work.
 
 The visible chat is the Workflow manager; the host chooses its model.
-Missing route fields use bundled defaults. Old Workflow manager, context and
+Missing route and threshold fields use bundled defaults. Old Workflow manager, context and
 pin settings are ignored even if malformed, and removed only during an authorized save.
 Show remains read-only; new patches of these obsolete fields are rejected.
 Legacy `ask.pin_threads` remains readable and is preserved during unrelated
@@ -101,9 +106,6 @@ map them to another level. Actual model support still determines execution.
 
 Use the bundled helpers for their operations. Read their invocation instructions,
 not their source, unless diagnosing a failure.
-
-When a host output limit applies and a file may exceed it, read it with the bundled reader.
-Follow the [large-read rules](references/writing.md#large-reads) before the first such read.
 
 | Condition | Required route |
 | --- | --- |

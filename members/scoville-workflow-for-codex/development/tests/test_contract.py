@@ -5,6 +5,7 @@ import importlib.util
 import json
 import os
 import subprocess
+import shutil
 import sys
 import tempfile
 import tomllib
@@ -32,6 +33,16 @@ sys.path.insert(0, str(PACKAGE / "scripts"))
 import resolve_model_pair as model_resolver
 import build_dispatch_prompt as prompt_builder
 
+
+def copy_started_profile(root, step=1):
+    shutil.copytree(SUITE_ROOT / 'members/scoville-plan/development/tests/fixtures/valid-profile', root)
+    plan = root / 'docs/plans/0001-validate-profile.md'
+    text = plan.read_text(encoding='utf-8')
+    for number, action in ((1, 'Read the canonical files.'), (2, 'Check the local record shapes.')):
+        status = 'in_progress' if number == step else 'done' if number < step else 'todo'
+        text = text.replace(f'{number}. {action}', f'{number}. [status: {status}] {action}')
+    plan.write_text(text, encoding='utf-8', newline='\n')
+
 class NativeWorkflowContractTests(unittest.TestCase):
     def test_configuration_mode_and_model_mode_are_exclusive(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -43,7 +54,7 @@ class NativeWorkflowContractTests(unittest.TestCase):
                 self.assertIn('--show-config', failed.stderr)
             corrected = subprocess.run(base + ['--show-config'], text=True, encoding='utf-8', capture_output=True)
             self.assertEqual(corrected.returncode, 0, corrected.stderr)
-            self.assertEqual(set(json.loads(corrected.stdout)['config']), {'schema_version', 'execute', 'review', 'explore'})
+            self.assertEqual(set(json.loads(corrected.stdout)['config']), {'schema_version', 'execute', 'review', 'explore', 'context_threshold_percent'})
 
     def test_model_resolver_rejects_malformed_user_config(self):
         source = (PACKAGE / "assets" / "workflow.toml").read_text(encoding="utf-8")
@@ -62,7 +73,7 @@ class NativeWorkflowContractTests(unittest.TestCase):
 
     def test_models_preserve_five_routes_and_executor_overrides(self):
         config = model_resolver.load_config(PACKAGE / 'assets/workflow.toml', PACKAGE)
-        self.assertEqual(set(config), {'schema_version', 'execute', 'review', 'explore'})
+        self.assertEqual(set(config), {'schema_version', 'execute', 'review', 'explore', 'context_threshold_percent'})
         expected = {
             'ultra_low': ('gpt-6-luna', 'medium', 'gpt-6-luna', 'high'),
             'low': ('gpt-6.1-sol', 'low', 'gpt-6.1-sol', 'medium'),
@@ -104,9 +115,9 @@ class NativeWorkflowContractTests(unittest.TestCase):
                 (root / 'docs/plans/0001-test.md').write_text(fixture.plan().replace(
                     '1. Inspect the producer.', '1. ' + annotation + ' Inspect the producer.'), encoding='utf-8')
                 (root / 'docs/decisions/0001-test.md').write_text(fixture.DECISION, encoding='utf-8')
-                context = prompt_builder.select_unit(SELECTOR, root, 'W-003')
+                context = prompt_builder.select_unit(SELECTOR, root, 'W-003/step-1')
                 self.assertIn(annotation, context['work_item']['source_text'])
-                prompt = prompt_builder.build_prompt('executor', root, 'manager', 'test', context, {})
+                prompt = prompt_builder.build_prompt('executor', root, context, {}, 'German')
                 self.assertIn(annotation, prompt)
                 pair = model_resolver.resolve(config, 'executor', 'low', override_reasoning=level)
                 self.assertEqual(pair['thinking'], level)
@@ -152,16 +163,16 @@ class NativeWorkflowContractTests(unittest.TestCase):
                 for name, content in files.items():
                     (root / name).write_bytes(content.replace('\n', ending).encode('utf-8'))
                 before = {p: p.read_bytes() for p in root.rglob('*') if p.is_file()}
-                for unit in ('W-004', 'W-003', 'W-003/step-2', 'W-003/steps-1-2'):
+                for unit in ('W-003/step-1', 'W-003/step-2'):
                     context = prompt_builder.select_unit(SELECTOR, root, unit)
                     completed = subprocess.run([sys.executable, '-B', str(PACKAGE / 'scripts/build_dispatch_prompt.py'),
-                        '--unit', unit, '--role', 'executor', '--project-root', str(root),
-                        '--manager-agent-id', 'manager'],
+                        '--unit', unit, '--role', 'executor', '--communication-language', 'German', '--project-root', str(root),
+                        ],
                         input='{}', text=True, encoding='utf-8', capture_output=True,
                         env={**os.environ, 'PYTHONIOENCODING': 'cp1252'})
                     self.assertEqual(completed.returncode, 0, completed.stderr)
                     prompt = completed.stdout
-                    embedded = prompt.split('## Work Item context\n', 1)[1]
+                    embedded = prompt.split('## Work Item context\n', 1)[1].split('On user stop,', 1)[0]
                     item = context['work_item']
                     if '/' not in unit:
                         self.assertEqual(embedded.rstrip() + '\n', item['context_text'])
@@ -176,7 +187,7 @@ class NativeWorkflowContractTests(unittest.TestCase):
                     self.assertIn('## Assigned unit\n' + unit, prompt)
                     self.assertFalse(prompt.startswith('{'))
                     for decision in context['decisions']:
-                        self.assertNotIn(decision, prompt)
+                        self.assertIn(decision.replace('\r\n', '\n'), prompt)
                     self.assertIn(context['work_item']['acceptance'], prompt)
                     self.assertIn(context['work_item']['outcome'], prompt)
                     self.assertEqual(context['work_item']['unit'], unit)
@@ -187,25 +198,18 @@ class NativeWorkflowContractTests(unittest.TestCase):
                 self.assertEqual(before, {p: p.read_bytes() for p in root.rglob('*') if p.is_file()})
 
     def test_dispatch_budget_failure_and_corrected_assignment_with_bundled_selector(self):
-        fixture_spec = importlib.util.spec_from_file_location('budget_fixture',
-            SUITE_ROOT / 'members/scoville-plan/development/tests/test_select_context.py')
-        fixture = importlib.util.module_from_spec(fixture_spec)
-        fixture_spec.loader.exec_module(fixture)
         with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory).resolve()
-            (root / 'docs/plans').mkdir(parents=True)
-            (root / 'docs/decisions').mkdir()
-            (root / 'PROJECT_INDEX.md').write_text(
-                '---\nformat_version: 1\nactive_plan: PLAN-0001\n---\n', encoding='utf-8')
+            root = Path(directory) / 'project'
+            copy_started_profile(root)
             outcome = 'é' * 20_000 + ' END-OF-REQUIRED-CONTEXT'
-            (root / 'docs/plans/0001-test.md').write_text(fixture.plan().replace(
-                'Outcome: Return ✓ without unrelated bodies.', 'Outcome: ' + outcome), encoding='utf-8')
-            (root / 'docs/decisions/0001-test.md').write_text(fixture.DECISION, encoding='utf-8')
+            plan = root / 'docs/plans/0001-validate-profile.md'
+            plan.write_text(plan.read_text(encoding='utf-8').replace('W-001', 'W-003').replace(
+                'Outcome: The local record shapes are valid.', 'Outcome: ' + outcome), encoding='utf-8')
             assignment = root / 'assignment.md'
             before = {p: p.read_bytes() for p in root.rglob('*') if p.is_file()}
             command = [sys.executable, '-B', str(PACKAGE / 'scripts/build_dispatch_prompt.py'),
-                       '--project-root', str(root), '--unit', 'W-003/step-1', '--role', 'executor',
-                       '--format', 'create', '--manager-agent-id', 'manager', '--project-name', 'Budget test',
+                       '--communication-language', 'German', '--project-root', str(root), '--unit', 'W-003/step-1', '--role', 'executor',
+                       '--format', 'create', '--project-name', 'Budget test',
                        '--worker-number', '1', '--route', 'medium', '--assignment-file', str(assignment)]
             for extra, code in (([], 'OUTPUT_BUDGET_EXCEEDED'),
                                 (['--max-output-bytes', '512'], 'OUTPUT_BUDGET_EXCEEDED'),
@@ -236,24 +240,24 @@ class NativeWorkflowContractTests(unittest.TestCase):
                                       if p.is_file() and p != assignment})
 
     def test_normal_messages_pass_unchanged_to_review_and_correction(self):
-        context = {'plan': {'non_goals': '## Non-goals\n\n- No publication.'}, 'work_item': {'unit': 'W-001', 'source_text': 'Work', 'context_text': 'Work'}}
+        context = {'plan': {'non_goals': '## Non-goals\n\n- No publication.'}, 'work_item': {'unit': 'W-001/step-1', 'source_text': '1. Work', 'header':'### W-001 Work', 'status':'Status: in_progress', 'depends_on':'Depends on: []', 'blocked_by':'Blocked by: []', 'decisions':'Decisions: []', 'outcome':'Outcome: Work', 'acceptance':'Acceptance: Work'}}
         for role, field, text in [
             ('reviewer', 'executor_result', 'Completed. Import checks passed. No rollback proof yet.'),
             ('executor', 'reviewer_result', 'Changes requested. src/import.py: rollback leaves partial writes. Fix the transaction.')]:
-            prompt = prompt_builder.build_prompt(role, PACKAGE, 'manager', '', context,
-                {field: text, 'supplemental_context': 'Initial review of the named change against Work Item Acceptance. No earlier assessment.'})
+            prompt = prompt_builder.build_prompt(role, PACKAGE, context,
+                {field: text}, 'German')
             self.assertIn(text, prompt)
             self.assertNotIn('SCOVILLE_RESULT_V1', prompt)
             self.assertNotIn('code_changed=', prompt)
         with self.assertRaisesRegex(ValueError, '--executor-result'):
-            prompt_builder.build_prompt('reviewer', PACKAGE, 'manager', '', context, {})
+            prompt_builder.build_prompt('reviewer', PACKAGE, context, {}, 'German')
 
     def test_obsolete_transfer_inputs_are_rejected(self):
         context = {'plan': {'non_goals': '## Non-goals\n\n- No publication.'},
-                   'work_item': {'unit': 'W-001', 'source_text': 'Work', 'context_text': 'Work'}}
+                   'work_item': {'unit': 'W-001/step-1', 'source_text': '1. Work', 'header':'### W-001 Work', 'status':'Status: in_progress', 'depends_on':'Depends on: []', 'blocked_by':'Blocked by: []', 'decisions':'Decisions: []', 'outcome':'Outcome: Work', 'acceptance':'Acceptance: Work'}}
         for obsolete in ('context_handoff', 'predecessor_agent_id'):
             with self.subTest(obsolete=obsolete), self.assertRaisesRegex(ValueError, 'unknown role input'):
-                prompt_builder.build_prompt('executor', PACKAGE, 'manager', '', context, {obsolete: 'old'})
+                prompt_builder.build_prompt('executor', PACKAGE, context, {obsolete: 'old'}, 'German')
 
     def test_failed_child_remaining_work_uses_ordinary_assignment(self):
         context = {'plan': {'non_goals': '## Non-goals\n\n- No publication.'},
@@ -263,9 +267,11 @@ class NativeWorkflowContractTests(unittest.TestCase):
                      'decisions': 'Decisions: []', 'outcome': 'Outcome: B works.',
                      'acceptance': 'Acceptance: B checked.'}}
         facts = 'Prior writer confirmed stopped. A and its checks passed. Only B remains; no release.'
-        prompt = prompt_builder.build_prompt('executor', PACKAGE, 'manager', '', context,
-                                             {'supplemental_context': facts})
-        self.assertIn(facts, prompt)
+        prompt = prompt_builder.build_prompt('executor', PACKAGE, context,
+                                             {}, 'German')
+        self.assertIn('2. Work', prompt)
+        with self.assertRaisesRegex(ValueError, 'unknown role input'):
+            prompt_builder.build_prompt('executor', PACKAGE, context, {'supplemental_context': facts}, 'German')
         self.assertIn('## Work Item context', prompt)
         for forbidden in ('HANDOFF_ACCEPTED', 'TAKEOVER_COMPLETE', 'rollover_pending', 'check_context_checkpoint'):
             self.assertNotIn(forbidden, prompt)

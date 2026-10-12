@@ -2,13 +2,28 @@
 
 
 
+## Unreleased - 2026-10-12
+
+- Make internal Workflow recipients and result fields concrete.
+- Keep declared private planning and test records out of public source exports.
+- Classify Plan profiles before proposal inventory, remove obsolete reading
+  instructions and fix the UI authored-unit link.
+- Preserve original change evidence through fresh or reused evidence follow-ups.
+- Review actual assignment changes and require direct evidence for preservation
+  criteria at Work Item closure.
+- Update the minimum-Python check after removing the reader; verify that its
+  selected runtime tests exist before publication.
+
 ## Unreleased - 2026-10-11
 
+- Validate saved execution state in the dispatch helper before publishing an
+  Executor assignment; keep read-only assignments and valid corrections available.
+
+- Use the current user's language for all Workflow roles, including text in result fields. Keep required field names and literals unchanged.
 - Send selected Step texts unchanged with their binding Work Item fields. Keep other Steps and accumulated history out of Step assignments and reviews. Full context remains available for Work Item closure.
-- Review each finished Step or group and correction through the last executor's changed files. Reuse unchanged review coverage and preserve explicit review cadence.
-- Check every Step and full Acceptance when closing a Work Item. Missing required implementation is a correction finding, and the final Step review can include this closure check.
+- Review each finished Step and correction through the last executor's changed files. Reuse unchanged review coverage.
+- Check every Step and full Acceptance in a separate Work Item closure review. Missing required implementation is a correction finding.
 - Select generated review evidence through its current source owner and covered Acceptance. Keep decisive content and unresolved discrepancies in the diff.
-- Early review pauses use the complete executor result contract. Partial duplicate field lists are removed.
 
 ## Unreleased - 2026-10-10
 
@@ -16,13 +31,9 @@
 - Load command capture and large-result delivery only when needed; preserve complete outputs and role permissions.
 - Return Explorer results only through the native final answer, without a duplicate message.
 
-- Use English internally in Codex Workflow; manager replies follow the current user message, and Plans retain the task language.
-
-- Codex Workflow reports a finished assigned group as completed; obsolete broader-assignment status removed.
-
 - Add read-only Explorer inquiries and independent explore routes in Setup, inheriting unspecified effective execute fields.
 
-- Run Workflow in the existing visible manager chat: scoped executor, independent review, necessary correction and Plan progress. Remove separate manager starts, automatic rollover, context thresholds and the mandatory run-report protocol.
+- Run Workflow in the existing visible manager chat: scoped executor, independent review, necessary correction and Plan progress. Remove separate manager starts, automatic rollover and the mandatory run-report protocol.
 - Ignore obsolete Workflow manager/context/pin settings on reads; remove only those keys on authorized Setup saves and preserve other settings. Update Workflow README and flow diagram.
 - Keep agent messages and internal commentary compact. Reference readable source text instead of copying it; preserve required facts and exact controls.
 - Keep required child updates in minimal labelled fields, including before reading a file assignment. Preserve complete results and handoff facts.

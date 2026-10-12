@@ -70,9 +70,9 @@ def apply(project_root: Path, patch: dict) -> dict:
         obsolete = sorted(set(patch["workflow"]) & set(LEGACY_KEYS))
         if obsolete:
             raise ValueError(f"patch.workflow contains obsolete fields {obsolete}; omit them and use execute, review or explore")
-        unknown = sorted(set(patch["workflow"]) - {"execute", "review", "explore"})
+        unknown = sorted(set(patch["workflow"]) - {"execute", "review", "explore", "context_threshold_percent"})
         if unknown:
-            raise ValueError(f"patch.workflow has unsupported fields {unknown}; Setup accepts execute, review and explore")
+            raise ValueError(f"patch.workflow has unsupported fields {unknown}; Setup accepts execute, review, explore and context_threshold_percent")
     if "pin_threads" in patch.get("ask", {}):
         raise ValueError("patch.ask.pin_threads is obsolete: native Ask advisers are subagents without sidebar chats; omit this field and use ask.advisers or ask.presets for adviser settings")
     validate_setup_choices(patch)

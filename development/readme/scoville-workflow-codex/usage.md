@@ -15,5 +15,6 @@ The manager returns its findings, writes the Plan and keeps implementation withi
 
 "Start Scoville Workflow" also activates it. "Execute the Plan" alone does not.
 
-Internal agent communication is English. The manager replies in the language
-of your current message; Plans use the task language.
+All roles communicate in the language of your current message unless you request
+another language. Required field names and technical literals stay unchanged;
+Plans follow Plan's record-language rules.

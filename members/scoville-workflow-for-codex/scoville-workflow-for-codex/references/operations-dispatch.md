@@ -1,180 +1,158 @@
-# Direct dispatch
+# Helper dispatch
 
-Inspect only facts needed for scope, grouping and model choice; implementation
-diagnosis and test design belong to the executor. Use supplied Step groups.
-Otherwise group consecutive related Steps with one coherent, checkable result;
-keep implementation and necessary checks together. Preserve order and finish
-one group, including due review and corrections, before releasing the next.
-Each released group gets one fresh executor. Work Item context grants no later
-Steps. Select `--unit W-001/step-5` or `W-001/steps-1-4`. Use `W-001` for
-execution only when the whole item is released as one coherent group, or for
-an explicit Work Item closure review. Keep step/steps lowercase.
+Assign exactly ONE original Step. No ranges or whole-Work-Item execution.
+`--unit W-001/step-2` selects execution or Step review; `--unit W-001` is only
+reviewer closure. `--plan PLAN-NNNN` selects the canonical Plan; omission uses
+the active Plan. Explorer Plan context needs a unit; omit both for inquiries
+that need no Plan context.
 
-## Model choice
+## Choose models and retain agents
 
-Choose the highest applicable route for the released work and its checks:
-
-| Route | Minimum context |
-| --- | --- |
-| ultra_low | Bounded local change, trivial verification. |
-| low | Known owner and helpers, established mechanical checks; no ownership or test-harness diagnosis. |
-| medium | Unknown contracts or ownership, interacting owners, integration diagnosis or interpreted checks. |
-| high | Consequential state, authorization or integration contracts. |
-| ultra_high | Consequence or complexity beyond high. |
-
-Unknown low eligibility means at least medium. File count, generated files and
-test volume alone do not raise the route. Do not write inferred routes into the
-Plan. Preserve explicit user choices and route minimums. The builder resolves
-executor, reviewer and explorer routes; `--model`, `--thinking` or both override new routes.
-Correction requires both retained launched fields or an explicitly justified
-replacement for its actual work. Do not replace a child merely to lower its model.
-Validate selected pairs against exposed host capabilities without probing unused
-models. Reasoning accepts none, minimal, low, medium, high, xhigh, max and ultra;
-shipped routes use low through xhigh.
-
-## Prepare assignment
-
-Supply exact existing UTF-8 paths. Discover unknown names from inventories.
-Supplemental context contains existing user coordination authorization with its
-wording and scope, explicit Skill invocations, and necessary Goals, Non-goals,
-ADR provisions, permissions and dependency results. Agents independently select
-Skills. Do not prescribe a fixed Skill list or duplicate the included Work Item's
-full Acceptance. Preserve model conflicts by separate ordered groups.
-
-Use the actual absolute workspace path. Retain the complete native executor final
-and save all its substantive facts for `--executor-result`: status, literals,
-changed effects, checks, findings, constraints and evidence limits. Preserve
-relevant earlier results when multiple executors affected the reviewed unit.
-Formatting may change, meaning may not. Supplemental context does not replace
-this result.
+Resolve effective settings once; reading writes no configuration:
 
 ```text
-python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-root "<absolute-workspace-root>" --unit <unit> --role executor --format create --manager-agent-id <own-agent-id> --project-name "<project name>" --worker-number <number> --route <class> --supplemental-context "<facts.txt>"
+python "<workflow>/scripts/resolve_model_pair.py" --show-config --project-root "<workspace>"
 ```
 
-Fresh independent review uses the reviewed executor's number:
+Re-resolve after relevant settings changes. Apply explicit user overrides only
+to their named roles, and preserve explicit Step choices. The manager's host
+pair never overrides subagent settings. Otherwise choose the configured route for the actual
+assignment: ultra_low for trivial bounded work; low for a known mechanical
+change; medium for unknown ownership, interacting contracts or interpreted
+checks; high for consequential state or authorization/integration contracts;
+ultra_high beyond high. File count alone does not raise a route. Unknown low
+eligibility means at least medium. Do not write inferred routes into the Plan.
+Validate the selected pair against exposed host capabilities without probing
+unused models. Explorer's own route inherits executor fields unless overridden.
+The pair belongs to the role within its owner: the Work Item for Executor and
+Reviewer, this manager thread for Explorer. Reuse and every threshold or failure
+replacement keep that pair. A later inferred route does not reset it.
+An explicit user or Step override, or a required capability the retained pair
+lacks, justifies a fresh agent; state the reason.
+
+## Check the agent before every assignment
+
+Retain each role's exact handle and launched pair. Executor
+and Reviewer belong to the current Work Item; Explorer belongs to this manager
+thread. Apply this agent check to execution, review, closure, corrections and
+missing-result questions:
+
+1. Find the owner's associated role agent.
+   - None: first creation. Continue at step 5.
+   - Confirmed failed or interrupted: complete [failure recovery](operations.md#stop-compaction-and-failure). End this agent check; recovery performs the redispatch. Do not measure it.
+   - Otherwise continue. An ordinary completed `blocked` result is not a failed child.
+2. Establish actual completion and idle state from the matching complete native
+   final and native state. A status word alone proves neither. Running or
+   uncertain: wait or reconcile; dispatch nothing. Never interrupt an active
+   agent for the threshold.
+3. Measure the bound agent's last completed turn:
+
+   ```text
+   python "<workflow>/scripts/check_agent_context.py" --project-root "<workspace>" --agent-id "<exact-handle>"
+   ```
+
+4. Act on the helper's returned `action`:
+
+   | Result | Dispatch arguments |
+   | --- | --- |
+   | `reuse`: strictly below Setup threshold | Same agent: `--agent-id`, both retained `--model` and `--thinking`. |
+   | `spawn`: at or above threshold | Fresh agent: `--replacement-of` from `replacement_of`, `--model` from `model`, `--thinking` from `reasoning_effort`. Keep the old agent idle. |
+   | `blocked` or nonzero exit | No dispatch: report the technical problem. Neither reuse nor replacement is permitted, including a fresh pair-change route. |
+
+5. Apply the pair choices above. First creation normally uses `--route`;
+   explicit Step annotations remain binding. An authorized user role choice
+   uses its pair flags and `--override-reason`. An explicit Step change uses
+   fresh `--route`; a required exposed capability may justify a fresh pair.
+   State the reason. A later inferred route never changes the retained pair.
+6. Build the original assignment below and copy the returned arguments unchanged.
+
+The context helper resolves exactly one native session from the retained handle
+and this Manager's CODEX_THREAD_ID. Missing or ambiguous identity blocks dispatch;
+never copy session IDs or search for similar names. It reads completed-turn last-call total_tokens and
+model_context_window, never cumulative usage or live writing telemetry.
+followup_task cannot change model or reasoning. Reuse omits `--route`;
+`--route` combines with neither `--agent-id` nor `--replacement-of`.
+`--replacement-of` combines with neither `--agent-id` nor `--override-reason`.
+For reuse, the builder re-measures and verifies the retained pair before
+publication. Fresh replacements retain pair checks but are not re-measured:
+the manager must establish a `spawn` result or complete confirmed-failure recovery steps 1–3 first.
+A mismatch or failed reuse measurement publishes nothing.
+
+## Build the assignment
+
+The manager supplies selection IDs, role and selected pair; the helper extracts
+original Plan identity, Goal, Non-goals, binding Work Item fields, Instructions
+and accepted linked Decisions. Only the selected Step body is included in a
+Step assignment. Other Step bodies, accumulated Evidence and Work Item-wide
+Next action are excluded. Closure includes the full original Work Item.
+Do not compose, shorten, translate or rewrite those texts.
 
 ```text
-python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-root "<absolute-workspace-root>" --unit <unit> --role reviewer --format create --manager-agent-id <own-agent-id> --project-name "<project name>" --worker-number <number> --route <class> --executor-result "<worker-result.txt>" --supplemental-context "<review-facts.txt>"
+python "<workflow>/scripts/build_dispatch_prompt.py" --project-root "<absolute-workspace>" --plan PLAN-NNNN --unit W-001/step-2 --role executor --communication-language "<language>" --format create --project-name "<project>" --worker-number <number> --route <class>
 ```
 
-For a user question, change request or planning preparation, assign one fresh read-only Explorer.
-Classify the investigation, not a hypothetical implementation. Its `explore`
-route inherits the effective `execute` pair except explicitly configured fields.
-Number Explorers separately. Supply the complete request and necessary scope,
-constraints and source paths in `--supplemental-context`. Add `--unit` only when
-the Work Item is needed; otherwise no Plan selection runs. No executor result is
-required. Mark facts affected by concurrent writes as provisional.
+For every role, fresh or reused, supply `--communication-language` with the
+language of the current user message, such as `German`, or the user's explicit
+language choice. Do not infer it from Plan text, locale or child history.
 
-```text
-python "<workflow-skill-directory>/scripts/build_dispatch_prompt.py" --project-root "<absolute-workspace-root>" --role explorer --format create --manager-agent-id <own-agent-id> --project-name "<project name>" --worker-number <explorer-number> --route <class> --supplemental-context "<question-and-facts.txt>"
-```
+The helper returns exact `target` and `message` for collaboration.followup_task
+when the agent check selects reuse; otherwise it returns fresh spawn arguments
+for collaboration.spawn_agent. Copy them unchanged into the named direct tool;
+never call it through exec. Count new agents separately for each role throughout
+this Manager thread. Fresh creation uses the next number; reuse keeps its number.
+Keep counters across Work Items, pauses and compaction. Clearing a role association
+does not reset its counter.
 
-An Explorer answer informs the manager; it does not write the Plan, accept work or
-authorize implementation. The manager writes authorized Plan changes. Continue
-the normal executor/reviewer cycle for approved changes.
+For Step review, use the SAME `--unit`, `--role reviewer` and
+`--executor-result "<complete-native-result.txt>"`. For closure use `--unit W-001`
+and the latest complete Executor final. Save native finals unchanged for both
+levels; never compose a substitute result. Earlier results and coverage remain
+in Work Item Evidence. Missing required change attribution prevents pass;
+Git is not required when actual reported before/after lines are supplied.
+Unchanged files provide relevant context only. Steps without file changes
+still receive a review of their action and result.
 
-Correction uses `--role executor --reviewer-result <result.txt>` and both
-`--model <launched-model> --thinking <launched-effort>`. Supply assigned defects
-and necessary context, not optional ideas. After a confirmed failed child and
-writer quiescence, ordinary fresh assignment facts identify retained effects,
-known remaining work and constraints; no transfer handshake is needed.
+Corrections and open review findings use `--reviewer-result "<complete-review.txt>"`
+as additional context, never rewritten Step text. A missing-evidence follow-up
+also passes the reviewed complete Executor final as `--executor-result`.
+Its next review checks the original change with the completed evidence.
+Correction executors retain
+both launched model and thinking unless an explicitly justified selected pair
+requires a new agent. Optional ideas do not become correction scope.
 
-Review facts name only files changed by the reviewed unit's last executor,
-comparing their pre-work and final states, plus affected Acceptance and relevant
-interactions. After corrections, use the last correction executor's changes. If
-the pre-work state is unavailable, supply those files' diff against the last
-accepted baseline and state the limit. Supply open earlier findings. Reuse
-coverage from completed earlier reviews where content, requirements and
-supporting conditions are unchanged, including changes_requested; keep
-unresolved findings and stated limits. Reused coverage is not a pass. Read other
-files as necessary context for judging effects, not for another review. Missing
-coverage, including unreviewed changes of an earlier writer, must be reviewed
-before acceptance: name it in the next due review or assign a separate review.
-An ordinary Step review uses the same selected Step or group as its executor.
-Before Work Item closure, assign `--unit W-001 --role reviewer` to check the
-current implementation and retained evidence against every Step and the full
-Acceptance. Combine it with the final unit's review when possible, retaining
-the last executor's changed files as the delta-review boundary. Closure permits
-the necessary implementation reads, not a new general audit.
+Explorer uses `--role explorer --supplemental-context "<complete-request.txt>"`;
+quote the user's exact wording and add investigation constraints and source paths.
+Preserve the requested reply format in Explorer context. Add a unit only when
+needed. Other roles accept complete role results, not freely composed
+supplemental dispatch text. Explorer investigates read-only and returns to
+manager; no Plan writing, implementation, tests or acceptance.
 
-Omit generated output from that diff only when a passed check
-against its current source owner and any needed consumer evidence cover affected
-Acceptance. Name omitted paths and that evidence. Include generated content when
-it decides Acceptance or a discrepancy remains.
-Supply exact Plan/Decision paths and sections only when needed as
-review evidence. This grants reviewers no maintenance, tests or unrestricted
-search. For tracked files, `git diff --output="<diff-file>" <base> -- <paths>`
-prepares the complete scoped diff without displaying it. Reviewers read untracked
-sources directly from supplied paths through bounded reads. Do not stage solely
-for review or ask reviewers to capture source files. Supply facts without defending
-implementation or suggesting verdict.
+## Delivery and failures
 
-Finish and verify input files under shared writing rules before invoking the
-builder. It reads no stdin. Require zero exit and complete successful output;
-never repair failed or truncated output. The builder includes selected original
-Step texts unchanged, binding Work Item fields and optional Instructions; other
-Steps, accumulated Evidence and Work Item-wide Next action are excluded. Whole
-items retain complete context. Literal plan.non_goals has its own heading. Exclusions have
-an 8192-byte UTF-8 cap, including heading and newlines. Overflow prevents dispatch;
-shorten redundancy while preserving every exclusion. Goal and Decision sections
-are selected by the manager, not automatically inserted. Reuse internal
-selection; do not call a separate preview merely to reconstruct the prompt.
+Prepare complete UTF-8 input files with literal-safe writes before calling the
+builder. It reads no stdin. Require zero exit and complete successful output.
+An input, selector, publication, spawn or capacity failure stops that operation;
+an uncertain effect permits no retry or replacement. No automatic close or
+sidebar workaround. Never repair or truncate failed helper output.
 
-## Publication and native creation
+The builder publishes each assignment atomically to a unique system temporary
+file only after an Executor's saved profile is valid and its active Plan,
+current Work Item and selected Step are started. It performs this validation;
+do not repeat it separately for dispatch. Review and Explorer assignments need
+no execution start.
+The assignment is outside the project. `--assignment-file` may select a new absolute readable
+path. Keep it through execution/review; the child reads it completely before
+work. `--format prompt` only returns text. Inaccessible or incomplete input
+blocks dependent work; preserve host sandbox restrictions.
 
-For `--format create`, the helper atomically publishes the complete assignment
-to a unique system temporary path outside the project without overwriting.
-Optional `--assignment-file <new-absolute-file>` selects a readable path.
-Retain the file through execution and review. A child reads it completely before
-work; inaccessible or incomplete input blocks dependent work. Respect its actual
-sandbox; do not bypass it or silently copy an assignment. `--format prompt`
-returns inline content and accepts no assignment file.
+One effect-free corrected call is allowed only for an explicit invalid argument
+or builder output-budget error before publication or dispatch. Use verified
+inputs. A binding output cap needs its actual decision; never truncate context.
+Missing helpers or other failures leave the operation blocked.
 
-The builder returns all native spawn arguments: task_name, message,
-fork_turns="none", model and reasoning_effort. Copy them unchanged into direct
-`collaboration.spawn_agent`; never call collaboration through functions.exec.
-The unique name preserves project, canonical Plan ID and full assigned range.
-Use the actual manager agent identity, not an inferred CODEX_THREAD_ID. Retain
-exact returned child identity, unit, role and launched pair. Do not rebuild,
-reprint or paraphrase assignments before dispatch.
-
-A failed or uncertain spawn, including capacity refusal, blocks that operation.
-Retain the diagnostic and continuation state. Inspect known identities only;
-no automatic retry, replacement sidebar chat or completed-agent cleanup.
-No new writer starts until prior writes are quiescent. Children need no sidebar
-pins, archival or invented close tool.
-
-## Bounded pre-dispatch correction
-
-One corrected call is allowed for an explicit invalid argument,
-OUTPUT_BUDGET_EXCEEDED from the builder, or complete
-PYTHON_INTERPRETER_REQUIRED child_started=false before the authorized call.
-No spawn may have been attempted and no assignment or other effect produced.
-Use verified facts; correct inputs, never failed output. Another failure, missing
-facts or uncertain effects stops the operation with its actual diagnostic.
-
-A selector-budget error supplies a complete corrected invocation with explicit
---max-output-bytes. An agent-selected internal cap may be raised to required size;
-a binding user, Plan or host cap needs the actual decision first. Preserve all
-context and actual tool-output limits. Never replace or truncate the selector.
-Other helper failures, capacity refusals and uncertain delivery grant no retry.
-
-## Results and permissions
-
-Wait using native events and retained handles. Timeouts prove neither failure
-nor permission for another writer. Match native sender to assigned identity;
-retain results once and apply operations.md. For complete-file result delivery,
-require actual child completion, verify SHA-256 and read the entire file before
-accepting its contents. Metadata alone is not a result. Do not coordinate through
-sidebar chats, title matching or repeated result requests.
-
-Children may use the named Python and checker for bounded UTF-8 reads, capture
-and size checks even outside the workspace. Only necessary oversized-result
-preparation/publication permits writes under `.scoville/temp`; reviewers still
-cannot run tests or change the reviewed subject. Host restrictions apply.
-
-Children own only their assigned changes. They cannot edit Plan, Decision or
-index records, stage or commit, create agents/chats or change Workflow/model
-settings. Product/test configuration changes require assigned scope. Complete
-native finals deliver results directly to this visible manager.
+Wait on exact native handles; timeout is not completion. For oversized results,
+require actual native completion, verify SHA-256 and read the whole supplied
+file under the shared delivery procedure. Metadata and partial messages are
+not results. Children may use the named external Python/checker only for command capture, size checks
+and necessary result delivery; no unrelated access. They neither edit
+Plan records, stage, commit, change Workflow settings nor create other agents.

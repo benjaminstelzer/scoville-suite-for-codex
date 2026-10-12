@@ -1,149 +1,125 @@
 # Manager operations
 
-The visible chat manages this run. Use Scoville Plan for records and
-[dispatch](operations-dispatch.md) for child assignments. Preserve scope,
-Decisions, uncommitted changes and user authorization. Resolve effective
-executor, reviewer and explorer settings once:
-
-```text
-python "<workflow-skill-directory>/scripts/resolve_model_pair.py" --show-config --project-root "<workspace_root>"
-```
-
-Reading creates no configuration. Re-resolve after relevant settings changes;
-existing assignments retain their launched pairs. Setup is optional. Reuse
-complete reads and successful results while relevant inputs remain unchanged.
-Inspect context needed to assign or assess work, not the executor's whole
-implementation diagnosis. Concrete evidence of an active or uncertain competing
-writer blocks writing; missing historical identities alone do not.
+Use Plan for records and [dispatch](operations-dispatch.md) for assignments.
+Preserve authorized scope, Decisions, stops and unrelated changes. The manager
+writes records, not source. One executor writes at a time; stop its writes before
+record edits, review or another writer. Read only the context needed to select
+and assess work; implementation diagnosis belongs to the executor.
 
 All Skills included in this suite must be installed and enabled. Use the
 applicable owner without checking sibling availability. Load only instructions
 needed for the task. Explicit invocation gates and user exclusions still apply.
 
-The manager owns Plan, Decision and index edits, staging and authorized commits.
-Delegate product changes. At most one executor writes; the manager makes no
-project edits while it runs. Reviewers stay read-only except necessary complete
-result publication under `.scoville/temp` using the shared delivery procedure.
-Explorers have the same read-only permissions, investigate user requests and prepare planning,
-returning concise answers, source evidence and material limits, not acceptance.
-Apply [writing rules](writing.md). Number executors consecutively, including
-corrections; reviewers use the reviewed executor's number. Retain exact handles
-and launched pairs.
+## Execute one Step
 
-## Execute and accept one unit
+1. Select the authorized Plan, current Work Item and exactly one Step. Preserve
+   order and dependencies. Save actual start/resume state through Plan;
+   selecting a Step alone is not a start. The dispatch helper validates the
+   saved profile and started state before publishing an Executor assignment.
+2. Choose Executor with the [agent check](operations-dispatch.md#check-the-agent-before-every-assignment).
+   Build the unchanged assignment through the helper and call its returned
+   native tool arguments.
+3. Wait for the matching complete native result. Retain it once and establish
+   writer quiescence. A timeout is not failure or permission to replace a writer.
+   A blocking problem returns to manager; ask only a necessary user decision.
+4. Choose Reviewer with the agent check. Dispatch the SAME original Step and
+   complete unchanged Executor final. Review that assignment's actual changes,
+   relevant effects and open findings. An evidence-only follow-up continues
+   review of the original change. No-file-change Steps still get
+   their action and result checked.
+5. For changes_requested, pass the review objections unchanged as additional
+   context to the executor helper for this same Step. Return to Step 2, then
+   review the correction. Do not rewrite the original Step, widen scope or
+   implement optional ideas. Reuse unaffected successful checks and coverage;
+   retain unresolved findings and limits. Earlier coverage is not a current pass.
+6. After pass, save observed Step status and concise evidence, then select the
+   next authorized Step. Routine Plan updates create no extra review phase.
 
-1. Select the next authorized unfinished Step or coherent consecutive group.
-   Preserve order, prerequisites and supplied grouping. Apply Plan's start or
-   resume rules: active current_item and Work Item must be in_progress; start
-   only the released Step/group. Preserve completed effects when reopening a
-   confirmed correction and record its reason. Save and validate before writing
-   dispatch. Report a changed position briefly.
-2. Spawn one executor with that released unit. The whole Work Item is context,
-   not additional scope. The executor finishes its coherent change, dependent
-   edits and proportionate checks, stops writing and returns its native result.
-   Wait on retained handles when no independent work is available. A timeout
-   establishes no outcome and permits no replacement.
-3. Match the host sender to the retained handle. Retain the complete result once
-   and establish writer quiescence before review, Plan edits or another writer.
-   Assess meaning, not formatting. Necessary missing executor facts and unfinished
-   work paused for a decision or early review may use followup_task on the same
-   handle. Completed assignments and corrections use fresh executors. Do not
-   reactivate completed reviewers for questions; retain their evidence limits.
-   Duplicate notifications create no work.
-4. Follow user or project review cadence. Otherwise review the finished unit
-   before acceptance. Earlier review is needed only before a separate product
-   change depends on unreviewed changes or a named costly or consequential gate
-   requires acceptance first. Dependent edits and focused checks of the same
-   change stay together. Checked code alone, routine tests and Plan maintenance
-   create no extra review phase.
-5. When review is due under Step 4, spawn a fresh independent read-only reviewer
-   for the finished Step or group, using the review boundary in dispatch. Routine
-   manager updates to Plan status and Evidence need no separate review. Supply
-   complete executor results and necessary sources without defending implementation
-   or suggesting a verdict. Unless a binding cadence or explicit requirement
-   requires review, a finished unit that changed no files needs no changed-file
-   review; assess its result against its Steps, and the closure check still
-   covers them.
-6. Assign source findings to a fresh correction executor; handle Plan findings
-   as manager. Preserve explicit model choices and retain the executor pair
-   unless the cause warrants a justified configured replacement. Check corrections
-   against findings. Assign independent review of each finished correction before
-   acceptance. After two failed corrections, reassess cause.
-   Do not repeat unaffected passed checks. After accepted early review, resume
-   the same unfinished executor with acceptance, correction effects, remaining
-   scope and evidence limits. Open findings, unanswered decisions and stops
-   prevent dependent resumption.
-7. After children stop writing, save observed Step statuses and decisive Evidence.
-   Mark completed Steps done; selection is not start and unmarked status is
-   unknown. Evidence contains outcome, required review occurrence and open limits,
-   not full review prose. Remove fulfilled Instructions. Mark Work Item done only
-   after Acceptance, required reviews and the closure check pass. Validate the
-   coherent Plan update.
-   If authorized, inspect staged changes and commit accepted changes with Plan
-   records, respecting hooks and backups. Create no agent, review or report solely
-   for bookkeeping.
-8. Finish this group's checks, due reviews, corrections and closure before
-   assigning a later group to a fresh executor. Continue the next eligible authorized unit,
-   honoring dependencies and Plan's pause/return rules. Close Plan and index only
-   after the whole requested scope passes.
+## Close the Work Item
 
-Do not repeat executor diagnosis or tests merely to assess a result. Check claims
-against decisive evidence and investigate named gaps or contradictions. Moving
-work to another item or Plan follows Plan's moved-work rule; replacing a child
-within a unit creates no new scope.
+After every Step passes, choose this Work Item's Reviewer with the agent check.
+The helper sends the whole original Work Item, all Steps and full Acceptance.
+The reviewer compares current implementation and retained
+evidence with those requirements; this is a closure check, not a general audit.
 
-## Results and decisions
+On findings, keep the same Plan and Work Item. Select ONE affected Step, pass
+the objections as additional context, execute and review it, then repeat the
+closure review. If an existing Step covers the defect, use it. If none does,
+manager may add one implementation Step for a named, already binding unchanged
+Acceptance criterion or Work Item requirement. Run that original new Step
+through the normal loop. Changed scope, Acceptance, contradictory requirements
+or materially unclear meaning need the user; do not invent a Step to bypass them.
 
-Return minimal labelled facts and an explicit status; no fixed order or JSON.
+Mark the Work Item done only after its Acceptance and closure review pass.
+Validate the coherent Plan update. Stage and commit only when authorized,
+respecting repository checks and backups. Clear Executor/Reviewer associations
+when moving to the next Work Item; retain Explorer for this manager thread.
+Finish only the authorized scope. A bounded run can leave unrequested work open.
 
-| Status | Meaning and next action |
+## User requests and results
+
+Questions, ideas, change requests and planning preparation go to Explorer.
+Choose it with the agent check. Its own configured
+pair defaults to the executor pair. It reads and returns a minimal answer,
+source evidence and limits. It does not write the Plan or accept implementation.
+Answer the user from the Explorer's findings in the communication language.
+Preserve evidence limits, quotes and technical literals.
+
+| Result | Meaning |
 | --- | --- |
-| completed | Executor implementation and checks finished; due review and closure follow. Explorer answer is ready; it grants no acceptance. |
-| review_pending | Binding early review pauses unfinished work; name trigger and remaining scope. Resume after acceptance. |
-| pass | Independent review found no unresolved defect or material acceptance gap. Return only pass. |
-| changes_requested | Return open findings: location, defect, effect and smallest correction. |
-| blocked / needs_user_decision | Name unmet prerequisite, diagnostic or question and affected work. Stop dependent work. |
+| done | Assigned execution/checks or exploration finished; not review acceptance. |
+| pass | Assigned review ran; no unresolved defect or required evidence gap. |
+| changes_requested | Open defect, location, effect, smallest correction and affected Step, or none. |
+| blocked | Actual prerequisite or required decision prevents dependent work. |
 
-Executors report completed effects, relevant paths, decisive checks, unverified
-behavior and necessary next action, not an Acceptance verdict or work log.
-Optional ideas neither block pass nor authorize correction.
+1. Match the complete native final and actual completion to the retained handle
+   and assignment. Do not infer identity from titles or partial messages.
+2. Save the complete native final unchanged and verify the saved text before
+   dependent dispatch. Concise Plan evidence is separate; never replace a
+   child result with Manager-composed evidence.
+3. Missing required Executor evidence: choose that Executor through the agent
+   check, rebuild the SAME Step with the complete blocked Reviewer final as
+   `--reviewer-result` and the complete Executor final it reviewed as
+   `--executor-result`. For the next review, supply the complete returned native
+   final as `--executor-result` and the original blocked Reviewer final as
+   `--reviewer-result`, both unchanged.
+   Replacement alone proves no missing baseline; report an actual unavailable
+   baseline or unresolved prerequisite. Other necessary missing-result questions
+   also use the exact child's agent check and helper assignment.
 
-Present blockers and decisions directly to the user without waiting for unrelated
-checks. Record the question and paused point, then the actual answer before
-resuming dependent work. Once writes stop, save necessary continuation state
-before selecting independent eligible work. An unanswered question grants no
-permission. Active execution or review is working, not blocked.
+Report necessary blockers and decisions directly. Stop dependent work; preserve
+completed effects and the actual answer before continuing. Nonblocking problems
+may continue to review. Waiting for active work is working, not blocked.
 
-## Stop and resume
+## Stop, compaction and failure
 
-On user stop, dispatch no new work. Stop and interrupt running children by exact
-handle. Confirm quiescence through native final or current list_agents state;
-an interrupt's previous status alone proves no termination. Uncertain state
-requires reporting the exact handle and diagnostic and prevents another writer.
-Interruption does not undo changes.
+On user stop:
 
-Save and validate the observed Plan pause, preserving completed effects,
-unfinished checks, open reviews and decisions. Pause an actually started item;
-preserve todo or paused items without invented history. Resume only on explicit
-user activation after writer state is known. Recover complete results and
-continue the first unfinished action rather than repeating completed work.
+1. Dispatch nothing new.
+2. Interrupt running children by exact handle.
+3. Confirm quiescence through native final or current list_agents state. An
+   interrupt's previous status proves no termination. Report an uncertain handle
+   and diagnostic; start no competing writer.
+4. Save and validate observed Plan pause, unfinished checks, open reviews and
+   decisions. Resume only on explicit activation.
 
-## Compaction and child failure
+After compaction, recover the same assignments and actual results; repeat no
+completed work merely to rebuild history.
 
-Continue this same manager chat after host compaction from concise Plan state,
-exact handles, complete results and pending decisions. Reconcile only missing
-facts with relevant files and known child state. Compaction creates no successor,
-context check or permission to repeat dispatch.
+For a confirmed failed or interrupted child:
 
-For a confirmed failed child, establish writer quiescence and completed effects
-first. Assign known remaining work through an ordinary fresh scoped assignment
-with retained evidence and constraints. An uncertain spawn, result or writer
-prevents another dispatch until reconciled.
+1. Establish termination.
+2. Reconcile retained effects and checks.
+3. Clear its association; do not measure or reuse it.
+4. Re-dispatch the same unit and role with unchanged role inputs (Executor
+   result, open review findings) and any explicit user role choice. Use the
+   helper, next role number and `--replacement-of` with the retained pair,
+   unless an explicit Step or user choice changes it.
 
-## Complete and exit
+An ordinary completed `blocked` result is not a failed child. This recovery
+never bypasses a failed measurement of an eligible idle agent. Uncertain spawn
+or result prevents duplicate dispatch.
 
-Confirm requested Acceptance, due review and Plan closure, then child and writer
-quiescence. Report outcome and material limits directly. A bounded run can finish
-with unrequested Plan work open; blockers and pauses are not completion. Return
-to ordinary assistance afterward. New problems do not activate another run;
-independent user and project requirements still apply.
+Completion requires requested Acceptance, Step reviews, closure review and
+quiescent writers. Report the result and limits, then leave Workflow. Blockers
+and pauses are not completion; new requests activate no automatic successor.

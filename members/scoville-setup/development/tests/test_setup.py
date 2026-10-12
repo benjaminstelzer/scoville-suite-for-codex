@@ -53,7 +53,7 @@ class SetupTests(unittest.TestCase):
         status, shown = self.run_setup('show')
         self.assertEqual(status, 0)
         self.assertFalse(shown['saved'])
-        self.assertEqual(set(shown['effective']['workflow']), {'schema_version', 'execute', 'review', 'explore'})
+        self.assertEqual(set(shown['effective']['workflow']), {'schema_version', 'execute', 'review', 'explore', 'context_threshold_percent'})
         self.assertEqual(self.path.read_bytes(), before)
         self.assertEqual(shown['effective']['workflow']['review']['medium'],
                          {'model': 'gpt-6.1-sol', 'reasoning': 'high'})
@@ -93,6 +93,7 @@ class SetupTests(unittest.TestCase):
         self.save({'workflow': {'context': {'worker_percent': 60}}, 'other': {'keep': True}})
         before = self.path.read_bytes()
         invalid = [ {'workflow': {key: {}}} for key in ('context', 'manager', 'pin_threads') ]
+        invalid += [{'workflow': {'context_threshold_percent': value}} for value in (True, False, 0, 101, 50.0, '50', {})]
         invalid += [{'workflow': {'unknown': {}}}, {'ask': {'pin_threads': False}},
                     {'ask': {'claude': {'timeout_seconds': 0}}},
                     {'workflow': {'execute': {'low': {'reasoning': 'bad'}}}},
@@ -149,6 +150,17 @@ class SetupTests(unittest.TestCase):
                                   capture_output=True, text=True, encoding='utf-8')
         self.assertEqual(resolved.returncode, 0, resolved.stderr)
         self.assertEqual(json.loads(resolved.stdout)['thinking'], 'medium')
+
+    def test_one_shared_threshold_is_saved_and_inherited_without_legacy_context(self):
+        status, shown = self.run_setup('show')
+        self.assertEqual(status, 0)
+        self.assertEqual(shown['effective']['workflow']['context_threshold_percent'], 50)
+        self.save({'workflow': {'context': {'worker_percent': 82}}, 'other': {'keep': True}})
+        status, saved = self.run_setup('set', {'workflow': {'context_threshold_percent': 40}})
+        self.assertEqual(status, 0, saved)
+        value = json.loads(self.path.read_text())
+        self.assertEqual(value, {'workflow': {'context_threshold_percent': 40}, 'other': {'keep': True}})
+        self.assertEqual(saved['effective']['workflow']['context_threshold_percent'], 40)
 
     def test_setup_is_codex_suite_only(self):
         for profile, layout, expected in [('codex', 'suite', True), ('codex', 'standalone', False),

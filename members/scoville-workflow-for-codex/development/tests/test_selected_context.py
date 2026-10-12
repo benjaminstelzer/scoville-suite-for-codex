@@ -1,4 +1,4 @@
-"""Real selector-to-child projection, with exact Step text and closure coverage."""
+"""Real selector-to-child projection: one exact Step, unchanged findings, full closure."""
 import copy
 import json
 import shutil
@@ -7,11 +7,20 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-
 from test_contract import PACKAGE, SUITE_ROOT, prompt_builder
 
-
 class SelectedContextTests(unittest.TestCase):
+    def test_communication_language_preserves_literal_user_request(self):
+        request = 'User request: “Bitte kurz auf Deutsch beantworten.”'
+        prompt = prompt_builder.build_prompt('explorer', Path('/project'), {}, {'supplemental_context': request}, 'German')
+        delivery = prompt_builder.communication_rule('German')
+        self.assertEqual(prompt.count(request), 1)
+        self.assertEqual(prompt.count(delivery), 1)
+        self.assertLess(prompt.index(request), prompt.index('## Communication'))
+        self.assertLess(prompt.index(delivery), prompt.index('On user stop,'))
+        self.assertIn('Communication language: German.', delivery)
+        self.assertIn('natural-language text in result fields', delivery)
+
     def prepare(self, directory, ending):
         root = Path(directory) / 'project'
         shutil.copytree(SUITE_ROOT / 'members/scoville-plan/development/tests/fixtures/valid-profile', root)
@@ -20,96 +29,68 @@ class SelectedContextTests(unittest.TestCase):
             '1. Read the canonical files.\n2. Check the local record shapes.',
             '1. [status: done] OUTSIDE-FIRST.\n'
             '2. [status: in_progress] [execute: reasoning=high] Preserve café and `中文`.\n'
-            '3. SELECTED-THIRD: verify ✓ unchanged.  \n'
-            '4. OUTSIDE-LAST.').replace('Steps:\n', 'Instructions: Preserve exact literals.\nSteps:\n', 1)
+            '3. OUTSIDE-THIRD.\n4. OUTSIDE-LAST.').replace('Steps:\n', 'Instructions: Preserve exact literals.\nSteps:\n', 1)
         text = text.replace('Evidence: []', 'Evidence: HISTORY-ONLY', 1)
         path.write_bytes(text.replace('\n', ending).encode('utf-8'))
         return root
 
-    def test_single_range_whole_and_no_unit_across_roles(self):
+    def test_original_step_and_binding_context_stay_identical_with_findings(self):
         for ending in ('\n', '\r\n'):
             with self.subTest(ending=repr(ending)), tempfile.TemporaryDirectory() as directory:
                 root = self.prepare(directory, ending)
-                before = {p: p.read_bytes() for p in root.rglob('*') if p.is_file()}
-                for unit in ('W-001/step-2', 'W-001/steps-2-3', 'W-001'):
-                    context = prompt_builder.select_unit(PACKAGE / 'scripts/select_context.py', root, unit)
-                    item = context['work_item']
-                    contexts = []
-                    for role, role_input in (
-                        ('executor', {}),
-                        ('executor', {'reviewer_result': 'changes_requested: correct this unit only.'}),
-                        ('executor', {'supplemental_context': 'Retained effects checked. Only this unit remains.'}),
-                        ('reviewer', {'executor_result': 'completed: owner.py changed; focused check passed.',
-                                      'supplemental_context': 'DELTA: owner.py against pre-work. Reuse unchanged earlier coverage.'}),
-                        ('explorer', {'supplemental_context': 'Investigate the selected scope only.'}),
-                    ):
-                        with self.subTest(unit=unit, role=role, inputs=role_input):
-                            prompt = prompt_builder.build_prompt(role, root, '/root/manager', '', context, role_input)
-                            embedded = prompt.split('## Work Item context\n', 1)[1].split('\n## ', 1)[0]
-                            contexts.append(embedded)
-                            for key in ('header', 'status', 'depends_on', 'blocked_by', 'decisions', 'outcome', 'acceptance'):
-                                self.assertIn(item[key], embedded)
-                            self.assertIn('Instructions: Preserve exact literals.', embedded)
-                            self.assertIn('Steps:\n' + item['source_text'] if '/' in unit else item['context_text'].rstrip(), embedded)
-                            self.assertEqual(prompt.count(item['source_text'].rstrip('\n')), 1)
-                            for value in role_input.values():
-                                self.assertIn(value, prompt)
-                            if '/' in unit:
-                                for excluded in ('OUTSIDE-FIRST', 'OUTSIDE-LAST', 'Evidence:', 'HISTORY-ONLY', 'Next action:'):
-                                    self.assertNotIn(excluded, embedded)
-                                self.assertNotIn('Step 1: done', prompt)
-                                self.assertNotIn('Step 4: unknown', prompt)
-                                if unit.endswith('step-2'):
-                                    self.assertNotIn('SELECTED-THIRD', embedded)
-                                else:
-                                    self.assertLess(embedded.index('2. [status:'), embedded.index('3. SELECTED-THIRD'))
-                            else:
-                                self.assertIn('OUTSIDE-FIRST', embedded)
-                                self.assertIn('OUTSIDE-LAST', embedded)
-                    self.assertTrue(all(value.rstrip('\n') == contexts[0].rstrip('\n') for value in contexts))
-                no_unit = prompt_builder.build_prompt('explorer', root, '/root/manager', '', {},
-                    {'supplemental_context': 'Question without Plan context.'})
-                self.assertNotIn('## Work Item context', no_unit)
-                self.assertEqual(before, {p: p.read_bytes() for p in root.rglob('*') if p.is_file()})
+                before = {p:p.read_bytes() for p in root.rglob('*') if p.is_file()}
+                context = prompt_builder.select_unit(PACKAGE / 'scripts/select_context.py', root, 'W-001/step-2')
+                item=context['work_item']; contexts=[]
+                findings='changes_requested: owner.py line4; missing trim; affected Step2.'
+                report='done; changed_paths: owner.py; baseline: before.txt; checks: owner test passed.'
+                for role, inputs in [('executor',{}),('executor',{'reviewer_result':findings}),
+                                     ('reviewer',{'executor_result':report}),
+                                     ('reviewer',{'executor_result':report,'reviewer_result':findings}),
+                                     ('explorer',{'supplemental_context':'Question about this Step.'})]:
+                    prompt=prompt_builder.build_prompt(role,root,context,inputs, 'German')
+                    embedded=prompt.split('## Work Item context\n',1)[1].split('\n## ',1)[0].split('On user stop,',1)[0]
+                    contexts.append(embedded.rstrip())
+                    for key in ('header','status','depends_on','blocked_by','decisions','outcome','acceptance'):
+                        self.assertIn(item[key],embedded)
+                    self.assertIn('Instructions: Preserve exact literals.',embedded)
+                    self.assertIn('Steps:\n'+item['source_text'],embedded)
+                    for excluded in ('OUTSIDE-FIRST','OUTSIDE-THIRD','OUTSIDE-LAST','HISTORY-ONLY','Evidence:','Next action:'):
+                        self.assertNotIn(excluded,embedded)
+                    for key,value in inputs.items():
+                        self.assertIn('## '+key+'\n'+value,prompt)
+                        self.assertNotIn(value,embedded)
+                self.assertEqual(len(set(contexts)),1)
+                for role,inputs in [('executor',{'supplemental_context':'Rewritten Step.'}),
+                                    ('reviewer',{'executor_result':report,'supplemental_context':'Rewritten Step.'})]:
+                    with self.assertRaisesRegex(ValueError,'unknown role input'):
+                        prompt_builder.build_prompt(role,root,context,inputs, 'German')
+                self.assertEqual(before,{p:p.read_bytes() for p in root.rglob('*') if p.is_file()})
 
-    def test_selected_context_fails_closed_without_complete_fallback(self):
+    def test_missing_binding_fields_fail_closed(self):
         with tempfile.TemporaryDirectory() as directory:
-            root = self.prepare(directory, '\n')
-            context = prompt_builder.select_unit(PACKAGE / 'scripts/select_context.py', root, 'W-001/steps-2-3')
-            # Complete internal context is unnecessary for selected units.
+            root=self.prepare(directory,'\n')
+            context=prompt_builder.select_unit(PACKAGE/'scripts/select_context.py',root,'W-001/step-2')
             del context['work_item']['context_text']
-            self.assertIn('3. SELECTED-THIRD', prompt_builder.work_item_context(context['work_item']))
-            for field in ('unit', 'source_text', 'header', 'status', 'depends_on', 'blocked_by', 'decisions', 'outcome', 'acceptance', 'instructions'):
-                broken = copy.deepcopy(context)
-                broken['work_item'][field] = None
-                for role, inputs in (('executor', {}), ('explorer', {'supplemental_context': 'Question.'})):
-                    with self.subTest(field=field, role=role), self.assertRaisesRegex(ValueError, 'SELECTOR_INCOMPATIBLE'):
-                        prompt_builder.build_prompt(role, root, '/root/manager', '', broken, inputs)
+            self.assertIn('2. [status:',prompt_builder.work_item_context(context['work_item']))
+            for field in ('unit','source_text','header','status','depends_on','blocked_by','decisions','outcome','acceptance','instructions'):
+                broken=copy.deepcopy(context);broken['work_item'][field]=None
+                with self.subTest(field=field),self.assertRaises(ValueError):
+                    prompt_builder.build_prompt('executor',root,broken,{}, 'German')
 
-    def test_whole_item_closure_keeps_all_steps_and_scoped_delta(self):
+    def test_whole_closure_keeps_all_steps_and_ranges_cannot_execute(self):
         with tempfile.TemporaryDirectory() as directory:
-            root = self.prepare(directory, '\n')
-            facts = Path(directory) / 'review.txt'
-            facts.write_text('DELTA: owner.py only against pre-work. Reuse unchanged prior coverage. '
-                             'Also check every Step and full Acceptance for Work Item closure.', encoding='utf-8')
-            result = Path(directory) / 'result.txt'
-            result.write_text('completed: owner.py changed; focused check passed.', encoding='utf-8')
-            assignment = Path(directory) / 'assignment.txt'
-            run = subprocess.run([sys.executable, str(PACKAGE / 'scripts/build_dispatch_prompt.py'),
-                '--project-root', str(root), '--unit', 'W-001', '--role', 'reviewer',
-                '--manager-agent-id', '/root/manager', '--format', 'create', '--route', 'medium',
-                '--project-name', 'Fixture', '--worker-number', '1', '--assignment-file', str(assignment),
-                '--executor-result', str(result), '--supplemental-context', str(facts)],
-                capture_output=True, text=True, encoding='utf-8')
-            self.assertEqual(run.returncode, 0, run.stderr)
-            self.assertIn('PLAN-0001/W-001/steps-1-4', json.loads(run.stdout)['message'])
-            prompt = assignment.read_text(encoding='utf-8')
-            complete = prompt_builder.select_unit(PACKAGE / 'scripts/select_context.py', root, 'W-001')['work_item']['context_text'].rstrip()
-            self.assertEqual(prompt.count(complete), 1)
-            self.assertIn(facts.read_text(encoding='utf-8'), prompt)
-            self.assertIn('Do not widen the review', prompt.replace('do not widen the review', 'Do not widen the review'))
-            self.assertIn('No tests or project-file changes.', json.loads(run.stdout)['message'])
+            root=self.prepare(directory,'\n')
+            context=prompt_builder.select_unit(PACKAGE/'scripts/select_context.py',root,'W-001')
+            report='done; changed_paths: owner.py; checks: owner test passed.'
+            prompt=prompt_builder.build_prompt('reviewer',root,context,{'executor_result':report}, 'German')
+            self.assertEqual(prompt.count(context['work_item']['context_text'].rstrip()),1)
+            for literal in ('EVERY original Step','FULL Work Item Acceptance','OUTSIDE-FIRST','OUTSIDE-LAST'):
+                self.assertIn(literal,prompt)
+            with self.assertRaises(ValueError):
+                prompt_builder.build_prompt('executor',root,context,{}, 'German')
+            with self.assertRaises(ValueError):
+                prompt_builder.select_unit(PACKAGE/'scripts/select_context.py',root,'W-001/steps-2-3')
+            question=prompt_builder.build_prompt('explorer',root,{}, {'supplemental_context':'Question without Plan.'}, 'German')
+            self.assertNotIn('## Work Item context',question)
 
-
-if __name__ == '__main__':
-    unittest.main()
+if __name__=='__main__': unittest.main()

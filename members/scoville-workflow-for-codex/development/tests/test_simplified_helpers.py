@@ -9,7 +9,7 @@ import tempfile
 import unittest
 import uuid
 
-from test_contract import PACKAGE, SUITE_ROOT
+from test_contract import PACKAGE, SUITE_ROOT, copy_started_profile
 
 
 class SimplifiedHelpersTests(unittest.TestCase):
@@ -17,7 +17,7 @@ class SimplifiedHelpersTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name) / 'project'
-        shutil.copytree(SUITE_ROOT / 'members/scoville-plan/development/tests/fixtures/valid-profile', self.root)
+        copy_started_profile(self.root)
         self.plan = self.root / 'docs/plans/0001-validate-profile.md'
         self.original = self.plan.read_text(encoding='utf-8')
         self.scope = self.root / 'scope.txt'
@@ -44,25 +44,29 @@ class SimplifiedHelpersTests(unittest.TestCase):
     def dispatch(self, *args, role='executor', error=None):
         if '--assignment-file' not in args:
             args = (*args, '--assignment-file', self.root / f'assignment-{uuid.uuid4().hex}.txt')
-        return self.cli('build_dispatch_prompt.py', '--project-root', self.root,
+        return self.cli('build_dispatch_prompt.py', '--communication-language', 'German', '--project-root', self.root,
                         '--unit', 'W-001/step-1', '--role', role, '--format', 'create',
-                        '--manager-agent-id', '/root/manager', '--project-name', 'test',
+                        '--project-name', 'test',
                         '--worker-number', '1', *args, error=error)
 
     def test_routes_overrides_and_retained_pairs(self):
         self.dispatch(error='--route CLASS or both --model and --thinking')
         actual = self.dispatch('--route', 'medium')
         self.assertEqual((actual['model'], actual['reasoning_effort']), ('gpt-6-luna', 'medium'))
-        reviewed = self.dispatch('--route', 'medium', '--executor-result', self.result, '--supplemental-context', self.scope, role='reviewer')
+        reviewed = self.dispatch('--route', 'medium', '--executor-result', self.result, role='reviewer')
         self.assertEqual((reviewed['model'], reviewed['reasoning_effort']), ('gpt-6-sol', 'high'))
+        self.dispatch('--route', 'medium', '--model', 'gpt-6-astra', '--thinking', 'high',
+                      error='fresh flags differ')
         for overrides, pair in [(['--model', 'gpt-6-astra'], ('gpt-6-astra', 'medium')),
                                 (['--thinking', 'high'], ('gpt-6-luna', 'high'))]:
-            result = self.dispatch('--route', 'medium', *overrides)
+            self.dispatch('--route', 'medium', *overrides, error='--override-reason')
+            result = self.dispatch('--route', 'medium', *overrides,
+                                   '--override-reason', 'Explicit user role choice')
             self.assertEqual((result['model'], result['reasoning_effort']), pair)
         # Configuration changes cannot change a retained correction pair.
         self.config.write_text('{invalid', encoding='utf-8')
-        for extra in [[], ['--reviewer-result', self.result]]:
-            if extra:
+        for extra in [['--override-reason', 'Explicit user role choice'], ['--reviewer-result', self.result]]:
+            if '--reviewer-result' in extra:
                 self.dispatch('--route', 'medium', *extra, error='both --model and --thinking')
             output = self.dispatch('--model', actual['model'], '--thinking', actual['reasoning_effort'], *extra)
             self.assertEqual((output['model'], output['reasoning_effort']), ('gpt-6-luna', 'medium'))
@@ -73,7 +77,7 @@ class SimplifiedHelpersTests(unittest.TestCase):
         payload.write_text('completed: full result\nRequired final fact: Grüße 中文.\n', encoding='utf-8')
         cases = [
             ('executor', ['--route', 'medium']),
-            ('reviewer', ['--route', 'medium', '--executor-result', self.result, '--supplemental-context', self.scope]),
+            ('reviewer', ['--route', 'medium', '--executor-result', self.result]),
             ('executor', ['--model', 'gpt-6-luna', '--thinking', 'medium', '--reviewer-result', self.result]),
         ]
         for role, extra in cases:
@@ -96,6 +100,26 @@ class SimplifiedHelpersTests(unittest.TestCase):
                 self.assertEqual(metadata['status'], 'complete_file')
                 self.assertNotIn('tool_output_limit_tokens', metadata)
 
+    def test_replacement_retains_pair_without_overriding_explicit_steps(self):
+        pair = ['--model', 'gpt-6-luna', '--thinking', 'medium']
+        replacement = ['--replacement-of', '/root/prior_executor', *pair]
+        self.config.write_text('{invalid', encoding='utf-8')
+        result = self.dispatch(*replacement)
+        self.assertEqual((result['model'], result['reasoning_effort']), ('gpt-6-luna', 'medium'))
+        self.dispatch(*replacement, '--route', 'high', error='--route cannot combine')
+        self.dispatch(*replacement, '--agent-id', '/root/prior_executor', error='without --agent-id')
+        self.dispatch(*replacement, '--override-reason', 'Explicit user role choice', error='without --agent-id')
+        self.dispatch('--replacement-of', ' \n', *pair, error='nonempty single-line')
+        self.dispatch('--replacement-of', '/root/prior_executor', error='both --model and --thinking')
+        self.config.write_text('{}', encoding='utf-8')
+        for annotation in ('[route: high]', '[execute: model=gpt-6-astra; reasoning=high]'):
+            self.plan.write_text(self.original.replace('1. [status: in_progress] Read the canonical files.',
+                '1. [status: in_progress] ' + annotation + ' Read the canonical files.', 1), encoding='utf-8')
+            self.dispatch(*replacement, error='different explicit pair')
+            self.dispatch(*pair, '--reviewer-result', self.result, error='different explicit pair')
+            chosen = self.dispatch(*pair, '--override-reason', 'User explicitly selects Executor Luna/medium')
+            self.assertEqual(chosen['model'], 'gpt-6-luna')
+
     def test_missing_delivery_checker_prevents_assignment_then_restoration_succeeds(self):
         suite = Path(self.temp.name) / 'copied suite'
         copy = suite / PACKAGE.name
@@ -106,14 +130,14 @@ class SimplifiedHelpersTests(unittest.TestCase):
         checker.unlink()
         assignment = self.root / 'restored-checker-assignment.txt'
         command = [sys.executable, '-B', str(copy / 'scripts/build_dispatch_prompt.py'),
-                   '--project-root', str(self.root), '--unit', 'W-001/step-1', '--role', 'executor',
-                   '--format', 'create', '--manager-agent-id', '/root/manager', '--project-name', 'test',
+                   '--communication-language', 'German', '--project-root', str(self.root), '--unit', 'W-001/step-1', '--role', 'executor',
+                   '--format', 'create', '--project-name', 'test',
                    '--worker-number', '1', '--route', 'medium', '--assignment-file', str(assignment)]
         failed = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
         self.assertNotEqual(failed.returncode, 0)
         self.assertEqual(failed.stdout, '')
         self.assertIn(str(checker.resolve()), failed.stderr)
-        self.assertIn('intact matching Workflow package', failed.stderr)
+        self.assertIn('intact matching suite package', failed.stderr)
         self.assertFalse(assignment.exists())
         checker.write_bytes(original)
         corrected = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')

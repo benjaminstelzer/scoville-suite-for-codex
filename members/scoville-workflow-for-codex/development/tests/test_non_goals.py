@@ -7,13 +7,13 @@ import sys
 import tempfile
 import unittest
 
-from test_contract import PACKAGE, SUITE_ROOT, prompt_builder
+from test_contract import PACKAGE, SUITE_ROOT, prompt_builder, copy_started_profile
 
 
 class NonGoalsTests(unittest.TestCase):
     def prepare(self, directory, exclusions, newline='\n'):
         root = Path(directory) / 'project'
-        shutil.copytree(SUITE_ROOT / 'members/scoville-plan/development/tests/fixtures/valid-profile', root)
+        copy_started_profile(root)
         plan = root / 'docs/plans/0001-validate-profile.md'
         text = plan.read_text(encoding='utf-8')
         start, end = text.index('## Non-goals'), text.index('\n\n## Work items')
@@ -23,9 +23,11 @@ class NonGoalsTests(unittest.TestCase):
         return root
 
     def call(self, root, role='executor', extra=()):
+        if '--model' in extra and '--thinking' in extra:
+            extra = (*extra, '--override-reason', 'Fixture explicit role choice')
         return subprocess.run([sys.executable, str(PACKAGE / 'scripts/build_dispatch_prompt.py'),
-                               '--project-root', str(root), '--unit', 'W-001', '--role', role,
-                               '--manager-agent-id', '/root/manager', *extra], capture_output=True)
+                               '--communication-language', 'German', '--project-root', str(root), '--unit', 'W-001/step-1', '--role', role,
+                               *extra], capture_output=True)
 
     def test_literal_exclusions_all_routes_and_newlines(self):
         exclusions = '## Non-goals\n\n- No publication.\n- Preserve ü, 日本語 and `literal`.  '
@@ -39,9 +41,8 @@ class NonGoalsTests(unittest.TestCase):
                 result_file.write_text('Completed scoped work.', encoding='utf-8')
                 supplement = Path(directory) / 'supplement.txt'
                 supplement.write_text('Preserve completed effects; only named remaining work is released.', encoding='utf-8')
-                routes = [('executor', []), ('reviewer', ['--executor-result', str(result_file), '--supplemental-context', str(supplement)]),
+                routes = [('executor', []), ('reviewer', ['--executor-result', str(result_file)]),
                           ('executor', ['--reviewer-result', str(result_file)])]
-                routes.append(('executor', ['--supplemental-context', str(supplement)]))
                 routes.append(('explorer', ['--supplemental-context', str(supplement)]))
                 for role, extra in routes:
                     with self.subTest(role=role, extra=extra):
@@ -52,7 +53,7 @@ class NonGoalsTests(unittest.TestCase):
                         self.assertEqual(prompt.count('## Non-goals'), 1)
                         self.assertNotIn('## Plan-wide exclusions', prompt)
                         self.assertEqual(prompt.count(literal), 1)
-                        self.assertNotIn('GOAL_SENTINEL', prompt)
+                        self.assertIn('GOAL_SENTINEL', prompt)
                         self.assertNotIn('## Decisions', prompt)
                 assignment = Path(directory) / 'assignment.txt'
                 result = self.call(root, extra=['--format', 'create', '--model', 'gpt-6-sol', '--thinking', 'high',
@@ -85,9 +86,9 @@ class NonGoalsTests(unittest.TestCase):
             self.assertIn(exclusions.encode('utf-8'), assignment.read_bytes())
 
     def test_missing_selector_constraints_are_not_silently_omitted(self):
-        context = {'plan': {}, 'work_item': {'unit': 'W-001', 'source_text': 'Work', 'context_text': 'Work'}}
+        context = {'plan': {}, 'work_item': {'unit': 'W-001/step-1', 'source_text': 'Work', 'context_text': 'Work'}}
         with self.assertRaisesRegex(ValueError, 'SELECTOR_INCOMPATIBLE'):
-            prompt_builder.build_prompt('executor', PACKAGE, '/root/manager', '', context, {})
+            prompt_builder.build_prompt('executor', PACKAGE, context, {}, 'German')
 
     def test_explorer_context_rejects_oversized_exclusions(self):
         with tempfile.TemporaryDirectory() as directory:

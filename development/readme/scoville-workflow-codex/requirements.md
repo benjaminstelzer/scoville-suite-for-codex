@@ -2,8 +2,10 @@
 
 - **Responsibility.** The visible chat maintains the Plan; executors implement
   and reviewers assess. At most one executor writes in the shared checkout.
-- **Bounded work.** Released Step groups finish checks, due review and corrections
-  before later groups start. Work Item context does not expand assignments.
+- **Bounded work.** Exactly one original Step is executed and reviewed before
+  the next. Every Work Item also receives a full Step/Acceptance closure review.
+- **Reuse.** Executor and Reviewer belong to the current Work Item; Explorer to
+  the manager thread. A helper checks one shared threshold before assignments.
 - **Model choices.** Configured executor, reviewer and explorer models and effort are respected.
   Unsupported settings stop dependent work rather than being substituted.
 - **Continuity.** The same chat continues after compaction from concise Plan

@@ -35,7 +35,7 @@ class ProjectConfigTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             original = load_config(defaults, root)
-            self.assertEqual(set(original), {'schema_version', 'execute', 'review', 'explore'})
+            self.assertEqual(set(original), {'schema_version', 'execute', 'review', 'explore', 'context_threshold_percent'})
             self.assertFalse((root / ".scoville").exists())
             (root / ".scoville").mkdir()
             path = root / ".scoville/config.json"
