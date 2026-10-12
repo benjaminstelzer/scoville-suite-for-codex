@@ -13,7 +13,7 @@ Plans, Decisions and the index, but no source code. It coordinates three roles:
 | --- | --- | --- |
 | Explorer | Investigate questions, ideas and planning preparation; report to manager. | Read only; no tests or Plan edits. |
 | Executor | Perform exactly one original Step and its required checks. | Read and write assigned source; no Plan edits. |
-| Reviewer | Review that Step or, after all Steps, the whole Work Item. | Read only; no tests or Plan edits. |
+| Reviewer | Review a changed Step or, after all Steps, the whole Work Item. | Read only; no tests or Plan edits. |
 
 Only necessary oversized-result delivery under the shared procedure permits
 temporary writes by read-only roles. At most one executor writes. The manager
@@ -85,8 +85,10 @@ flowchart TD
   J{"Executor result"}
   R["Choose Reviewer; review SAME Step"]
   D{"Step review result"}
-  A["Manager: record accepted Step"]
-  K{"All Work Item Steps accepted?"}
+  V{"Manager: Step complete, required checks met, effects clear?"}
+  Q{"Changes or open Step review?"}
+  A["Manager: record completed Step and evidence"]
+  K{"All Steps complete and required Step reviews passed?"}
   B{"Next Step authorized?"}
   T["Stop at authorized boundary; leave Work Item open"]
   C["Choose Reviewer; review all Steps and full Acceptance"]
@@ -96,7 +98,11 @@ flowchart TD
   H["Manager: resolve exact prerequisite; stop dependent work"]
   M -->|yes| X --> U --> M
   M -->|no| S --> P --> E --> N --> J
-  J -->|done| R --> D
+  J -->|done| V
+  V -->|no or unclear| H
+  V -->|yes| Q
+  Q -->|yes| R --> D
+  Q -->|no| A
   J -->|blocked| H
   D -->|changes_requested| P
   D -->|blocked| H
@@ -117,11 +123,15 @@ Wait for each role’s matching complete native final before dependent work.
 Stop and failure recovery follow [operations](references/operations.md#stop-compaction-and-failure).
 The diagram grants no scope; closure findings without a matching Step follow operations.
 
-Every Step gets a review, including a Step without changed files. The helper
+Review each Step that changed files, configuration or behavior. A Step without
+such changes is checked by the closure review. Apply
+[operations](references/operations.md#execute-one-step) before advancing or
+dispatching review; `changes: none` alone means only no file changes. The helper
 sends original Plan context and exactly the selected Step. The manager supplies
 selection IDs and review objections as additional context; it does not compose,
 shorten or rewrite the dispatch. Step review covers actual changes of the selected
-Executor assignment, relevant effects and open findings. An evidence-only
+Executor assignment, relevant effects and open findings. A follow-up without
+new changes does not end an open Step review or its findings; an evidence-only
 follow-up continues review of the original change. Closure checks all
 original Steps and full Acceptance against current implementation and evidence.
 
@@ -162,7 +172,7 @@ Host compaction continues this manager and its same assignments from retained
 identities, Plan state and completed effects; it creates no new scope or
 replacement. Use operations for confirmed failed or interrupted children.
 
-Complete only after requested Acceptance, both review levels, Plan closure and
+Complete only after requested Acceptance, required Step reviews, closure review, Plan closure and
 child/writer quiescence. Report outcome and material limits in the user's
 language. Return to ordinary assistance; new requests start no automatic run.
 

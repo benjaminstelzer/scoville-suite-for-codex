@@ -13,20 +13,17 @@ class CompactNewFileTests(unittest.TestCase):
             copy_started_profile(root)
             context = prompt_builder.select_unit(SELECTOR, root, 'W-001/step-1')
             report = 'status: done\nchanges:\n- path: created.py\n  before: new file\n  after: current file\nchecks: local assertion passed\nproblems: none\nlimits: none\n'
+            new_file = 'NEW_FILE_CONTENT_READ_SEPARATELY = True\n'
+            (root / 'created.py').write_text(new_file, encoding='utf-8')
+            before = {p: p.read_bytes() for p in root.rglob('*') if p.is_file()}
             execution = prompt_builder.build_prompt('executor', root, context, {}, 'German')
             review = prompt_builder.build_prompt('reviewer', root, context, {'executor_result': report}, 'German')
-            self.assertIn('"current file" for a new file created by this assignment', execution)
-            self.assertIn('use before: "new file" and after: "current file"; do not repeat its content', execution)
-            self.assertIn('before: <exact lines or diff hunk before', execution)
-            self.assertIn('or "deleted file"', execution)
-            self.assertIn('read that complete file as its after lines', review)
-            self.assertIn('not attributable to it, return blocked', review)
             self.assertIn('## executor_result\n' + report, review)
             self.assertIn('1. [status: in_progress] Read the canonical files.', review)
             self.assertNotIn('Check the local record shapes.', review)
-            self.assertIn('run no tests', review)
-            self.assertIn('exact before and after lines', review)
-            self.assertIn('evidence-only follow-up', execution)
+            self.assertNotIn(new_file, execution)
+            self.assertNotIn(new_file, review)
+            self.assertEqual(before, {p: p.read_bytes() for p in root.rglob('*') if p.is_file()})
 
     def test_only_fresh_roles_load_standing_rules_but_task_evidence_survives_reuse(self):
         with tempfile.TemporaryDirectory() as directory:

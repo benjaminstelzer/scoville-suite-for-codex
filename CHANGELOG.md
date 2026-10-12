@@ -4,6 +4,7 @@
 
 ## Unreleased - 2026-10-12
 
+- Review only Steps that changed files, configuration or behavior; closure covers unchanged Steps. Keep retained Step effects and open reviews through existing result inputs.
 - Keep tests open to equivalent implementations: justify internal-work bounds,
   verify measurements and preserve exact contractual guarantees.
 

@@ -62,7 +62,12 @@ flowchart TD
     H --> W["Execute Step and checks; return done or problem"]
     W --> WR{"Executor result"}
     WR -->|blocked| BP["Manager resolves prerequisite; stop dependent work"]
-    WR -->|done| R{"Reviewer for current Work Item exists?"}
+    BP -->|missing Executor result: same Step| E
+    WR -->|done| MC{"Manager: Step complete, required checks met, effects clear?"}
+    MC -->|No or unclear| BP
+    MC -->|Yes| CR{"Changes or open Step review?"}
+    CR -->|Yes| R{"Reviewer for current Work Item exists?"}
+    CR -->|No| SA["Manager records completed Step and evidence"]
     R -->|No| RN["Spawn and initialize Reviewer once"]
     R -->|Yes| RC{"Measured context below threshold?"}
     RC -->|Yes| RR["Reuse Reviewer; next task only"]
@@ -75,7 +80,8 @@ flowchart TD
     A -->|blocked| BP
     A -->|changes_requested| F["Manager adds unchanged review result; same Step"]
     F --> ST
-    A -->|pass| N{"All Steps accepted?"}
+    A -->|pass| SA
+    SA --> N{"All Steps complete and required Step reviews passed?"}
     N -->|No| NA{"Next Step authorized?"}
     NA -->|Yes| S
     NA -->|No| STOP["Stop; Work Item stays open"]
@@ -115,11 +121,16 @@ Use complete unchanged native finals for review and correction inputs. Missing
 required before/after attribution blocks review; recover it through the same
 Step and agent check, never through a Manager-composed substitute.
 
-Every Step gets independent review. It covers actual changes of the selected
-Executor assignment, necessary context and open findings. An evidence-only
-follow-up continues review of the original change. The separate closure review
+Review each Step that changed files, configuration or behavior. A Step without
+such changes is checked by the closure review. The manager checks completion,
+required checks and clear effects using the complete result and reconciled
+retained effects. Missing or unclear results are resolved first; `changes: none`
+alone means only no file changes. Step review covers reported changes of the
+selected Step, necessary context and open findings. Follow-ups without new
+changes do not end an open Step review or its findings; evidence-only follow-ups
+continue review of the original change. The separate closure review
 checks every Step and the full Acceptance against current implementation.
-Corrections repeat one Step and its review, then closure when due. If no existing
+Corrections repeat one Step, its review when required, then closure when due. If no existing
 Step covers a missing already required implementation, manager may add that
 Step without changing Acceptance; changed or unclear requirements need the user.
 

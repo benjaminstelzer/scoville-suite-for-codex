@@ -20,28 +20,43 @@ and assess work; implementation diagnosis belongs to the executor.
 3. Wait for the matching complete native result. Retain it once and establish
    writer quiescence. A timeout is not failure or permission to replace a writer.
    A blocking problem returns to manager; ask only a necessary user decision.
-4. Choose Reviewer with the agent check. Dispatch the SAME original Step and
-   complete unchanged Executor final. Review that assignment's actual changes,
-   relevant effects and open findings. An evidence-only follow-up continues
-   review of the original change. No-file-change Steps still get
-   their action and result checked.
+   Check Step completion, required checks and clear effects against the complete
+   result and reconciled retained effects. Earlier unreviewed changes cannot
+   disappear behind a later `changes: none`. Resolve missing or unclear results
+   through the same-Step helper before advancing or deciding on review. For
+   continuation, supply the available complete prior Executor final unchanged as
+   `--executor-result`; keep required review inputs. If the current final cannot
+   carry required retained effects or attribution, report the exact prerequisite;
+   do not loop, invent evidence or classify the Step as unchanged.
+4. Review each Step that changed files, configuration or behavior. A Step without
+   such changes is checked by the closure review. Judge retained and reconciled
+   effects, not only the latest file report. Changes covered by a passed Step
+   review need no new Step review without new changes. If no changes remain to
+   review and no Step review is open, go to item 6. Otherwise choose Reviewer
+   with the agent check. Dispatch the SAME original Step and complete unchanged
+   Executor final. Review its reported changes, relevant effects and open
+   findings. Follow-ups without new changes do not end an open Step review or
+   its findings; evidence-only follow-ups continue review of the original change.
 5. For changes_requested, pass the review objections unchanged as additional
    context to the executor helper for this same Step. Return to Step 2, then
    review the correction. Do not rewrite the original Step, widen scope or
    implement optional ideas. Reuse unaffected successful checks and coverage;
    retain unresolved findings and limits. Earlier coverage is not a current pass.
-6. After pass, save observed Step status and concise evidence, then select the
-   next authorized Step. Routine Plan updates create no extra review phase.
+6. Once the Step is complete and any required Step review has passed, save
+   observed Step status and concise evidence, then select the next authorized
+   Step. Record no review pass for a Step that had no review. Routine Plan
+   updates create no extra review phase.
 
 ## Close the Work Item
 
-After every Step passes, choose this Work Item's Reviewer with the agent check.
+After all Steps are complete and all required Step reviews pass, choose this
+Work Item's Reviewer with the agent check.
 The helper sends the whole original Work Item, all Steps and full Acceptance.
 The reviewer compares current implementation and retained
 evidence with those requirements; this is a closure check, not a general audit.
 
 On findings, keep the same Plan and Work Item. Select ONE affected Step, pass
-the objections as additional context, execute and review it, then repeat the
+the objections as additional context, execute it, review it when item 4 requires, then repeat the
 closure review. If an existing Step covers the defect, use it. If none does,
 manager may add one implementation Step for a named, already binding unchanged
 Acceptance criterion or Work Item requirement. Run that original new Step
@@ -118,6 +133,6 @@ An ordinary completed `blocked` result is not a failed child. This recovery
 never bypasses a failed measurement of an eligible idle agent. Uncertain spawn
 or result prevents duplicate dispatch.
 
-Completion requires requested Acceptance, Step reviews, closure review and
+Completion requires requested Acceptance, required Step reviews, closure review and
 quiescent writers. Report the result and limits, then leave Workflow. Blockers
 and pauses are not completion; new requests activate no automatic successor.
