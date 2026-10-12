@@ -123,9 +123,21 @@ Git is not required when actual reported before/after lines are supplied.
 Unchanged files provide relevant context only. [Operations](operations.md#execute-one-step) decides which Steps require Step
 review; closure checks Steps without changes.
 
-Corrections and open review findings use `--reviewer-result "<complete-review.txt>"`
-as additional context, never rewritten Step text. A continuation may pass the complete prior Executor final as `--executor-result`
-without a Reviewer result. A missing-evidence follow-up after blocked review
+Corrections use `--reviewer-result "<complete-review.txt>"` as additional context
+for unresolved findings affecting the selected Step; never rewrite Step text.
+Supply the complete closure review for closure corrections, but act only on the
+ONE selected affected Step. Never use another Step's final as `--executor-result`.
+A continuation of the SAME original Step may pass its complete prior Executor
+final as `--executor-result` without a Reviewer result.
+When advancing to another Step, omit previous-Step result flags and passed
+reviews. They are not correction inputs. Obtain needed accepted source or artifact
+provenance from original Instructions, named artifacts, retained history and
+relevant saved Work Item Evidence. Read a previous complete final only when
+needed facts are unavailable there; do not turn it into the new Step's role input.
+Preserve required predecessor provenance; if unavailable, block dependent work
+naming the missing input.
+A passed review has no unresolved findings and triggers no correction.
+A missing-evidence follow-up after blocked review
 passes both the reviewed complete Executor final and the blocked Reviewer final.
 Its next review checks the original change with the completed evidence.
 Correction executors retain

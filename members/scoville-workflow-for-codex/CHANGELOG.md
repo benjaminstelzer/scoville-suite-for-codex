@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased - 2026-10-13
+
+- Keep Executor continuation and correction inputs tied to the selected Step.
+  On Step advances, use needed source or artifact provenance instead of routinely
+  transferring earlier Finals and passed reviews. Preserve closure findings.
+
 ## Unreleased - 2026-10-12
 
 - Return complete command output directly when it fits; save only oversized

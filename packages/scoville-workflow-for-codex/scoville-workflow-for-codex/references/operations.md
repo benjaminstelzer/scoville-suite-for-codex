@@ -26,7 +26,7 @@ needed for the task. Explicit invocation gates and user exclusions still apply.
    result and reconciled retained effects. Earlier unreviewed changes cannot
    disappear behind a later `changes: none`. Resolve missing or unclear results
    through the same-Step helper before advancing or deciding on review. For
-   continuation, supply the available complete prior Executor final unchanged as
+   continuation of this same Step, supply its available complete prior Executor final unchanged as
    `--executor-result`; keep required review inputs. If the current final cannot
    carry required retained effects or attribution, report the exact prerequisite;
    do not loop, invent evidence or classify the Step as unchanged.
