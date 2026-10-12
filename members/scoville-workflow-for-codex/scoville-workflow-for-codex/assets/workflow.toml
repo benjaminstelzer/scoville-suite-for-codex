@@ -2,16 +2,16 @@
 schema_version = 1
 context_threshold_percent = 50
 [execute.ultra_low]
-model = "gpt-6-luna"
-reasoning = "medium"
+model = "gpt-6.1-sol"
+reasoning = "low"
 
 [review.ultra_low]
-model = "gpt-6-luna"
-reasoning = "high"
+model = "gpt-6.1-sol"
+reasoning = "low"
 
 [execute.low]
 model = "gpt-6.1-sol"
-reasoning = "low"
+reasoning = "medium"
 
 [review.low]
 model = "gpt-6.1-sol"
@@ -30,13 +30,13 @@ model = "gpt-6.1-sol"
 reasoning = "xhigh"
 
 [review.high]
-model = "gpt-6-astra"
-reasoning = "high"
+model = "gpt-6.1-sol"
+reasoning = "xhigh"
 
 [execute.ultra_high]
-model = "gpt-6-astra"
-reasoning = "high"
+model = "gpt-6.1-sol"
+reasoning = "xhigh"
 
 [review.ultra_high]
-model = "gpt-6-astra"
+model = "gpt-6.1-sol"
 reasoning = "xhigh"

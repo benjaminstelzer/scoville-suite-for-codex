@@ -60,10 +60,10 @@ class NativeWorkflowContractTests(unittest.TestCase):
         source = (PACKAGE / "assets" / "workflow.toml").read_text(encoding="utf-8")
         for altered, diagnostic in (
             (source.replace('schema_version = 1', 'schema_version = true', 1), "schema_version"),
-            (source.replace('reasoning = "high"', 'reasoning = []', 1), "invalid review.ultra_low values"),
-            (source.replace('reasoning = "high"', 'reasoning = { bad = true }', 1), "invalid review.ultra_low values"),
-            (source.replace('[execute.ultra_low]\nmodel = "gpt-6-luna"\nreasoning = "medium"',
-                            '[execute.ultra_low]\nmodel = "gpt-6-luna"\nreasoning = []', 1), "invalid execute.ultra_low values"),
+            (source.replace('[review.ultra_low]\nmodel = "gpt-6.1-sol"\nreasoning = "low"', '[review.ultra_low]\nmodel = "gpt-6.1-sol"\nreasoning = []', 1), "invalid review.ultra_low values"),
+            (source.replace('[review.ultra_low]\nmodel = "gpt-6.1-sol"\nreasoning = "low"', '[review.ultra_low]\nmodel = "gpt-6.1-sol"\nreasoning = { bad = true }', 1), "invalid review.ultra_low values"),
+            (source.replace('[execute.ultra_low]\nmodel = "gpt-6.1-sol"\nreasoning = "low"',
+                            '[execute.ultra_low]\nmodel = "gpt-6.1-sol"\nreasoning = []', 1), "invalid execute.ultra_low values"),
         ):
             with self.subTest(diagnostic=diagnostic), tempfile.TemporaryDirectory() as directory:
                 path = Path(directory) / "workflow.toml"
@@ -75,14 +75,14 @@ class NativeWorkflowContractTests(unittest.TestCase):
         config = model_resolver.load_config(PACKAGE / 'assets/workflow.toml', PACKAGE)
         self.assertEqual(set(config), {'schema_version', 'execute', 'review', 'explore', 'context_threshold_percent'})
         expected = {
-            'ultra_low': ('gpt-6-luna', 'medium', 'gpt-6-luna', 'high'),
-            'low': ('gpt-6.1-sol', 'low', 'gpt-6.1-sol', 'medium'),
+            'ultra_low': ('gpt-6.1-sol', 'low', 'gpt-6.1-sol', 'low'),
+            'low': ('gpt-6.1-sol', 'medium', 'gpt-6.1-sol', 'medium'),
             'medium': ('gpt-6.1-sol', 'high', 'gpt-6.1-sol', 'high'),
-            'high': ('gpt-6.1-sol', 'xhigh', 'gpt-6-astra', 'high'),
-            'ultra_high': ('gpt-6-astra', 'high', 'gpt-6-astra', 'xhigh'),
+            'high': ('gpt-6.1-sol', 'xhigh', 'gpt-6.1-sol', 'xhigh'),
+            'ultra_high': ('gpt-6.1-sol', 'xhigh', 'gpt-6.1-sol', 'xhigh'),
         }
         with tempfile.TemporaryDirectory() as directory:
-            for role, table, offset in [('executor', 'execute', 0), ('reviewer', 'review', 2)]:
+            for role, table, offset in [('executor', 'execute', 0), ('reviewer', 'review', 2), ('explorer', 'explore', 0)]:
                 self.assertEqual(set(config[table]), set(expected))
                 for route, values in expected.items():
                     with self.subTest(role=role, route=route):

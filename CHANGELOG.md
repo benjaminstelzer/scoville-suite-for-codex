@@ -4,6 +4,8 @@
 
 ## Unreleased - 2026-10-13
 
+- Use Sol 6.1 for all Workflow routes with matching Executor/Reviewer effort: Low, Medium, High, XHigh, XHigh. Explorer inherits execution defaults; keep the 50% context threshold.
+
 - Keep Executor continuation and correction inputs tied to the selected Step.
   On Step advances, use needed source or artifact provenance instead of routinely
   transferring earlier Finals and passed reviews. Preserve closure findings.
