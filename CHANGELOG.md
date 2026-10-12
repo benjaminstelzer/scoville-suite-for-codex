@@ -4,6 +4,14 @@
 
 ## Unreleased - 2026-10-12
 
+- Keep tests open to equivalent implementations: justify internal-work bounds,
+  verify measurements and preserve exact contractual guarantees.
+
+- Write each Plan Step's own completion condition and checks; preserve them
+  during repair and cleanup without adding unrequested requirements.
+- Keep Executors within the selected original Step; full Work Item criteria
+  constrain it and do not authorize additional work.
+
 - Initialize Workflow agents once and send only task context on reuse for
   Executor, Reviewer and Explorer. Keep both review levels available.
 - Use readable new-file content instead of copying it into Executor results;

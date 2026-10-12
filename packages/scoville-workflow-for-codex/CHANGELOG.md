@@ -2,6 +2,9 @@
 
 ## Unreleased - 2026-10-12
 
+- Perform only the selected original Step. Treat full Work Item criteria as
+  constraints, not extra scope; report material Step ambiguity before writes.
+
 - Set up role, Writing/Shell and result rules once per fresh agent. Reuse sends
   only the next original task and its evidence; retain both Reviewer policies.
 - Report newly created files by their complete readable path instead of copying

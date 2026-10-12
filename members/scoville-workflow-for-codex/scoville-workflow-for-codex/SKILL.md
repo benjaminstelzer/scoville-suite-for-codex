@@ -12,7 +12,7 @@ Plans, Decisions and the index, but no source code. It coordinates three roles:
 | Role | Assignment | Rights |
 | --- | --- | --- |
 | Explorer | Investigate questions, ideas and planning preparation; report to manager. | Read only; no tests or Plan edits. |
-| Executor | Implement exactly one original Step and its required checks. | Read and write assigned source; no Plan edits. |
+| Executor | Perform exactly one original Step and its required checks. | Read and write assigned source; no Plan edits. |
 | Reviewer | Review that Step or, after all Steps, the whole Work Item. | Read only; no tests or Plan edits. |
 
 Only necessary oversized-result delivery under the shared procedure permits
