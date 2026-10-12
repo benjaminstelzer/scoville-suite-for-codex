@@ -46,7 +46,7 @@ settings, create Codex chats or assume a `close_agent` tool exists.
 2. Require the exact adviser's native final and completion. Match host sender
    to retained handle and answer to the latest question, adviser identity,
    reference and scope. Questions and substantive send_message are partial.
-3. For complete-file delivery, verify SHA-256 and read the entire file before
+3. For complete-file delivery, verify each new artifact once and read the entire file before
    accepting or using it. Metadata alone is insufficient.
 4. Retain complete answers once. Missing or incomplete answers remain unresolved.
 5. If only a label repeats, identify the answer from its retained assignment.

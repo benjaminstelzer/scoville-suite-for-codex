@@ -2,6 +2,10 @@
 
 ## Unreleased - 2026-10-12
 
+- Return complete command output directly when it fits; save only oversized
+  captures. Verify supplied artifacts once and compare saved native Finals
+  directly, avoiding repeated hash checks for unchanged text.
+
 - Keep Decision bodies on fresh assignments; reuse their current canonical
   identities and reread changed or uncertain sources. Keep manager detail reads
   tied to its decisions and change evidence limited to necessary context.

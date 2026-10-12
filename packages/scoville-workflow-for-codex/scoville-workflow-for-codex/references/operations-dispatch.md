@@ -163,7 +163,7 @@ inputs. A binding output cap needs its actual decision; never truncate context.
 Missing helpers or other failures leave the operation blocked.
 
 Wait on exact native handles; timeout is not completion. For oversized results,
-require actual native completion, verify SHA-256 and read the whole supplied
+require actual native completion, verify each new artifact once and read the whole supplied
 file under the shared delivery procedure. Metadata and partial messages are
 not results. Children may use the named external Python/checker only for command capture, size checks
 and necessary result delivery; no unrelated access. They neither edit

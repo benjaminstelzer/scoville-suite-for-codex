@@ -92,8 +92,8 @@ Preserve evidence limits, quotes and technical literals.
 
 1. Match the complete native final and actual completion to the retained handle
    and assignment. Do not infer identity from titles or partial messages.
-2. Save the complete native final unchanged and verify the saved text before
-   dependent dispatch. Concise Plan evidence is separate; never replace a
+2. Save the complete native final unchanged and compare its saved text with
+   the complete native final once before dependent dispatch. Concise Plan evidence is separate; never replace a
    child result with Manager-composed evidence.
 3. Missing required Executor evidence: choose that Executor through the agent
    check, rebuild the SAME Step with the complete blocked Reviewer final as
