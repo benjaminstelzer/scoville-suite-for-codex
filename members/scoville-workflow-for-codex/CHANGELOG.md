@@ -2,6 +2,10 @@
 
 ## Unreleased - 2026-10-12
 
+- Keep Decision bodies on fresh assignments; reuse their current canonical
+  identities and reread changed or uncertain sources. Keep manager detail reads
+  tied to its decisions and change evidence limited to necessary context.
+
 - Review Steps only after file, configuration or behavior changes; keep unchanged Steps in closure review. Preserve open reviews and retained same-Step effects through existing result inputs.
 - Perform only the selected original Step. Treat full Work Item criteria as
   constraints, not extra scope; report material Step ambiguity before writes.

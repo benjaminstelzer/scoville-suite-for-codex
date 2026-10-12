@@ -28,6 +28,9 @@ and assess work; implementation diagnosis belongs to the executor.
    `--executor-result`; keep required review inputs. If the current final cannot
    carry required retained effects or attribution, report the exact prerequisite;
    do not loop, invent evidence or classify the Step as unchanged.
+   Read supporting artifacts only when needed for these manager decisions;
+   the reviewer inspects their technical details. Read the complete native final
+   or its complete externalized text in either case.
 4. Review each Step that changed files, configuration or behavior. A Step without
    such changes is checked by the closure review. Judge retained and reconciled
    effects, not only the latest file report. Changes covered by a passed Step

@@ -2,6 +2,7 @@
 """Build a complete single-unit assignment without transport receipts."""
 from __future__ import annotations
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -48,7 +49,35 @@ def select_unit(selector: Path, root: Path, unit: str, max_output_bytes: int | N
         raise ValueError("Plan selector returned another unit")
     if not isinstance(item.get("source_text"), str) or not item["source_text"]:
         raise ValueError("SELECTOR_INCOMPATIBLE: Plan must provide source_text")
+    data["decision_sources"] = decision_sources(root, data)
     return data
+
+
+def decision_sources(root: Path, context: dict) -> list[dict]:
+    """Bind the selected Decisions to their current canonical UTF-8 sources."""
+    from select_context import (DECISION_ID_RE, DECISION_FILE_RE, SelectorError, find_record_path,
+                                safe_read_text, parse_record, require_format_version, parse_inline_ids)
+    try:
+        ids = parse_inline_ids(context["work_item"]["decisions"].removeprefix("Decisions: "),
+                               DECISION_ID_RE, "Decisions", context["work_item"]["unit"])
+        texts = context["decisions"]
+        if len(ids) != len(texts):
+            raise ValueError("Decision selection does not match the linked set")
+        sources = []
+        for record_id, selected_text in zip(ids, texts):
+            relative = find_record_path(root, "docs/decisions", record_id, DECISION_ID_RE, DECISION_FILE_RE)
+            text = safe_read_text(root, relative)
+            record = parse_record(text, relative)
+            require_format_version(record, relative)
+            status = record.frontmatter.get("status")
+            if record.frontmatter.get("id") != record_id or text != selected_text or not status:
+                raise ValueError(f"Decision source changed or mismatches selection: {record_id}")
+            single_line(status, "Decision status")
+            sources.append(dict(id=record_id, path=str(root.resolve() / relative), status=status,
+                                sha256=hashlib.sha256(text.encode("utf-8")).hexdigest()))
+        return sources
+    except SelectorError as error:
+        raise ValueError(f"Decision source resolution failed: {error.code}: {error.message}") from error
 
 
 def work_item_context(item: dict) -> str:
@@ -123,6 +152,7 @@ checks: <each decisive command or observation and its actual result; also non-fi
 problems: <cause and effect, or none>
 limits: <missing baseline or other evidence limit, or none>
 For a new file created by this assignment or a reported retained effect of this SAME Step, use before: "new file" and after: "current file"; do not repeat its content.
+Include unchanged context only where needed to identify the exact changed lines unambiguously.
 A behavior description is not before/after evidence. Report changes made by this assignment and reconciled effects of this SAME Step still awaiting review. An executor_result without reviewer_result is the complete prior final of this SAME Step: complete the Step and carry its reported effects still awaiting review with available original attribution. If required evidence is unavailable, report the limit; do not report the Step as unchanged. If reviewer_result is blocked only for missing change evidence, this is an evidence-only follow-up: report the original reviewed change completely using executor_result and reviewer_result. Make no new file, configuration or behavior changes and repeat no unchanged successful checks solely for that evidence. If required original evidence is unavailable, return blocked naming it. Use changes: none only when neither this assignment nor a reported retained effect of this SAME Step changed a file; an evidence-only follow-up reports the original change. Preserve unrelated changes. Do not claim attribution you cannot prove."""),
         "Return the complete result through your native final only, then stay inactive until the manager gives the next helper assignment. Do not also send a duplicate result.",
     ]
@@ -134,7 +164,7 @@ def build_explorer_prompt(workspace: Path, context: dict, role_input: dict, lang
     return role_prompt('explorer', workspace, context, role_input, language, reuse=reuse)
 
 
-def binding_context(context: dict) -> list[str]:
+def binding_context(context: dict, *, reuse: bool = False) -> list[str]:
     if not context:
         return []
     plan = context['plan']
@@ -149,9 +179,17 @@ def binding_context(context: dict) -> list[str]:
     if plan.get('goal'):
         lines.append(plan['goal'])
     lines.append(exclusions)
-    for decision in context.get('decisions', []):
-        if re.search(r'^status: accepted\r?$', decision, re.M):
-            lines.append('## Binding Decision\n' + decision)
+    sources = context.get('decision_sources', [])
+    if context.get('decisions') and len(sources) != len(context['decisions']):
+        raise ValueError('Decision source identities missing; select the unit again')
+    if sources:
+        lines.append('## Decision sources (current linked set)\n' + '\n'.join(
+            f"- {source['id']} | {source['status']} | {source['path']} | sha256:{source['sha256']}"
+            for source in sources))
+    if not reuse:
+        for decision in context.get('decisions', []):
+            if re.search(r'^status: accepted\r?$', decision, re.M):
+                lines.append('## Binding Decision\n' + decision)
     if context.get('direct_dependencies'):
         lines.append('## Dependency state\n' + json.dumps(context['direct_dependencies'], ensure_ascii=False))
     lines.append('## Work Item context\n' + work_item_context(context['work_item']))
@@ -167,7 +205,7 @@ def role_prompt(role: str, workspace: Path, context: dict, role_input: dict, lan
         task = ['Task: investigate the supplied request.' if role == 'explorer' else 'Task: execute the assigned unit.']
     if role != 'explorer':
         task.append('## Assigned unit\n' + context['work_item']['unit'])
-    task.extend(binding_context(context))
+    task.extend(binding_context(context, reuse=reuse))
     task.extend('## ' + key + '\n' + value for key, value in role_input.items())
     if reuse:
         return '\n'.join(task + [f'Communication language: {language}.']) + '\n'
@@ -192,6 +230,7 @@ def role_prompt(role: str, workspace: Path, context: dict, role_input: dict, lan
         'Use the named interpreter and checker for command capture, size checks and complete result delivery, even outside the workspace. Only necessary oversized-result preparation/publication under .scoville/temp is permitted for read-only roles; no source captures or unrelated external access.',
         "The complete matching writing and shell-command rules below satisfy their required reads.",
         'Retain your role, writing, shell-command and result rules for later tasks; later assignments contain only the next task. Do not reload already read rules or Skills for each message.',
+        'Retain fully read Decisions with their source identities. Each task supplies the current linked Decision list. Reuse a body only when its ID, status and SHA-256 of complete UTF-8 bytes match a complete retained read. Read every new, changed or uncertain Decision completely before dependent work and verify its listed digest. Non-accepted or no-longer-linked Decisions are not binding for this unit merely because an earlier task included them; do not infer new permissions from their removal. Missing, ambiguous or mismatching required sources block dependent work.',
         writing, shell_text,
     ]
     if role == 'explorer':

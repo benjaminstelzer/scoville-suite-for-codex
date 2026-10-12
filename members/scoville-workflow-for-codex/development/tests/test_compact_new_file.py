@@ -47,7 +47,7 @@ class CompactNewFileTests(unittest.TestCase):
                 self.assertNotIn('AGENTS.md', followup)
                 self.assertNotIn('Use these fields', followup)
                 self.assertNotIn('Choose appropriate Skills', followup)
-                for binding in prompt_builder.binding_context(context):
+                for binding in prompt_builder.binding_context(context, reuse=True):
                     self.assertIn(binding, followup)
                 for key, value in inputs.items():
                     self.assertIn('## ' + key + '\n' + value, followup)

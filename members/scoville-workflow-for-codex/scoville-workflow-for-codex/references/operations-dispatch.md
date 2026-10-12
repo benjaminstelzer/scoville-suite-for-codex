@@ -82,7 +82,10 @@ A mismatch or failed reuse measurement publishes nothing.
 
 The manager supplies selection IDs, role and selected pair; the helper extracts
 original Plan identity, Goal, Non-goals, binding Work Item fields, Instructions
-and accepted linked Decisions. Only the selected Step body is included in a
+and the current linked Decision sources. Fresh includes accepted Decision
+texts; reuse lists ID, canonical path, status and SHA-256 instead of repeating
+known bodies. New, changed or uncertain Decisions require complete verified
+reading before dependent work. Only the selected Step body is included in a
 Step assignment. Other Step bodies, accumulated Evidence and Work Item-wide
 Next action are excluded. Closure includes the full original Work Item.
 Do not compose, shorten, translate or rewrite those texts.

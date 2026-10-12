@@ -4,6 +4,10 @@
 
 ## Unreleased - 2026-10-12
 
+- Keep Decision bodies on fresh assignments; reuse their current canonical
+  identities and reread changed or uncertain sources. Keep manager detail reads
+  tied to its decisions and change evidence limited to necessary context.
+
 - Review only Steps that changed files, configuration or behavior; closure covers unchanged Steps. Keep retained Step effects and open reviews through existing result inputs.
 - Apply test-expectation criteria to affected existing assertions as well as new
   tests, preserving independent contracts and required guarantees.
