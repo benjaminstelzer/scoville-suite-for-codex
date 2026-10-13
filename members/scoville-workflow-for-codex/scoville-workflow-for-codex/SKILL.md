@@ -17,8 +17,9 @@ Plans, Decisions and the index, but no source code. It coordinates three roles:
 
 Only necessary oversized-result delivery under the shared procedure permits
 temporary writes by read-only roles. At most one executor writes. The manager
-edits records only after the writer stops. It stages and commits only when
-authorized. There is no Runner, successor manager or mid-assignment rollover.
+edits records only after the writer stops. Workflow activation authorizes
+accepted-Step commits, subject to explicit user and project restrictions.
+There is no Runner, successor manager or mid-assignment rollover.
 
 Apply the [shared writing rules](references/writing.md). A complete read of
 these rules and their linked shell-command rules also satisfies that read for
@@ -51,6 +52,12 @@ Setup owns subagent pairs; user overrides must name the affected role.
 
 {{ include: rules.python }}
 
+Git and a Git worktree are required. Before Plan writes on each explicit
+activation, require empty `git status --porcelain --untracked-files=all`;
+a failed command or dirty path blocks activation. Report it; start no Executor
+and do not clean existing work automatically. Host continuation, compaction
+and rule reload do not repeat this gate or interrupt an active writer.
+
 Read [operations](references/operations.md) and use Scoville Plan to establish
 authorized Plan, current Work Item and next unfinished Step. Read
 [dispatch](references/operations-dispatch.md) before assigning work. Agents
@@ -65,6 +72,7 @@ Change it only when authorized work moves to another Plan; report rename errors.
 
 ```mermaid
 flowchart TD
+  G{"Activation: Git workspace clean before Plan writes?"}
   M{"Question, idea or change?"}
   X["Choose Explorer; investigate read-only"]
   U["Manager: answer; write authorized records"]
@@ -77,15 +85,18 @@ flowchart TD
   D{"Step review result"}
   V{"Manager: Step complete, required checks met, effects clear?"}
   Q{"Changes or open Step review?"}
-  A["Manager: record completed Step and evidence"]
+  A["Manager: record completed unchanged Step"]
+  CP["Manager: record Step; commit reviewed work and Plan progress"]
   K{"All Steps complete and required Step reviews passed?"}
   B{"Next Step authorized?"}
-  T["Stop at authorized boundary; leave Work Item open"]
+  T["Commit pending Plan if no unreviewed work; stop with Work Item open"]
   C["Choose Reviewer; review all Steps and full Acceptance"]
   F{"Closure result"}
   O["Select ONE affected Step"]
   Z["Manager: accept Work Item; select authorized successor"]
   H["Manager: resolve exact prerequisite; stop dependent work"]
+  G -->|yes| M
+  G -->|no or Git unavailable| H
   M -->|yes| X --> U --> M
   M -->|no| S --> P --> E --> N --> J
   J -->|done| V
@@ -96,7 +107,10 @@ flowchart TD
   J -->|blocked| H
   D -->|changes_requested| P
   D -->|blocked| H
-  D -->|pass| A --> K
+  D -->|pass| CP
+  CP -->|success or no versionable changes| K
+  CP -->|commit failed or forbidden| H
+  A --> K
   K -->|no| B
   B -->|yes| S
   B -->|no| T
@@ -116,7 +130,8 @@ The diagram grants no scope; closure findings without a matching Step follow ope
 Review each Step that changed files, configuration or behavior. A Step without
 such changes is checked by the closure review. Apply
 [operations](references/operations.md#execute-one-step) before advancing or
-dispatching review; `changes: none` alone means only no file changes. The helper
+dispatching review. Git shows file changes; reported checks cover non-file and
+ignored-output effects. The helper
 sends original Plan context and exactly the selected Step. The manager supplies
 selection IDs and review objections as additional context; it does not compose,
 shorten or rewrite the dispatch. Step review covers actual changes of the selected
@@ -124,6 +139,9 @@ Executor assignment, relevant effects and open findings. A follow-up without
 new changes does not end an open Step review or its findings; an evidence-only
 follow-up continues review of the original change. Closure checks all
 original Steps and full Acceptance against current implementation and evidence.
+After a changed Step passes review, the manager records and commits its accepted
+changes with Plan progress before advancing. Preserve foreign work; make no
+empty commits. The Work Item start commit supplies the closure range.
 
 Before every assignment, run the agent check. Executor and Reviewer belong to
 the current Work Item; Explorer belongs to this manager thread. The one Setup
@@ -131,7 +149,8 @@ threshold is checked between assignments, never during an ongoing write.
 
 Before acting, check:
 1. The current request, required role, authorized scope and completed prerequisites.
-2. Before source execution: saved and validated start/resume state.
+2. On activation: clean Git before Plan writes. Before source execution:
+   saved and validated start/resume state.
 3. Complete unchanged inputs and permission to dispatch from the agent check.
 
 Use the existing Plan, agent and dispatch helpers for their checks. Before

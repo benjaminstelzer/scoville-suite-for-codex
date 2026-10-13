@@ -65,7 +65,7 @@ class ExecutionStartTests(unittest.TestCase):
 
     def test_correction_preserves_native_objections_and_changes_no_project_file(self):
         review = self.base / 'review.txt'
-        original = 'status: blocked\nblocker: Missing exact before lines for owner.py.\n'
+        original = 'status: blocked\nblocker: Required runtime check result for owner.py is missing.\n'
         review.write_text(original, encoding='utf-8')
         before = {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
         native = self.consume(self.build('--reviewer-result', review))

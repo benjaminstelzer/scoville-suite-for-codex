@@ -4,6 +4,10 @@
 
 ## Unreleased - 2026-10-13
 
+- Require Git and a clean worktree before Workflow activation. Commit accepted
+  Steps with Plan progress; replace manual before/after reports with Git review
+  and keep generated-output checks tied to the task.
+
 - Use Sol 6.1 for all Workflow routes with matching Executor/Reviewer effort: Low, Medium, High, XHigh, XHigh. Explorer inherits execution defaults; keep the 50% context threshold.
 
 - Keep Executor continuation and correction inputs tied to the selected Step.

@@ -118,8 +118,7 @@ For Step review, use the SAME `--unit`, `--role reviewer` and
 `--executor-result "<complete-native-result.txt>"`. For closure use `--unit W-001`
 and the latest complete Executor final. Save native finals unchanged for both
 levels; never compose a substitute result. Earlier results and coverage remain
-in Work Item Evidence. Missing required change attribution prevents pass;
-Git is not required when actual reported before/after lines are supplied.
+in Work Item Evidence. Missing required change attribution prevents pass.
 Unchanged files provide relevant context only. [Operations](operations.md#execute-one-step) decides which Steps require Step
 review; closure checks Steps without changes.
 

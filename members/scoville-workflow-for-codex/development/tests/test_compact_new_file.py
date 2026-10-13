@@ -12,7 +12,7 @@ class CompactNewFileTests(unittest.TestCase):
             root = Path(directory) / 'project'
             copy_started_profile(root)
             context = prompt_builder.select_unit(SELECTOR, root, 'W-001/step-1')
-            report = 'status: done\nchanges:\n- path: created.py\n  before: new file\n  after: current file\nchecks: local assertion passed\nproblems: none\nlimits: none\n'
+            report = 'status: done\nchanges: created.py adds the requested helper; dist/ holds generated copies\nchecks: generator exited 0; expected outputs created in this run\nproblems: none\nlimits: none\n'
             new_file = 'NEW_FILE_CONTENT_READ_SEPARATELY = True\n'
             (root / 'created.py').write_text(new_file, encoding='utf-8')
             before = {p: p.read_bytes() for p in root.rglob('*') if p.is_file()}

@@ -7,6 +7,8 @@ manager does not rewrite the assignment. Agents choose relevant Skills themselve
 
 ```mermaid
 flowchart TD
+    G{"Activation: Git workspace clean before Plan writes?"} -->|Yes| S
+    G -->|No or Git unavailable| BP
     S["Manager selects ONE Step"] --> ST["Manager saves execution start/resume state"]
     ST --> E{"Executor for current Work Item exists?"}
     E -->|No| EN["Spawn and initialize Executor once"]
@@ -38,11 +40,13 @@ flowchart TD
     A -->|blocked| BP
     A -->|changes_requested| F["Manager adds unchanged review result; same Step"]
     F --> ST
-    A -->|pass| SA
+    A -->|pass| CS["Manager records Step; commits reviewed work and Plan progress"]
+    CS -->|success or no versionable changes| N
+    CS -->|commit failed or forbidden| BP
     SA --> N{"All Steps complete and required Step reviews passed?"}
     N -->|No| NA{"Next Step authorized?"}
     NA -->|Yes| S
-    NA -->|No| STOP["Stop; Work Item stays open"]
+    NA -->|No| STOP["Commit pending Plan if no unreviewed work; stop with Work Item open"]
     N -->|Yes| C["Select Reviewer by same agent check; helper sends full Work Item"]
     C --> P{"Closure result"}
     P -->|blocked| BP
@@ -76,14 +80,19 @@ newly selected model pair requires a new agent. Ongoing writes are not interrupt
 for threshold checks. Host compaction continues the same assignments.
 
 Use complete unchanged native finals for review and correction inputs. Missing
-required before/after attribution blocks review; recover it through the same
+required change attribution blocks review; recover it through the same
 Step and agent check, never through a Manager-composed substitute.
+Git is required. Activation checks a clean worktree before Plan writes; it
+does not automatically clean existing work. Each passed changed Step is committed
+with Plan progress before advancing. Reviewers use Git status and diff HEAD;
+closure uses the Work Item start commit. Make no empty commits.
 
 Review each Step that changed files, configuration or behavior. A Step without
 such changes is checked by the closure review. The manager checks completion,
 required checks and clear effects using the complete result and reconciled
 retained effects. Missing or unclear results are resolved first; `changes: none`
-alone means only no file changes. Step review covers reported changes of the
+alone means only no file changes; Git and actual non-file or ignored-output
+evidence determine effects. Step review covers changes of the
 selected Step, necessary context and open findings. Follow-ups without new
 changes do not end an open Step review or its findings; evidence-only follow-ups
 continue review of the original change. The separate closure review

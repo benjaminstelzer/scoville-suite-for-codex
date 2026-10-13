@@ -10,8 +10,18 @@ and assess work; implementation diagnosis belongs to the executor.
 
 ## Execute one Step
 
+On each explicit Workflow activation, before Plan writes, require a Git worktree
+with empty `git status --porcelain --untracked-files=all`. A failed command or
+listed path blocks activation: report the prerequisite or paths; start no
+Executor. Do not discard, stash, stage or commit existing work to get clean.
+Host continuation, compaction and rule reload are not new activation; do not
+interrupt an active writer.
+Before leaving Workflow, commit pending owned Plan records when no unreviewed
+implementation changes remain; otherwise report the dirty paths.
+
 1. Select the authorized Plan, current Work Item and exactly one Step. Preserve
-   order and dependencies. Save actual start/resume state through Plan;
+   order and dependencies. At Work Item start, note HEAD in its existing Evidence
+   for closure. Save actual start/resume state through Plan;
    selecting a Step alone is not a start. The dispatch helper validates the
    saved profile and started state before publishing an Executor assignment.
 2. Choose Executor with the [agent check](operations-dispatch.md#check-the-agent-before-every-assignment).
@@ -21,20 +31,19 @@ and assess work; implementation diagnosis belongs to the executor.
    writer quiescence. A timeout is not failure or permission to replace a writer.
    A blocking problem returns to manager; ask only a necessary user decision.
    Check Step completion, required checks and clear effects against the complete
-   result and reconciled retained effects. Earlier unreviewed changes cannot
-   disappear behind a later `changes: none`. Resolve missing or unclear results
+   result, Git status/diff HEAD and reported non-file or ignored-output effects.
+   Resolve missing or unclear results
    through the same-Step helper before advancing or deciding on review. For
    continuation of this same Step, supply its available complete prior Executor final unchanged as
    `--executor-result`; keep required review inputs. If the current final cannot
-   carry required retained effects or attribution, report the exact prerequisite;
+   provide required non-Git evidence, report the exact prerequisite;
    do not loop, invent evidence or classify the Step as unchanged.
    Read supporting artifacts only when needed for these manager decisions;
    the reviewer inspects their technical details. Read the complete native final
    or its complete externalized text in either case.
 4. Review each Step that changed files, configuration or behavior. A Step without
-   such changes is checked by the closure review. Judge retained and reconciled
-   effects, not only the latest file report. Changes covered by a passed Step
-   review need no new Step review without new changes. If no changes remain to
+   such changes is checked by the closure review. Use Git for file changes and
+   reported effects for configuration, behavior and ignored outputs. If no changes remain to
    review and no Step review is open, go to item 6. Otherwise choose Reviewer
    with the agent check. Dispatch the SAME original Step and complete unchanged
    Executor final. Review its reported changes, relevant effects and open
@@ -46,9 +55,13 @@ and assess work; implementation diagnosis belongs to the executor.
    implement optional ideas. Reuse unaffected successful checks and coverage;
    retain unresolved findings and limits. Earlier coverage is not a current pass.
 6. Once the Step is complete and any required Step review has passed, save
-   observed Step status and concise evidence, then select the next authorized
-   Step. Record no review pass for a Step that had no review. Routine Plan
-   updates create no extra review phase.
+   Step status and concise evidence. Commit the reviewed Step changes with Plan
+   progress before selecting the next Step. Foreign or unreviewed work prevents
+   this boundary; report its paths, never stage it. A failed or forbidden commit stops
+   advancement; report the obstacle. Confirm clean Git status after the commit.
+   Make no empty commits. A truly unchanged
+   Step needs no Step review or Step commit; retain its Plan progress.
+   Record no unperformed review pass. Routine Plan edits create no extra review.
 
 ## Close the Work Item
 
@@ -67,7 +80,7 @@ through the normal loop. Changed scope, Acceptance, contradictory requirements
 or materially unclear meaning need the user; do not invent a Step to bypass them.
 
 Mark the Work Item done only after its Acceptance and closure review pass.
-Validate the coherent Plan update. Stage and commit only when authorized,
+Validate and commit the coherent Plan update,
 respecting repository checks and backups. Clear Executor/Reviewer associations
 when moving to the next Work Item; retain Explorer for this manager thread.
 Finish only the authorized scope. A bounded run can leave unrequested work open.

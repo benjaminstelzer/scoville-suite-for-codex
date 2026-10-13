@@ -2,6 +2,12 @@
 
 ## Unreleased - 2026-10-13
 
+- Require Git and a clean worktree before activation. Commit each accepted
+  changed Step with Plan progress before advancing; review with Git instead of
+  mandatory before/after reports or full reads of every new file. Check ordinary
+  generated copies through current creation and expected outputs, without
+  routine content or hash comparisons.
+
 - Use Sol 6.1 for all Workflow routes with matching Executor/Reviewer effort: Low, Medium, High, XHigh, XHigh. Explorer inherits execution defaults; keep the 50% context threshold.
 
 - Keep Executor continuation and correction inputs tied to the selected Step.

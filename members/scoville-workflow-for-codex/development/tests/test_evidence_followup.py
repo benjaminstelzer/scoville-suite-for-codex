@@ -1,4 +1,4 @@
-"""Preserve the original delta and unresolved review in packaged follow-ups."""
+"""Preserve complete results and unresolved review in packaged follow-ups."""
 import json
 from pathlib import Path
 import subprocess
@@ -16,12 +16,10 @@ class EvidenceFollowupTests(unittest.TestCase):
             copy_started_profile(root)
             original_step = '1. [status: in_progress] Read the canonical files.'
             blockers = (
-                'status: blocked\nblocker: owner.py has no exact after lines.\nlimits: Change remains unreviewed.\n',
+                'status: blocked\nblocker: Required runtime check result is missing.\nlimits: Change remains unreviewed.\n',
                 'status: changes_requested\nfindings: owner.py returns a string; return a number. Step 1.\n',
             )
-            final = ('status: done\nchanges:\n- path: owner.py\n'
-                     '  before: return price * quantity\n'
-                     '  after: return price * quantity * (1 - discount)\n'
+            final = ('status: done\nchanges: owner.py applies the requested discount\n'
                      'checks: unchanged previous check passed\nproblems: none\nlimits: none\n')
             for index, review in enumerate(blockers):
                 review_file = Path(folder) / f'review-{index}.txt'
@@ -63,16 +61,14 @@ class EvidenceFollowupTests(unittest.TestCase):
             result_file = Path(folder) / 'result.txt'
             review_file = Path(folder) / 'review.txt'
             result_file.write_text('status: done\nchanges: owner.py\n', encoding='utf-8')
-            review_file.write_text('status: blocked\nblocker: Missing after line.\n', encoding='utf-8')
+            review_file.write_text('status: blocked\nblocker: Required runtime check result is missing.\n', encoding='utf-8')
             common = [sys.executable, '-B', str(PACKAGE / 'scripts/build_dispatch_prompt.py'),
                       '--project-root', str(root), '--unit', 'W-001/step-1', '--role', 'executor',
                       '--communication-language', 'German', '--format', 'create', '--project-name', 'fixture',
                       '--worker-number', '1', '--model', 'gpt-6-luna', '--thinking', 'medium',
                       '--override-reason', 'Fixture role choice', '--executor-result', str(result_file)]
             assignment = Path(folder) / 'continued.txt'
-            prior = ('status: blocked\nchanges:\n- path: owner.py\n'
-                     '  before: return price * quantity\n'
-                     '  after: return str(price * quantity)\n'
+            prior = ('status: blocked\nchanges: owner.py returns the calculated price as text\n'
                      'checks: required lint still pending\nlimits: none\n')
             result_file.write_text(prior, encoding='utf-8')
             before = {p: p.read_bytes() for p in root.rglob('*') if p.is_file()}
