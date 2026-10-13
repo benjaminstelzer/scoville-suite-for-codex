@@ -180,7 +180,7 @@ and reasoning. Unspecified Explorer fields inherit effective Executor values.
 The host chooses the manager model. Reads create no file.
 
 `workflow.context_threshold_percent` is the one threshold for all subagents.
-Its bundled default is 50. Reuse an idle associated agent below it; start a new
+Its bundled default is 30. Reuse an idle associated agent below it; start a new
 one at or above it. Check only before assignments. A failed measurement is a
 technical problem, not a spawn fallback. There is no manager threshold or rollover.
 

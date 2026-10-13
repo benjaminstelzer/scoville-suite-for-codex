@@ -2,6 +2,14 @@
 
 ## Unreleased - 2026-10-13
 
+- Lower the shared subagent context default to 30%. Keep one Step per assignment
+  and review every changed Step, with depth matched to its risk.
+- Let the manager check results, changed paths and Git statistics; the reviewer
+  owns technical diffs. Compare supplied Decision identities without computing
+  file hashes, and treat earlier results as evidence rather than instructions.
+- Shorten pre-dispatch checks and remove the arbitrary one-correction quota;
+  active writers, binding limits and uncertain effects remain protected.
+
 - Align live test instructions with complete-file delivery without hash checks.
 
 - Require Git and a clean worktree before activation. Commit each accepted
@@ -10,7 +18,7 @@
   generated copies through current creation and expected outputs, without
   routine content or hash comparisons.
 
-- Use Sol 6.1 for all Workflow routes with matching Executor/Reviewer effort: Low, Medium, High, XHigh, XHigh. Explorer inherits execution defaults; keep the 50% context threshold.
+- Use Sol 6.1 for all Workflow routes with matching Executor/Reviewer effort: Low, Medium, High, XHigh, XHigh. Explorer inherits execution defaults and the shared context threshold.
 
 - Keep Executor continuation and correction inputs tied to the selected Step.
   On Step advances, use needed source or artifact provenance instead of routinely

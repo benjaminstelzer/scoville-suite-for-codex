@@ -16,7 +16,7 @@ AGENT='/root/manager/executor'
 THREAD='fixture-child-session'
 
 
-def events(used=49):
+def events(used=29):
     usage={'input_tokens':used-1,'output_tokens':1,'total_tokens':used}
     payloads=[
         ('session_meta',{'id':THREAD,'source':{'subagent':{'thread_spawn':{'agent_path':AGENT,'parent_thread_id':'fixture-parent'}}}}),
@@ -46,15 +46,15 @@ class ContextTests(unittest.TestCase):
             '--agent-id',AGENT,'--project-root',str(self.root),
             '--sessions-root',str(self.sessions),*extra],env={**os.environ,'CODEX_THREAD_ID':'fixture-parent'},capture_output=True,text=True,encoding='utf-8')
 
-    def test_below_exact_and_above_default50(self):
-        for used,action in ((49,'reuse'),(50,'spawn'),(51,'spawn')):
+    def test_below_exact_and_above_default30(self):
+        for used,action in ((29,'reuse'),(30,'spawn'),(31,'spawn')):
             with self.subTest(used=used):
                 self.write(events(used));run=self.run_helper()
                 self.assertEqual(run.returncode,0,run.stderr)
                 data=json.loads(run.stdout)
                 self.assertEqual(data['action'],action)
                 self.assertEqual(data['used_tokens'],used)
-                self.assertEqual(data['threshold_percent'],50)
+                self.assertEqual(data['threshold_percent'],30)
                 self.assertEqual((data['thread_id'], data['parent_thread_id']), (THREAD, 'fixture-parent'))
                 self.assertEqual((data['model'],data['reasoning_effort']),('gpt-6-luna','medium'))
                 self.assertEqual(data.get('replacement_of'), AGENT if action == 'spawn' else None)

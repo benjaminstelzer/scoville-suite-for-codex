@@ -38,15 +38,12 @@ and Reviewer belong to the current Work Item; Explorer belongs to this manager
 thread. Apply this agent check to execution, review, closure, corrections and
 missing-result questions:
 
-1. Find the owner's associated role agent.
-   - None: first creation. Continue at step 5.
-   - Confirmed failed or interrupted: complete [failure recovery](operations.md#stop-compaction-and-failure). End this agent check; recovery performs the redispatch. Do not measure it.
-   - Otherwise continue. An ordinary completed `blocked` result is not a failed child.
-2. Establish actual completion and idle state from the matching complete native
-   final and native state. A status word alone proves neither. Running or
-   uncertain: wait or reconcile; dispatch nothing. Never interrupt an active
-   agent for the threshold.
-3. Measure the bound agent's last completed turn:
+1. Find the associated role agent. None: create fresh at item 4. Confirmed
+   failure or interruption: use [failure recovery](operations.md#stop-compaction-and-failure)
+   and end this check. Otherwise establish completion and idle state from its
+   complete native final and native state. Running or uncertain: wait; dispatch
+   nothing. An ordinary completed `blocked` result is not a failed child.
+2. When the next assignment is ready, measure this idle agent once:
 
    ```text
    python "<workflow>/scripts/check_agent_context.py" --project-root "<workspace>" --agent-id "<exact-handle>" --session-path "<retained-session-path>"
@@ -54,7 +51,7 @@ missing-result questions:
 
    Omit `--session-path` until a measurement of this agent returned it.
 
-4. Act on the helper's returned `action`:
+3. Act on the helper's returned `action`:
 
    | Result | Dispatch arguments |
    | --- | --- |
@@ -62,12 +59,12 @@ missing-result questions:
    | `spawn`: at or above threshold | Fresh agent: `--replacement-of` from `replacement_of`, `--model` from `model`, `--thinking` from `reasoning_effort`. Keep the old agent idle. |
    | `blocked` or nonzero exit | No dispatch: report the technical problem. Neither reuse nor replacement is permitted, including a fresh pair-change route. |
 
-5. Apply the pair choices above. First creation normally uses `--route`;
-   explicit Step annotations remain binding. An authorized user role choice
-   uses its pair flags and `--override-reason`. An explicit Step change uses
-   fresh `--route`; a required exposed capability may justify a fresh pair.
-   State the reason. A later inferred route never changes the retained pair.
-6. Build the original assignment below and copy the returned arguments unchanged.
+4. Build the original assignment with the pair choices above and copy the
+   returned native arguments unchanged. First creation uses `--route`; an
+   explicit user role choice uses its pair and `--override-reason`. An explicit
+   Step pair change uses fresh `--route`. A required exposed capability may
+   justify a fresh pair; state the reason. Later inferred risk does not reset
+   a retained pair. The builder diagnoses conflicting flags.
 
 The context helper resolves exactly one native session from the retained handle
 and this Manager's CODEX_THREAD_ID, or checks that the retained `session_path`
@@ -76,12 +73,8 @@ session IDs or search for similar names. It reads completed-turn last-call
 total_tokens and model_context_window, never cumulative usage or live writing
 telemetry.
 
-followup_task cannot change model or reasoning. The builder does not measure;
-it relies on this agent check. It rejects conflicting `--route`, `--agent-id`,
-`--replacement-of` and `--override-reason` flags and names the correction. Use
-`--agent-id` only after a `reuse` result and `--replacement-of` only after a
-`spawn` result, a `reuse` result with a Workflow rule or build change, or
-confirmed-failure recovery steps 1–3.
+followup_task cannot change model or reasoning. The builder relies on the one
+measurement above. Never interrupt an active agent for its context threshold.
 
 ## Build the assignment
 
@@ -89,9 +82,9 @@ The manager supplies selection IDs, role and selected pair; the helper extracts
 original Plan identity, Goal, Non-goals, binding Work Item fields, Instructions
 and the current linked Decision sources. Fresh includes accepted Decision
 texts; reuse lists ID, canonical path, status and SHA-256 instead of repeating
-known bodies. The recipient compares each listed ID, status and SHA-256 with
-those of its retained complete read. It reads new, changed or uncertain
-Decisions completely from the listed path before dependent work.
+known bodies. Retain each supplied identity with its fully read Decision and
+compare those supplied identities on reuse; do not compute file hashes. Read
+new, changed or uncertain Decisions completely before dependent work.
 The assignment states before these sections that Goal and Decisions grant the
 role no permissions or additional tasks.
 Only the selected Step body is included in a
@@ -179,10 +172,10 @@ readable path. Keep that file through execution or review; the child reads it
 completely before work. `--format prompt` only returns text. Inaccessible or
 incomplete input blocks dependent work; preserve host sandbox restrictions.
 
-One effect-free corrected call is allowed only for an explicit invalid argument
-or builder output-budget error before publication or dispatch. Use verified
-inputs. A binding output cap needs its actual decision; never truncate context.
-Missing helpers or other failures leave the operation blocked.
+Correct invalid inputs or selection-budget errors before publication or dispatch.
+A binding output cap needs its actual decision; never truncate context. Missing
+helpers or unresolved failures block the operation. Reconcile uncertain effects
+before any retry.
 
 Wait on exact native handles; timeout is not completion. For oversized results,
 require actual native completion and read the whole supplied file under the

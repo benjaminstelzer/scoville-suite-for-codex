@@ -4,6 +4,11 @@
 
 ## Unreleased - 2026-10-13
 
+- Use a shared 30% subagent context default. The manager checks Git statistics
+  and paths; reviewers inspect technical diffs with risk-appropriate depth.
+- Keep one original Step and every required Step review. Simplify pre-dispatch
+  choices and compare supplied Decision identities without file-hash checks.
+
 - Require Git and a clean worktree before Workflow activation. Commit accepted
   Steps with Plan progress; replace manual before/after reports with Git review
   and keep generated-output checks tied to the task.

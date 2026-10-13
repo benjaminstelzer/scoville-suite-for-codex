@@ -34,7 +34,8 @@ implementation changes remain; otherwise report the dirty paths.
    writer quiescence. A timeout is not failure or permission to replace a writer.
    A blocking problem returns to manager; ask only a necessary user decision.
    Then check Step completion, required checks and clear effects:
-   - Compare the complete result with `git status` and `git diff HEAD`.
+   - Compare the complete result and reported paths with `git status` and
+     `git diff --stat HEAD`. The Reviewer inspects the technical diff.
    - Check reported effects Git cannot show, such as configuration, behavior
      or ignored outputs.
    - Resolve a missing or unclear result through the same-Step helper before
@@ -53,7 +54,8 @@ implementation changes remain; otherwise report the dirty paths.
    review and no Step review is open, go to item 6. Otherwise choose Reviewer
    with the agent check. Dispatch the SAME original Step and complete unchanged
    Executor final. Review its reported changes, relevant effects and open
-   findings. Follow-ups without new changes do not end an open Step review or
+   findings. Match review depth and supporting context to the Step's risk;
+   do not expand its scope or skip a required review. Follow-ups without new changes do not end an open Step review or
    its findings; evidence-only follow-ups continue review of the original change.
 5. For changes_requested, pass the review objections unchanged as additional
    context to the executor helper for this same Step. Return to Step 2, then

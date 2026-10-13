@@ -1,6 +1,6 @@
 # Bundled defaults; override workflow settings in project .scoville/config.json.
 schema_version = 1
-context_threshold_percent = 50
+context_threshold_percent = 30
 [execute.ultra_low]
 model = "gpt-6.1-sol"
 reasoning = "low"
