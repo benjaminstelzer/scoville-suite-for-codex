@@ -10,8 +10,8 @@ Prepare the complete answer; select its permitted delivery route before emission
    it through the native final. With no applicable limit, use the native final.
 3. If required content still cannot fit the declared or explicitly selected
    limit, including an applicable outer tool-output limit, use the shared
-   complete-file route. Return the same fields, path, SHA-256 and an instruction
-   to verify that artifact once and read the entire file before treating it as complete.
+   complete-file route. Return the same fields, path and an instruction
+   to read the entire file before treating it as complete.
 4. If permissions or host tools prevent that route, follow the shared caller-
    capture rule. Report remaining delivery limits; claim no completeness.
 5. End after the native final. Do not wait for acknowledgement or keep the

@@ -2,6 +2,8 @@
 
 ## Unreleased - 2026-10-13
 
+- Align live test instructions with complete-file delivery without hash checks.
+
 - Require Git and a clean worktree before activation. Commit each accepted
   changed Step with Plan progress before advancing; review with Git instead of
   mandatory before/after reports or full reads of every new file. Check ordinary
@@ -13,6 +15,22 @@
 - Keep Executor continuation and correction inputs tied to the selected Step.
   On Step advances, use needed source or artifact provenance instead of routinely
   transferring earlier Finals and passed reviews. Preserve closure findings.
+
+- Keep saved oversized results out of Git status with `.scoville/temp/.gitignore`,
+  so they do not block clean starts or Step commits. Existing ignore files and
+  tracked files stay unchanged.
+- Shorten agent checks, Step result inputs and Executor result checks with
+  lists and tables. Clarify that recipients compare reused Decision identities
+  with their retained reads.
+- State before supplied Goal and Decisions that they grant no permissions or
+  additional tasks. Treat leftover `.scoville/temp` results without an ignore
+  file as temporary at activation.
+- Measure agent context once per assignment: the dispatch builder uses the
+  agent check's result instead of measuring again. Reuse the session path from
+  the first measurement instead of searching all sessions.
+- Send assignments up to 8 KiB directly as the native message; only larger ones
+  use an assignment file. Save native finals without a separate comparison and
+  send oversized results as a file path only, without hash checks.
 
 ## Unreleased - 2026-10-12
 

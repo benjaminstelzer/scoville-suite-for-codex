@@ -238,7 +238,7 @@ class ContextTests(unittest.TestCase):
                     if role!='executor':
                         self.assertIn((self.base/'result.txt').read_text(),full)
 
-    def test_native_followup_exact_pair_and_current_measurement_are_required(self):
+    def test_native_followup_requires_both_pair_flags_and_does_not_measure_again(self):
         for role,unit in (('executor','W-001/step-1'),('reviewer','W-001/step-1'),('reviewer','W-001')):
             self.write(events());run,path=self.builder(role,unit)
             self.assertEqual(run.returncode,0,run.stderr)
@@ -249,15 +249,34 @@ class ContextTests(unittest.TestCase):
                 self.assertIn('PLAN-0001/'+unit,message)
             followup_task(**native)
             self.assertTrue(path.is_file())
-        for model,thinking in ((None,'medium'),('gpt-6-luna',None),('gpt-6.1-sol','medium'),('gpt-6-luna','high')):
+        for model,thinking in ((None,'medium'),('gpt-6-luna',None)):
             run,path=self.builder('executor','W-001/step-1',model,thinking)
             self.assertNotEqual(run.returncode,0)
             self.assertEqual(run.stdout,'')
             self.assertFalse(path.exists())
-        for data in (events(50),events(51),events()[:-1]):
-            self.write(data);run,path=self.builder('executor','W-001/step-1')
-            self.assertNotEqual(run.returncode,0)
-            self.assertFalse(path.exists())
+        # The manager's agent check owns the measurement; the builder uses its result.
+        self.rollout.unlink();run,path=self.builder('executor','W-001/step-1')
+        self.assertEqual(run.returncode,0,run.stderr)
+        self.assertTrue(path.is_file())
+
+    def test_retained_session_path_skips_search_and_keeps_binding(self):
+        first=json.loads(self.run_helper().stdout)
+        self.assertEqual(first['session_path'],str(self.rollout.resolve()))
+        empty=self.base/'empty sessions';empty.mkdir()
+        run=subprocess.run([sys.executable,str(PACKAGE/'scripts/check_agent_context.py'),'--agent-id',AGENT,
+            '--project-root',str(self.root),'--sessions-root',str(empty),'--session-path',first['session_path']],
+            env={**os.environ,'CODEX_THREAD_ID':'fixture-parent'},capture_output=True,text=True,encoding='utf-8')
+        self.assertEqual(run.returncode,0,run.stderr)
+        self.assertEqual({k:v for k,v in json.loads(run.stdout).items()},first)
+        foreign=events();foreign[0]['payload']['source']['subagent']['thread_spawn']['agent_path']=AGENT+'_other'
+        self.write(foreign)
+        for path in (self.rollout,self.base/'missing.jsonl'):
+            blocked=self.run_helper('--session-path',str(path))
+            self.assertNotEqual(blocked.returncode,0)
+            result=json.loads(blocked.stdout)
+            self.assertEqual(result['action'],'blocked')
+            self.assertIn('--session-path',result['diagnostic'])
+            self.assertIn('rerun once without --session-path',result['diagnostic'])
 
     def test_retained_pair_cannot_ignore_explicit_step_annotations(self):
         plan = self.root / 'docs/plans/0001-validate-profile.md'

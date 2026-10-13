@@ -1,7 +1,7 @@
 ---
 name: scoville-workflow-for-codex
 description: Execute ordered Scoville Plan work in Codex on explicit activation, such as "Start Scoville Workflow", $scoville-workflow-for-codex or scoflow codex. The visible chat manages executors, independent reviews and Plan progress. Generic delegation and discussion do not activate it.
-compatibility: "Codex with native collaboration agents, exact agent/session identities, completed-turn context telemetry, shared workspace, filesystem and Git access, Python 3.11+ and compatible Scoville Plan helpers. Codex Suite only."
+compatibility: "Codex with native collaboration agents, exact agent and session identities, completed-turn context telemetry, shared workspace, filesystem and Git access, Python 3.11+ and compatible Scoville Plan helpers. Codex Suite only."
 ---
 
 # Scoville Workflow Codex
@@ -29,7 +29,7 @@ missing, incomplete or uncertain.
 All roles communicate
 in the language of the user's current message unless the user requests another
 language. Keep internal messages minimal and clearly labelled. Preserve required
-field names, status values, quotes, relay text and technical literals exactly.
+field names, status values, quotes, user wording and technical literals exactly.
 Plan records follow Plan's language rule.
 
 {{ include: family.contract }}
@@ -77,7 +77,7 @@ flowchart TD
   X["Choose Explorer; investigate read-only"]
   U["Manager: answer; write authorized records"]
   S["Select ONE original Step"]
-  P["Manager: save execution start/resume state"]
+  P["Manager: save execution start or resume state"]
   E["Choose Executor; helper validates start; execute SAME Step"]
   N["Wait for complete native final; establish writer quiescence"]
   J{"Executor result"}
@@ -150,7 +150,7 @@ threshold is checked between assignments, never during an ongoing write.
 Before acting, check:
 1. The current request, required role, authorized scope and completed prerequisites.
 2. On activation: clean Git before Plan writes. Before source execution:
-   saved and validated start/resume state.
+   saved and validated start or resume state.
 3. Complete unchanged inputs and permission to dispatch from the agent check.
 
 Use the existing Plan, agent and dispatch helpers for their checks. Before
@@ -182,7 +182,7 @@ identities, Plan state and completed effects; it creates no new scope or
 replacement. Use operations for confirmed failed or interrupted children.
 
 Complete only after requested Acceptance, required Step reviews, closure review, Plan closure and
-child/writer quiescence. Report outcome and material limits in the user's
+child and writer quiescence. Report outcome and material limits in the user's
 language. Return to ordinary assistance; new requests start no automatic run.
 
 {{ include: helper.policy }}

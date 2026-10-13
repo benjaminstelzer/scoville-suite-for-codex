@@ -23,8 +23,8 @@ fixture faults from product defects.
 | Failure or uncertainty | Confirmed failed child can get a fresh remaining-work assignment only after prior writer quiescence. Unknown spawn/result/writer prevents replacement. A timeout creates no outcome. |
 | Progress/completion | Direct Working on appears for changed released positions. Actual obstacles are blocked; waiting for active work is working. Requested scope closes only after Acceptance, due review, Plan closure and writer quiescence. |
 
-For complete-file delivery, establish native completion, verify supplied hash
-and read the full result before acceptance. Capture required output before
+For complete-file delivery, establish native completion and read the full
+result before acceptance. Capture required output before
 display; no truncated input is accepted. There are no receipt, startup or
 handoff-control probes. Capacity refusals use ordinary failed-spawn handling:
 retain diagnostic, no automatic retry or replacement chat. Do not invent close

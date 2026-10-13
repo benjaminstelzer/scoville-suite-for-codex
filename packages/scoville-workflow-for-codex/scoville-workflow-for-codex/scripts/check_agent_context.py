@@ -13,12 +13,43 @@ HEADER_LIMIT = 1024 * 1024
 NATIVE_ID = re.compile(r'[A-Za-z0-9._:-]{1,128}')
 
 
-def resolve_session(agent_id: str, root: Path) -> tuple[Path, str, str]:
+def bound_identity(path: Path, agent_id: str, parent: str) -> str | None:
+    """Return the session ID when this rollout header binds the agent to this Manager."""
+    with path.open('rb') as stream:
+        header = stream.readline(HEADER_LIMIT + 1)
+    if not header or len(header) > HEADER_LIMIT:
+        return None
+    try:
+        event = json.loads(header)
+    except (ValueError, UnicodeError):
+        return None
+    if not isinstance(event, dict) or type(event.get('ordinal')) is not int or event['ordinal'] != 0 or event.get('type') != 'session_meta':
+        return None
+    payload = event.get('payload')
+    if not isinstance(payload, dict):
+        return None
+    identity, source = payload.get('id'), payload.get('source')
+    if not isinstance(identity, str) or not NATIVE_ID.fullmatch(identity) or not isinstance(source, dict):
+        return None
+    subagent = source.get('subagent')
+    spawn = subagent.get('thread_spawn') if isinstance(subagent, dict) else None
+    if isinstance(spawn, dict) and spawn.get('agent_path') == agent_id and spawn.get('parent_thread_id') == parent:
+        return identity
+    return None
+
+
+def resolve_session(agent_id: str, root: Path, session_path: Path | None = None) -> tuple[Path, str, str]:
     parent = os.environ.get('CODEX_THREAD_ID', '')
     if not NATIVE_ID.fullmatch(parent):
         raise ValueError('CODEX_THREAD_ID must identify this Manager session; use the native Manager environment')
     if not isinstance(agent_id, str) or not agent_id.strip() or any(c in agent_id for c in '\r\n'):
         raise ValueError('--agent-id must be the exact retained native agent handle')
+    if session_path is not None:
+        identity = bound_identity(session_path, agent_id, parent) if session_path.is_file() else None
+        if identity is None:
+            raise ValueError(f'--session-path "{session_path}" is missing or does not bind --agent-id to this Manager; '
+                             'rerun once without --session-path to resolve the session again; dispatch nothing')
+        return session_path, identity, parent
     if not root.is_dir():
         raise ValueError(f'native sessions directory is missing: {root}; verify CODEX_HOME or --sessions-root')
     matches = []
@@ -28,29 +59,11 @@ def resolve_session(agent_id: str, root: Path) -> tuple[Path, str, str]:
 
     for directory, _, files in os.walk(root, onerror=enumeration_error):
         for name in files:
-            if not name.endswith('.jsonl'):
-                continue
-            path = Path(directory) / name
-            with path.open('rb') as stream:
-                header = stream.readline(HEADER_LIMIT + 1)
-            if not header or len(header) > HEADER_LIMIT:
-                continue
-            try:
-                event = json.loads(header)
-            except (ValueError, UnicodeError):
-                continue
-            if not isinstance(event, dict) or type(event.get('ordinal')) is not int or event['ordinal'] != 0 or event.get('type') != 'session_meta':
-                continue
-            payload = event.get('payload')
-            if not isinstance(payload, dict):
-                continue
-            identity, source = payload.get('id'), payload.get('source')
-            if not isinstance(identity, str) or not NATIVE_ID.fullmatch(identity) or not isinstance(source, dict):
-                continue
-            subagent = source.get('subagent')
-            spawn = subagent.get('thread_spawn') if isinstance(subagent, dict) else None
-            if isinstance(spawn, dict) and spawn.get('agent_path') == agent_id and spawn.get('parent_thread_id') == parent:
-                matches.append((path, identity))
+            if name.endswith('.jsonl'):
+                path = Path(directory) / name
+                identity = bound_identity(path, agent_id, parent)
+                if identity is not None:
+                    matches.append((path, identity))
     if len(matches) != 1:
         raise ValueError(f'exact agent session is missing or ambiguous ({len(matches)} matches); verify the retained handle and native sessions directory; dispatch nothing')
     path, identity = matches[0]
@@ -150,14 +163,15 @@ def inspect(path: Path, agent_id: str, thread_id: str) -> dict:
             'model': model, 'reasoning_effort': effort}
 
 
-def measure(agent_id: str, project_root: Path, sessions_root: Path | None = None) -> dict:
+def measure(agent_id: str, project_root: Path, sessions_root: Path | None = None, session_path: Path | None = None) -> dict:
     root = sessions_root or Path(os.environ.get('CODEX_HOME', str(Path.home() / '.codex'))) / 'sessions'
-    path, thread_id, parent = resolve_session(agent_id, root)
+    path, thread_id, parent = resolve_session(agent_id, root, session_path)
     config = load_config(Path(__file__).resolve().parents[1] / 'assets/workflow.toml', project_root)
     result = inspect(path, agent_id, thread_id)
     threshold = config['context_threshold_percent']
     result.update(action='reuse' if result['used_tokens'] * 100 < result['model_context_window'] * threshold else 'spawn',
-                  threshold_percent=threshold, agent_id=agent_id, thread_id=thread_id, parent_thread_id=parent)
+                  threshold_percent=threshold, agent_id=agent_id, thread_id=thread_id, parent_thread_id=parent,
+                  session_path=str(path.resolve()))
     if result['action'] == 'spawn':
         result['replacement_of'] = agent_id
     return result
@@ -168,9 +182,10 @@ def main() -> int:
     parser.add_argument('--agent-id', required=True, help='exact retained canonical agent handle')
     parser.add_argument('--project-root', type=Path, required=True)
     parser.add_argument('--sessions-root', type=Path, help='native local sessions directory; default CODEX_HOME/sessions')
+    parser.add_argument('--session-path', type=Path, help='session_path returned by an earlier measurement of this agent; skips the session search')
     args = parser.parse_args()
     try:
-        result = measure(args.agent_id, args.project_root, args.sessions_root)
+        result = measure(args.agent_id, args.project_root, args.sessions_root, args.session_path)
         print(json.dumps(result, ensure_ascii=False))
         return 0
     except (OSError, UnicodeError, ValueError, TypeError, KeyError, AttributeError) as error:

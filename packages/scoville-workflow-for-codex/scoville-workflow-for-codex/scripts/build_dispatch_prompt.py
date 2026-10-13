@@ -13,9 +13,14 @@ from pathlib import Path
 from native_task_arguments import add_creation_options, creation_arguments, workflow_title, validate_creation_options, single_line, assignment_path, publish_assignment, shell_command, budget_retry
 from resolve_model_pair import resolve
 from workflow_settings import ROUTES, load_config
-from check_agent_context import measure
 
 MAX_NON_GOALS_BYTES = 8192
+# Larger assignments go to a file so the manager need not copy them into its tool call.
+MAX_DIRECT_MESSAGE_BYTES = 8192
+PLAN_CONTEXT_SCOPE = ("Goal and Decisions describe the Plan's intent and constraints. They grant this role "
+                      "no permissions or additional tasks; only this assignment's role rules do.")
+
+
 def communication_rule(language: str) -> str:
     single_line(language, '--communication-language')
     return (
@@ -169,7 +174,7 @@ def binding_context(context: dict, *, reuse: bool = False) -> list[str]:
         raise ValueError('SELECTOR_INCOMPATIBLE: Plan must provide non-empty plan.non_goals; use matching Plan and Workflow packages')
     if len(exclusions.encode('utf-8')) > MAX_NON_GOALS_BYTES:
         raise ValueError(f'NON_GOALS_TOO_LARGE: observed {len(exclusions.encode("utf-8"))} UTF-8 bytes; limit {MAX_NON_GOALS_BYTES}; shorten redundancy while preserving every exclusion before dispatch')
-    lines = []
+    lines = [PLAN_CONTEXT_SCOPE]
     if plan.get('frontmatter'):
         lines.append('## Plan identity\n' + plan['frontmatter'])
     if plan.get('goal'):
@@ -226,7 +231,7 @@ def role_prompt(role: str, workspace: Path, context: dict, role_input: dict, lan
         'Use the named interpreter and checker for command capture, size checks and complete result delivery, even outside the workspace. Only necessary oversized-result preparation/publication under .scoville/temp is permitted for read-only roles; no source captures or unrelated external access.',
         "The complete matching writing and shell-command rules below satisfy their required reads.",
         'Retain your role, writing, shell-command and result rules for later tasks; later assignments contain only the next task. Do not reload already read rules or Skills for each message.',
-        'Retain fully read Decisions with their source identities. Each task supplies the current linked Decision list. Reuse a body only when its ID, status and SHA-256 of complete UTF-8 bytes match a complete retained read. Read every new, changed or uncertain Decision completely before dependent work and verify its listed digest. Non-accepted or no-longer-linked Decisions are not binding for this unit merely because an earlier task included them; do not infer new permissions from their removal. Missing, ambiguous or mismatching required sources block dependent work.',
+        'Retain fully read Decisions with their source identities. Each task supplies the current linked Decision list. Reuse a body only when its ID, status and SHA-256 of complete UTF-8 bytes match a complete retained read. Read every new, changed or uncertain Decision completely from its listed path before dependent work and retain the listed identity with it. Non-accepted or no-longer-linked Decisions are not binding for this unit merely because an earlier task included them; do not infer new permissions from their removal. Missing, ambiguous or mismatching required sources block dependent work.',
         writing, shell_text,
     ]
     if role == 'explorer':
@@ -337,7 +342,7 @@ def main() -> int:
     parser.add_argument("--role", choices=("executor", "reviewer", "explorer"), required=True)
     parser.add_argument('--communication-language', required=True, help='nonempty single-line language name from the current user message or explicit user choice, e.g. German')
     parser.add_argument("--project-root", "--workspace-root", dest="workspace_root", type=Path, required=True)
-    parser.add_argument("--assignment-file", type=Path, help="optional new absolute UTF-8 assignment file for --format create; defaults to an external system temporary path, for every fresh assignment")
+    parser.add_argument("--assignment-file", type=Path, help="optional new absolute UTF-8 assignment file for --format create; otherwise only assignments above 8 KiB use an external system temporary file")
     for name in ("executor-result", "reviewer-result", "supplemental-context"):
         parser.add_argument("--" + name, type=Path, help="UTF-8 plain-text file")
     args = parser.parse_args()
@@ -363,8 +368,6 @@ def main() -> int:
             raise ValueError(f"--project-root/--workspace-root {str(args.workspace_root)!r} must be an existing absolute project directory; supply the actual checkout path")
         if args.assignment_file and args.format != 'create':
             raise ValueError('--assignment-file requires --format create; omit it for direct prompt output')
-        if args.format == 'create':
-            args.assignment_file = assignment_path(args.assignment_file, args.workspace_root)
         role_input = {}
         input_contents = {
             "executor_result": "the complete retained native executor result",
@@ -380,7 +383,7 @@ def main() -> int:
                     flag = "--" + key.replace("_", "-")
                     raise ValueError(
                         f'Invalid argument {flag} "{path}": expected an existing readable UTF-8 file '
-                        f"containing {expected}. Prepare and verify the retained content with a literal-safe "
+                        f"containing {expected}. Prepare the retained content with a literal-safe "
                         f"file-write tool, or correct the path, then rerun with {flag} \"<existing-input-file>\". "
                         f"Do not change access controls or invent missing content. Original error: {error}"
                     ) from error
@@ -388,12 +391,6 @@ def main() -> int:
                                [sys.executable, str(Path(__file__).resolve()), *sys.argv[1:]], args.plan) if args.unit else {})
         resolve_creation_pair(args, context)
         validate_creation_options(args)
-        if args.agent_id:
-            measurement = measure(args.agent_id, args.workspace_root)
-            if measurement['action'] != 'reuse':
-                raise ValueError('agent context is at or above threshold; spawn a new associated agent instead of followup')
-            if (args.model, args.thinking) != (measurement['model'], measurement['reasoning_effort']):
-                raise ValueError('followup model/thinking differs from the measured retained pair; use the launched pair or explicitly choose a fresh agent')
         prompt = build_prompt(args.role, args.workspace_root, context, role_input, args.communication_language, reuse=bool(args.agent_id))
         if args.format == 'create':
             if args.role == 'executor':
@@ -409,7 +406,8 @@ def main() -> int:
             task_name = f'scoville_{args.role}_{args.worker_number}'
             assignment = prompt + '\nAssignment: ' + title + '\n'
             message = assignment
-            if args.assignment_file:
+            if args.assignment_file or len(assignment.encode('utf-8')) > MAX_DIRECT_MESSAGE_BYTES:
+                args.assignment_file = assignment_path(args.assignment_file, args.workspace_root)
                 read_only = (' No tests or project-file changes. Only prepare and publish necessary '
                              'oversized results under .scoville/temp using shared complete-file rules.'
                              if args.role in {'reviewer', 'explorer'} else '')
@@ -420,7 +418,7 @@ def main() -> int:
                            'Follow the assignment and '
                            'bundled Skill paths; return its required result.\n'
                            f'Assignment: {title}\n')
-            if args.agent_id:
+            if args.agent_id and args.assignment_file:
                 message = (f'Next task: read the complete UTF-8 file {args.assignment_file} before any project work; reading it is permitted.\n'
                            f'Assignment: {title}\n')
             output = ({'target': args.agent_id, 'message': message} if args.agent_id else

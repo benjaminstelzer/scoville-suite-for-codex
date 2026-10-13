@@ -232,6 +232,28 @@ class NativeCreationTests(unittest.TestCase):
             return assignment.read_text(encoding='utf-8')
         return data['message']
 
+    def test_short_reuse_assignment_goes_directly_into_the_native_message(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / 'project'
+            copy_started_profile(root)
+            external_temp = Path(directory) / 'temp'
+            external_temp.mkdir()
+            env = dict(os.environ, TMPDIR=str(external_temp), TEMP=str(external_temp), TMP=str(external_temp))
+            result = subprocess.run([sys.executable, str(PACKAGE / 'scripts/build_dispatch_prompt.py'),
+                                     '--communication-language', 'German', '--project-root', str(root), '--format', 'create',
+                                     '--project-name', 'Fixture', '--worker-number', '1', '--agent-id', '/root/manager/executor',
+                                     '--model', 'gpt-6-sol', '--thinking', 'high', '--unit', 'W-001/step-1', '--role', 'executor'],
+                                    capture_output=True, text=True, encoding='utf-8', env=env)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            native = json.loads(result.stdout)
+            self.assertEqual(set(native), {'target', 'message'})
+            self.assertNotIn('Next task', native['message'])
+            self.assertIn('Task: execute the assigned unit.', native['message'])
+            self.assertIn('## Work Item context', native['message'])
+            self.assertTrue(native['message'].endswith('Assignment: SC-WRK-1: Fixture · PLAN-0001/W-001/step-1\n'))
+            self.assertLessEqual(len(native['message'].encode('utf-8')), 8192)
+            self.assertEqual(list(external_temp.iterdir()), [])
+
     def test_automatic_assignment_paths_are_external_complete_and_unique(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / 'project Ä 中文'

@@ -1,6 +1,5 @@
 """Packaged route and saved-position integration; native dispatch is tested live."""
 import json
-import hashlib
 from pathlib import Path
 import shutil
 import subprocess
@@ -96,7 +95,7 @@ class SimplifiedHelpersTests(unittest.TestCase):
                 metadata = json.loads(consumed.stdout)
                 received = Path(metadata['full_file']).read_bytes()
                 self.assertEqual(received, payload.read_bytes())
-                self.assertEqual(hashlib.sha256(received).hexdigest(), metadata['sha256'])
+                self.assertNotIn('sha256', metadata)
                 self.assertEqual(metadata['status'], 'complete_file')
                 self.assertNotIn('tool_output_limit_tokens', metadata)
 

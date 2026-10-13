@@ -32,7 +32,8 @@ lacks, justifies a fresh agent; state the reason.
 
 ## Check the agent before every assignment
 
-Retain each role's exact handle and launched pair. Executor
+Retain each role's exact handle, launched pair and, after its first measurement,
+`session_path`. Executor
 and Reviewer belong to the current Work Item; Explorer belongs to this manager
 thread. Apply this agent check to execution, review, closure, corrections and
 missing-result questions:
@@ -48,14 +49,16 @@ missing-result questions:
 3. Measure the bound agent's last completed turn:
 
    ```text
-   python "<workflow>/scripts/check_agent_context.py" --project-root "<workspace>" --agent-id "<exact-handle>"
+   python "<workflow>/scripts/check_agent_context.py" --project-root "<workspace>" --agent-id "<exact-handle>" --session-path "<retained-session-path>"
    ```
+
+   Omit `--session-path` until a measurement of this agent returned it.
 
 4. Act on the helper's returned `action`:
 
    | Result | Dispatch arguments |
    | --- | --- |
-   | `reuse`: strictly below Setup threshold | Same agent: `--agent-id`, both retained `--model` and `--thinking`. If Workflow rules or the build changed since spawn, use fresh `--replacement-of` with that pair instead. |
+   | `reuse`: strictly below Setup threshold | Same agent: `--agent-id`, `--model` from `model`, `--thinking` from `reasoning_effort`. If Workflow rules or the build changed since spawn, use fresh `--replacement-of` with that pair instead. |
    | `spawn`: at or above threshold | Fresh agent: `--replacement-of` from `replacement_of`, `--model` from `model`, `--thinking` from `reasoning_effort`. Keep the old agent idle. |
    | `blocked` or nonzero exit | No dispatch: report the technical problem. Neither reuse nor replacement is permitted, including a fresh pair-change route. |
 
@@ -67,16 +70,18 @@ missing-result questions:
 6. Build the original assignment below and copy the returned arguments unchanged.
 
 The context helper resolves exactly one native session from the retained handle
-and this Manager's CODEX_THREAD_ID. Missing or ambiguous identity blocks dispatch;
-never copy session IDs or search for similar names. It reads completed-turn last-call total_tokens and
-model_context_window, never cumulative usage or live writing telemetry.
-followup_task cannot change model or reasoning. Reuse omits `--route`;
-`--route` combines with neither `--agent-id` nor `--replacement-of`.
-`--replacement-of` combines with neither `--agent-id` nor `--override-reason`.
-For reuse, the builder re-measures and verifies the retained pair before
-publication. Fresh replacements retain pair checks but are not re-measured:
-the manager must establish a `spawn` result, a `reuse` result with such a standing-rule/build change, or complete confirmed-failure recovery steps 1–3 first.
-A mismatch or failed reuse measurement publishes nothing.
+and this Manager's CODEX_THREAD_ID, or checks that the retained `session_path`
+still binds them. Missing or ambiguous identity blocks dispatch; never copy
+session IDs or search for similar names. It reads completed-turn last-call
+total_tokens and model_context_window, never cumulative usage or live writing
+telemetry.
+
+followup_task cannot change model or reasoning. The builder does not measure;
+it relies on this agent check. It rejects conflicting `--route`, `--agent-id`,
+`--replacement-of` and `--override-reason` flags and names the correction. Use
+`--agent-id` only after a `reuse` result and `--replacement-of` only after a
+`spawn` result, a `reuse` result with a Workflow rule or build change, or
+confirmed-failure recovery steps 1–3.
 
 ## Build the assignment
 
@@ -84,8 +89,12 @@ The manager supplies selection IDs, role and selected pair; the helper extracts
 original Plan identity, Goal, Non-goals, binding Work Item fields, Instructions
 and the current linked Decision sources. Fresh includes accepted Decision
 texts; reuse lists ID, canonical path, status and SHA-256 instead of repeating
-known bodies. New, changed or uncertain Decisions require complete verified
-reading before dependent work. Only the selected Step body is included in a
+known bodies. The recipient compares each listed ID, status and SHA-256 with
+those of its retained complete read. It reads new, changed or uncertain
+Decisions completely from the listed path before dependent work.
+The assignment states before these sections that Goal and Decisions grant the
+role no permissions or additional tasks.
+Only the selected Step body is included in a
 Step assignment. Other Step bodies, accumulated Evidence and Work Item-wide
 Next action are excluded. Closure includes the full original Work Item.
 Do not compose, shorten, translate or rewrite those texts.
@@ -114,34 +123,35 @@ this Manager thread. Fresh creation uses the next number; reuse keeps its number
 Keep counters across Work Items, pauses and compaction. Clearing a role association
 does not reset its counter.
 
-For Step review, use the SAME `--unit`, `--role reviewer` and
-`--executor-result "<complete-native-result.txt>"`. For closure use `--unit W-001`
-and the latest complete Executor final. Save native finals unchanged for both
-levels; never compose a substitute result. Earlier results and coverage remain
-in Work Item Evidence. Missing required change attribution prevents pass.
-Unchanged files provide relevant context only. [Operations](operations.md#execute-one-step) decides which Steps require Step
-review; closure checks Steps without changes.
+Result flags carry complete native finals saved unchanged; never compose a
+substitute. Step assignments take only finals of that SAME original Step,
+except the closure review for a closure correction. Take each final from the
+retained agent and assignment it answers. Use these inputs:
 
-Corrections use `--reviewer-result "<complete-review.txt>"` as additional context
-for unresolved findings affecting the selected Step; never rewrite Step text.
-Supply the complete closure review for closure corrections, but act only on the
-ONE selected affected Step. Never use another Step's final as `--executor-result`.
-A continuation of the SAME original Step may pass its complete prior Executor
-final as `--executor-result` without a Reviewer result.
-When advancing to another Step, omit previous-Step result flags and passed
-reviews. They are not correction inputs. Obtain needed accepted source or artifact
-provenance from original Instructions, named artifacts, retained history and
-relevant saved Work Item Evidence. Read a previous complete final only when
-needed facts are unavailable there; do not turn it into the new Step's role input.
-Preserve required predecessor provenance; if unavailable, block dependent work
-naming the missing input.
-A passed review has no unresolved findings and triggers no correction.
-A missing-evidence follow-up after blocked review
-passes both the reviewed complete Executor final and the blocked Reviewer final.
-Its next review checks the original change with the completed evidence.
-Correction executors retain
-both launched model and thinking unless an explicitly justified selected pair
-requires a new agent. Optional ideas do not become correction scope.
+- Step review: same `--unit`, `--role reviewer` and
+  `--executor-result "<complete-native-result.txt>"`.
+- Closure review: `--unit W-001` and the latest complete Executor final.
+- Correction: `--reviewer-result "<complete-review.txt>"` as additional context
+  for unresolved findings affecting the ONE selected Step; never rewrite Step
+  text. A closure correction supplies the complete closure review but acts only
+  on that Step.
+- Continuation of the same Step: its complete prior Executor final as
+  `--executor-result`, without a Reviewer result.
+- Missing-evidence follow-up after a blocked review: the reviewed Executor final
+  and the blocked Reviewer final, as in [operations](operations.md#user-requests-and-results).
+- Next Step: omit earlier result flags and passed reviews. Take needed accepted
+  source or artifact provenance from original Instructions, named artifacts,
+  retained history and relevant saved Work Item Evidence. Read an earlier
+  complete final only when facts are missing there, never as role input. If
+  required predecessor provenance is unavailable, block dependent work naming it.
+
+Earlier results and coverage remain in Work Item Evidence. Missing required
+change attribution prevents pass. Unchanged files provide relevant context only.
+[Operations](operations.md#execute-one-step) decides which Steps require Step
+review; closure checks Steps without changes. A passed review has no unresolved
+findings and triggers no correction. Correction executors retain both launched
+model and thinking unless an explicitly justified selected pair requires a new
+agent. Optional ideas do not become correction scope.
 
 Explorer uses `--role explorer --supplemental-context "<complete-request.txt>"`;
 quote the user's exact wording and add investigation constraints and source paths.
@@ -158,15 +168,16 @@ An input, selector, publication, spawn or capacity failure stops that operation;
 an uncertain effect permits no retry or replacement. No automatic close or
 sidebar workaround. Never repair or truncate failed helper output.
 
-The builder publishes each assignment atomically to a unique system temporary
-file only after an Executor's saved profile is valid and its active Plan,
-current Work Item and selected Step are started. It performs this validation;
-do not repeat it separately for dispatch. Review and Explorer assignments need
-no execution start.
-The assignment is outside the project. `--assignment-file` may select a new absolute readable
-path. Keep it through execution/review; the child reads it completely before
-work. `--format prompt` only returns text. Inaccessible or incomplete input
-blocks dependent work; preserve host sandbox restrictions.
+The builder returns an Executor assignment only after the saved profile is
+valid and its active Plan, current Work Item and selected Step are started. It
+performs this validation; do not repeat it separately for dispatch. Review and
+Explorer assignments need no execution start.
+Assignments up to 8 KiB UTF-8 go directly into the native message. Larger ones
+are published atomically to a new system temporary file outside the project,
+and the message names it; `--assignment-file` may select a new absolute
+readable path. Keep that file through execution or review; the child reads it
+completely before work. `--format prompt` only returns text. Inaccessible or
+incomplete input blocks dependent work; preserve host sandbox restrictions.
 
 One effect-free corrected call is allowed only for an explicit invalid argument
 or builder output-budget error before publication or dispatch. Use verified
@@ -174,8 +185,8 @@ inputs. A binding output cap needs its actual decision; never truncate context.
 Missing helpers or other failures leave the operation blocked.
 
 Wait on exact native handles; timeout is not completion. For oversized results,
-require actual native completion, verify each new artifact once and read the whole supplied
-file under the shared delivery procedure. Metadata and partial messages are
+require actual native completion and read the whole supplied file under the
+shared delivery procedure. Metadata and partial messages are
 not results. Children may use the named external Python/checker only for command capture, size checks
 and necessary result delivery; no unrelated access. They neither edit
 Plan records, stage, commit, change Workflow settings nor create other agents.

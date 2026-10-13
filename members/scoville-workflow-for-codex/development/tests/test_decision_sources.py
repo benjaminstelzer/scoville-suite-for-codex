@@ -32,6 +32,11 @@ class DecisionSourceTests(unittest.TestCase):
                 self.assertIn(context['plan']['non_goals'], reuse)
                 self.assertIn(context['work_item']['source_text'], reuse)
                 self.assertNotIn('Check the local record shapes.', reuse)
+                for prompt in (fresh, reuse):
+                    scope = prompt.index(prompt_builder.PLAN_CONTEXT_SCOPE)
+                    self.assertEqual(prompt.count(prompt_builder.PLAN_CONTEXT_SCOPE), 1)
+                    self.assertLess(scope, prompt.index('## Plan identity'))
+                    self.assertLess(scope, prompt.index(context['plan']['non_goals']))
 
     def test_new_changed_superseded_and_removed_sources(self):
         with tempfile.TemporaryDirectory() as directory:

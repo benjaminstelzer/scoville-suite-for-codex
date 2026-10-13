@@ -14,6 +14,12 @@
   On Step advances, use needed source or artifact provenance instead of routinely
   transferring earlier Finals and passed reviews. Preserve closure findings.
 
+- Keep saved oversized results out of Git status with `.scoville/temp/.gitignore`,
+  so they do not block clean Workflow starts or Step commits. Existing ignore
+  files and tracked files stay unchanged.
+- Simplify shared writing rules, Plan editing guidance and Workflow dispatch
+  and result checks with shorter lists and tables.
+
 ## Unreleased - 2026-10-12
 
 - Return complete command output directly when it fits; save only oversized

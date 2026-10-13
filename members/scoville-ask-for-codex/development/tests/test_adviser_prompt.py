@@ -60,7 +60,6 @@ class AdviserPromptTests(unittest.TestCase):
         self.assertNotIn('not-a-chat-uuid', data['message'])
 
     def test_named_delivery_tools_feed_complete_file_consumer_without_repair(self):
-        import hashlib
         with tempfile.TemporaryDirectory(prefix='Ask Prüfung mit Leerzeichen ') as directory:
             root = Path(directory)
             copy = root / 'Ask Skill ä'
@@ -100,7 +99,6 @@ class AdviserPromptTests(unittest.TestCase):
             published = Path(metadata['full_file'])
             self.assertEqual('complete_file', metadata['status'])
             self.assertEqual((root / '.scoville/temp').resolve(), published.parent)
-            self.assertEqual(hashlib.sha256(complete).hexdigest(), metadata['sha256'])
             self.assertEqual(complete, published.read_bytes())
 
     def test_missing_named_checker_has_no_partial_prompt_then_intact_package_works(self):

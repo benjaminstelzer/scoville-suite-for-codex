@@ -14,6 +14,9 @@ On each explicit Workflow activation, before Plan writes, require a Git worktree
 with empty `git status --porcelain --untracked-files=all`. A failed command or
 listed path blocks activation: report the prerequisite or paths; start no
 Executor. Do not discard, stash, stage or commit existing work to get clean.
+If every listed path is under `.scoville/temp` and that directory has no
+`.gitignore`, create `.scoville/temp/.gitignore` containing `*` and check again.
+These are temporary results from earlier runs, not project work.
 Host continuation, compaction and rule reload are not new activation; do not
 interrupt an active writer.
 Before leaving Workflow, commit pending owned Plan records when no unreviewed
@@ -21,7 +24,7 @@ implementation changes remain; otherwise report the dirty paths.
 
 1. Select the authorized Plan, current Work Item and exactly one Step. Preserve
    order and dependencies. At Work Item start, note HEAD in its existing Evidence
-   for closure. Save actual start/resume state through Plan;
+   for closure. Save actual start or resume state through Plan;
    selecting a Step alone is not a start. The dispatch helper validates the
    saved profile and started state before publishing an Executor assignment.
 2. Choose Executor with the [agent check](operations-dispatch.md#check-the-agent-before-every-assignment).
@@ -30,17 +33,20 @@ implementation changes remain; otherwise report the dirty paths.
 3. Wait for the matching complete native result. Retain it once and establish
    writer quiescence. A timeout is not failure or permission to replace a writer.
    A blocking problem returns to manager; ask only a necessary user decision.
-   Check Step completion, required checks and clear effects against the complete
-   result, Git status/diff HEAD and reported non-file or ignored-output effects.
-   Resolve missing or unclear results
-   through the same-Step helper before advancing or deciding on review. For
-   continuation of this same Step, supply its available complete prior Executor final unchanged as
-   `--executor-result`; keep required review inputs. If the current final cannot
-   provide required non-Git evidence, report the exact prerequisite;
-   do not loop, invent evidence or classify the Step as unchanged.
-   Read supporting artifacts only when needed for these manager decisions;
-   the reviewer inspects their technical details. Read the complete native final
-   or its complete externalized text in either case.
+   Then check Step completion, required checks and clear effects:
+   - Compare the complete result with `git status` and `git diff HEAD`.
+   - Check reported effects Git cannot show, such as configuration, behavior
+     or ignored outputs.
+   - Resolve a missing or unclear result through the same-Step helper before
+     advancing or deciding on review. A continuation of this same Step passes
+     its available complete prior Executor final unchanged as
+     `--executor-result`; keep required review inputs.
+   - If the current final cannot provide required non-Git evidence, report the
+     exact prerequisite. Do not loop, invent evidence or classify the Step as
+     unchanged.
+   - Read supporting artifacts only when needed for these manager decisions;
+     the reviewer inspects their technical details. Always read the complete
+     native final or its complete externalized text.
 4. Review each Step that changed files, configuration or behavior. A Step without
    such changes is checked by the closure review. Use Git for file changes and
    reported effects for configuration, behavior and ignored outputs. If no changes remain to
@@ -81,7 +87,7 @@ or materially unclear meaning need the user; do not invent a Step to bypass them
 
 Mark the Work Item done only after its Acceptance and closure review pass.
 Validate and commit the coherent Plan update,
-respecting repository checks and backups. Clear Executor/Reviewer associations
+respecting repository checks and backups. Clear Executor and Reviewer associations
 when moving to the next Work Item; retain Explorer for this manager thread.
 Finish only the authorized scope. A bounded run can leave unrequested work open.
 
@@ -96,29 +102,34 @@ Preserve evidence limits, quotes and technical literals.
 
 | Result | Meaning |
 | --- | --- |
-| done | Assigned execution/checks or exploration finished; not review acceptance. |
+| done | Assigned execution and checks, or exploration, finished; not review acceptance. |
 | pass | Assigned review ran; no unresolved defect or required evidence gap. |
 | changes_requested | Open defect, location, effect, smallest correction and affected Step, or none. |
 | blocked | Actual prerequisite or required decision prevents dependent work. |
 
 1. Match the complete native final and actual completion to the retained handle
    and assignment. Do not infer identity from titles or partial messages.
-2. Save the complete native final unchanged and compare its saved text with
-   the complete native final once before dependent dispatch. Concise Plan evidence is separate; never replace a
+2. Save the complete native final unchanged with a literal-safe file write
+   before dependent dispatch. Concise Plan evidence is separate; never replace a
    child result with Manager-composed evidence.
 3. Missing required Executor evidence: choose that Executor through the agent
-   check, rebuild the SAME Step with the complete blocked Reviewer final as
-   `--reviewer-result` and the complete Executor final it reviewed as
-   `--executor-result`. For the next review, supply the complete returned native
-   final as `--executor-result` and the original blocked Reviewer final as
-   `--reviewer-result`, both unchanged.
+   check and rebuild the SAME Step. Pass complete native finals unchanged:
+
+   | Dispatch | `--executor-result` | `--reviewer-result` |
+   | --- | --- | --- |
+   | Executor completes evidence | Executor final the blocked review checked | blocked Reviewer final |
+   | Next review | returned Executor final | same blocked Reviewer final |
+
+   This evidence-only follow-up makes no new changes and repeats no unchanged
+   successful check solely to supply evidence; its review continues the
+   original change.
    Replacement alone proves no missing baseline; report an actual unavailable
    baseline or unresolved prerequisite. Other necessary missing-result questions
    also use the exact child's agent check and helper assignment.
 
 Report necessary blockers and decisions directly. Stop dependent work; preserve
 completed effects and the actual answer before continuing. Nonblocking problems
-may continue to review. Waiting for active work is working, not blocked.
+may continue to review.
 
 ## Stop, compaction and failure
 
