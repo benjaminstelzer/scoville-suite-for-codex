@@ -70,15 +70,19 @@ def main() -> int:
     shell_rules = ROOT / 'references' / 'shell-commands.md'
     if not shell_rules.is_file():
         parser.error(f'packaged shell rules missing at {shell_rules}; use the intact built Ask package')
+    delivery_rules = ROOT / 'references' / 'output-delivery.md'
+    if not delivery_rules.is_file():
+        parser.error(f'packaged output-delivery rules missing at {delivery_rules}; use the intact built Ask package')
     prompt = ('\n\n'.join(rules)
               + f'\n\nmode: {args.mode}\nadviser_id: {args.adviser_id}'
               + f'\nworkspace_root: {args.workspace_root}'
               + f'\ntext_size_checker: {checker}\npython: {sys.executable}'
               + f'\nshell_command_rules: {shell_rules}; read before shell commands other than file reads, complete-file preparation or output that may exceed an applicable limit.'
+              + f'\noutput_delivery_rules: {delivery_rules}; read when the shell rules require it.'
               + f'\nconsultation_reference: {args.reference}\nscope: {args.scope}'
               + '\n\nInspect only the supplied scope in this workspace. Resolve relative evidence paths there.'
               + '\nFor command capture, size checks and oversized-result delivery, invoke the named Python interpreter and text-size checker even when they are outside the workspace. This exception permits no unrelated external inspection, commands or project writes; delivery follows the native delivery contract and shared complete-file procedure.'
-              + '\nThe named python and text_size_checker replace <verified-python> and <skill-directory>/scripts/check_text_size.py in the shared writing and shell rules.'
+              + '\nThe named python and text_size_checker replace <verified-python> and <skill-directory>/scripts/check_text_size.py in the shared writing, shell and output-delivery rules.'
               + '\n\n## User request and evidence\n\n' + question)
     if args.format == 'spawn':
         print(json.dumps({'task_name': args.task_name, 'message': prompt,

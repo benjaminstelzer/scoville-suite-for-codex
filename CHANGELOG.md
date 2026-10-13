@@ -4,7 +4,15 @@
 
 ## Unreleased - 2026-10-13
 
-- Use a shared 30% subagent context default. The manager checks Git statistics
+- Separate progress updates from authoring. Explicit maintenance can shorten old Goals and Decisions while preserving the choice, binding conditions and required checks.
+- Clarify WordPress ownership and version routing. Unknown runtimes require clarification, and older pins keep their tested fallback limits.
+- Load detailed command capture and full-file delivery only when needed. Keep complete output, failure diagnostics and role permissions.
+- Keep repeated assignments lean and wait for inactive agents before replacement. Preserve original Steps, model pairs and required reviews.
+- Give advisers the conditional delivery path and stop prompt creation when that required source is missing.
+
+- Exclude internal audit records from public source exports.
+
+- Use a shared 45% subagent context default, replacing 30%. The manager checks Git statistics
   and paths; reviewers inspect technical diffs with risk-appropriate depth.
 - Keep one original Step and every required Step review. Simplify pre-dispatch
   choices and compare supplied Decision identities without file-hash checks.
@@ -13,7 +21,7 @@
   Steps with Plan progress; replace manual before/after reports with Git review
   and keep generated-output checks tied to the task.
 
-- Use Sol 6.1 for all Workflow routes with matching Executor/Reviewer effort: Low, Medium, High, XHigh, XHigh. Explorer inherits execution defaults; keep the 50% context threshold.
+- Use Sol 6.1 for all Workflow routes with matching Executor/Reviewer effort: Low, Medium, High, XHigh, XHigh. Explorer inherits execution defaults; use the shared context threshold.
 
 - Keep Executor continuation and correction inputs tied to the selected Step.
   On Step advances, use needed source or artifact provenance instead of routinely

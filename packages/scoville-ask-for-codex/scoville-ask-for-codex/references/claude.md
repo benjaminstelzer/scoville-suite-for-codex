@@ -50,14 +50,14 @@ Overrides affect this request only; they do not change project configuration.
 
 The adapter allows Read, Grep and Glob and uses `dontAsk`. WebSearch and
 WebFetch require an explicit `claude.web_tools: true` configuration or request
-override. Read the default from the imported settings in configuration.md.
+override. Read web-tools and timeout defaults from the imported settings in
+[configuration.md](configuration.md).
 Customizations are disabled by default. Local launch does not mean offline;
 Claude and optional web tools communicate with their services. These tool
 restrictions do not justify a claim of sandbox isolation.
 
-Read the `claude.timeout_seconds` default from the imported settings in
-[configuration.md](configuration.md). A positive finite `timeout_seconds` on
-the request overrides it for that call.
+A positive finite timeout_seconds on the request overrides its default for
+that call.
 Launch through the host's asynchronous shell facility and collect the running
 process in bounded waits. A returned shell session is still running; keep
 collecting it. If the host enforces a process-killing deadline, set it above

@@ -88,8 +88,8 @@ telemetry is unknown.
 
 Retain the answer, evidence, exact native handle or Claude session ID and
 settings. Resume only for an explicitly requested follow-up. Native follow-ups
-keep the same settings; a requested change needs a fresh adviser as described
-in native.md. Claude follow-ups retain settings unless explicitly overridden.
+keep the same settings. A requested change needs a fresh adviser: explain that
+choice and obtain it unless already authorized. Claude follow-ups retain settings unless explicitly overridden.
 Do not ask whether a completed review should stay open or close it when the user
 changes topic.
 Claude print-mode exits after its answer; a retained ID is saved history,

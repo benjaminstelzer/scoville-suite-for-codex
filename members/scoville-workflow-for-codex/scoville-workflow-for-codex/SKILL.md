@@ -21,16 +21,11 @@ edits records only after the writer stops. Workflow activation authorizes
 accepted-Step commits, subject to explicit user and project restrictions.
 There is no Runner, successor manager or mid-assignment rollover.
 
-Apply the [shared writing rules](references/writing.md). A complete read of
-these rules and their linked shell-command rules also satisfies that read for
-other suite Skills of the matching build. Read another copy after an explicit
-reload, changed rules or a different build, or when the retained text is
-missing, incomplete or uncertain.
-All roles communicate
-in the language of the user's current message unless the user requests another
-language. Keep internal messages minimal and clearly labelled. Preserve required
-field names, status values, quotes, user wording and technical literals exactly.
-Plan records follow Plan's language rule.
+Read the [shared writing rules](references/writing.md), then
+[operations](references/operations.md) before managing work. Use Scoville Plan's
+current route for records and [dispatch](references/operations-dispatch.md)
+before each assignment. Agents select needed Skills themselves; explicit user
+invocations remain binding.
 
 {{ include: family.contract }}
 
@@ -42,31 +37,12 @@ authorized scope, stops, model choices and coordination permissions. Executing
 a Plan or editing Workflow sources does not activate Workflow. Tests stay within
 their authorized scope. Workflow creates no goal or scheduled continuation.
 
-Use the actual workspace and native `collaboration.spawn_agent`,
-`collaboration.followup_task`, `collaboration.send_message`,
-`collaboration.wait_agent`, `collaboration.list_agents` and
-`collaboration.interrupt_agent`. Verify their availability. Retain exact agent
-handles; never substitute titles or sidebar IDs. Keep this manager thread and
-workspace. The host's manager model and effort apply only to the manager.
-Setup owns subagent pairs; user overrides must name the affected role.
-
 {{ include: rules.python }}
 
-Git and a Git worktree are required. Before Plan writes on each explicit
-activation, require empty `git status --porcelain --untracked-files=all`;
-a failed command or dirty path blocks activation. Report it; start no Executor
-and do not clean existing work automatically. Host continuation, compaction
-and rule reload do not repeat this gate or interrupt an active writer.
-
-Read [operations](references/operations.md) and use Scoville Plan to establish
-authorized Plan, current Work Item and next unfinished Step. Read
-[dispatch](references/operations-dispatch.md) before assigning work. Agents
-select relevant Skills themselves and load only needed references. Explicit
-user invocations remain binding.
-
-Once the target is known, name this chat `SC-WFL <Plan-ID>` using
-`set_thread_title` without threadId. Keep the title across pauses and compaction.
-Change it only when authorized work moves to another Plan; report rename errors.
+On each explicit activation, apply the clean-Git gate in
+[operations](references/operations.md#execute-one-step) before Plan writes.
+Continuation, compaction and rule reload are not new activation and do not
+interrupt a running writer.
 
 ## Loop
 
@@ -124,65 +100,11 @@ flowchart TD
 
 “Choose” means the [agent check](references/operations-dispatch.md#check-the-agent-before-every-assignment).
 Wait for each role’s matching complete native final before dependent work.
-Stop and failure recovery follow [operations](references/operations.md#stop-compaction-and-failure).
 The diagram grants no scope; closure findings without a matching Step follow operations.
 
-Review each Step that changed files, configuration or behavior. A Step without
-such changes is checked by the closure review. Apply
-[operations](references/operations.md#execute-one-step) before advancing or
-dispatching review. Git shows file changes; reported checks cover non-file and
-ignored-output effects. The helper
-sends original Plan context and exactly the selected Step. The manager supplies
-selection IDs and review objections as additional context; it does not compose,
-shorten or rewrite the dispatch. Step review covers actual changes of the selected
-Executor assignment, relevant effects and open findings. A follow-up without
-new changes does not end an open Step review or its findings; an evidence-only
-follow-up continues review of the original change. Closure checks all
-original Steps and full Acceptance against current implementation and evidence.
-After a changed Step passes review, the manager records and commits its accepted
-changes with Plan progress before advancing. Preserve foreign work; make no
-empty commits. The Work Item start commit supplies the closure range.
-
-Before every assignment, run the agent check. Executor and Reviewer belong to
-the current Work Item; Explorer belongs to this manager thread. The one Setup
-threshold is checked between assignments, never during an ongoing write.
-
-Before acting, check:
-1. The current request, required role, authorized scope and completed prerequisites.
-2. On activation: clean Git before Plan writes. Before source execution:
-   saved and validated start or resume state.
-3. Complete unchanged inputs and permission to dispatch from the agent check.
-
-Use the existing Plan, agent and dispatch helpers for their checks. Before
-communicating, check language, required fields, actual evidence and completion
-claims. Correct a mismatch or stop dependent work on an unresolved prerequisite.
-Do not output a checklist transcript.
-
-Delegate user questions, ideas, change requests and planning preparation to
-Explorer with the complete request and necessary context. Explorer proposes;
-manager answers and writes authorized Plan changes. Handle stop, resume and
-known progress directly. Stop invalidated execution before investigating a
-change. Exploration grants no implementation or review acceptance.
-
-Retain handles, role counters, launched pairs, current assignments, results
-and open findings. Reuse unchanged evidence and passing checks. Report changed
-positions briefly as `Working on: <project> → <Plan-ID> → <Step or Work Item>`;
-translate the label into the communication language.
-Waiting for a child is working; blocked means an actual unmet prerequisite.
-During a running child, keep this turn active with native waits, not a final answer.
-
-## Stop and completion
-
-On user stop, stop dispatch and interrupt known running children. Establish
-writer quiescence, then save and validate observed Plan state. Uncertain writer
-state prevents another writer. Resume only on explicit activation.
-
-Host compaction continues this manager and its same assignments from retained
-identities, Plan state and completed effects; it creates no new scope or
-replacement. Use operations for confirmed failed or interrupted children.
-
-Complete only after requested Acceptance, required Step reviews, closure review, Plan closure and
-child and writer quiescence. Report outcome and material limits in the user's
-language. Return to ordinary assistance; new requests start no automatic run.
+On stop, cease dispatch and follow
+[stop and failure recovery](references/operations.md#stop-compaction-and-failure).
+Uncertain writer state permits no competing writer. Resume only on explicit
+activation; completion grants no automatic successor run.
 
 {{ include: helper.policy }}

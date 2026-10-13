@@ -39,6 +39,8 @@ and complete context. Brevity only helps when the meaning survives.
 
 Developed and tested in Codex with project-file access and permission for the requested edits. Fable, Astra, SOL or Opus (5.0+) are recommended. Luna 6 with High reasoning passed the selected comprehension and functional checks in Codex. Other routes and hosts remain unverified.
 
+Python 3.11+ and the bundled text-size checker are required for size checks.
+
 ## Install
 
 Install and enable every Skill in the suite. Each applies to its own task scope.

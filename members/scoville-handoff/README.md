@@ -27,7 +27,7 @@ A targeted GPT-6 Luna High test turned a preference into a requirement. Check
 that distinction in a generated handoff. Later testing has not disproved the
 observation.
 
-See the [full instructions](https://github.com/benjaminstelzer/scoville-handoff/blob/main/scoville-handoff/SKILL.md).
+See the [full instructions](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-handoff/scoville-handoff/SKILL.md).
 
 ## What it costs
 
@@ -42,6 +42,8 @@ session needs to continue.
 ## Compatibility
 
 Developed for Codex and Claude Code with read access to the task's relevant sources. Fable, Astra, SOL or Opus (5.0+) are recommended. Luna 6 with High reasoning passed the selected comprehension and functional checks in Codex. Other routes and hosts remain unverified.
+
+Python 3.11+ and the bundled text-size checker are required for size checks.
 
 ## Install
 

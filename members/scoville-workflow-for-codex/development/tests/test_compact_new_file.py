@@ -43,6 +43,10 @@ class CompactNewFileTests(unittest.TestCase):
                     rules = (PACKAGE / 'references' / filename).read_text(encoding='utf-8')
                     self.assertEqual(fresh.count(rules), 1)
                     self.assertNotIn(rules, followup)
+                delivery = PACKAGE / 'references/output-delivery.md'
+                self.assertIn(f'output_delivery_rules: {delivery};', fresh)
+                self.assertNotIn(delivery.read_text(encoding='utf-8'), fresh)
+                self.assertNotIn('output_delivery_rules:', followup)
                 self.assertNotIn('Read applicable AGENTS.md', fresh)
                 self.assertNotIn('AGENTS.md', followup)
                 self.assertNotIn('Use these fields', followup)

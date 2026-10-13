@@ -38,33 +38,43 @@ and Reviewer belong to the current Work Item; Explorer belongs to this manager
 thread. Apply this agent check to execution, review, closure, corrections and
 missing-result questions:
 
-1. Find the associated role agent. None: create fresh at item 4. Confirmed
-   failure or interruption: use [failure recovery](operations.md#stop-compaction-and-failure)
-   and end this check. Otherwise establish completion and idle state from its
-   complete native final and native state. Running or uncertain: wait; dispatch
-   nothing. An ordinary completed `blocked` result is not a failed child.
-2. When the next assignment is ready, measure this idle agent once:
+```mermaid
+flowchart TD
+  associated{"Associated role agent?"}
+  associated -->|none| fresh["Build fresh; select configured route or explicit override"]
+  associated -->|confirmed failed or interrupted| recovery["Failure recovery in operations.md; end this check"]
+  associated -->|exists| idle{"Complete native final and native state establish idle?"}
+  idle -->|running or uncertain| wait["Wait; dispatch nothing"]
+  idle -->|yes| measure["Measure idle agent once when next assignment is ready"]
+  measure --> result{"Helper result?"}
+  result -->|blocked or nonzero exit| blocked["Report technical problem; no reuse, replacement or pair-change bypass"]
+  result -->|reuse or spawn| choice{"Explicit user/Step pair change or required capability unavailable in retained pair?"}
+  choice -->|yes| changed["Build fresh with justified pair; preserve original unit and role inputs"]
+  choice -->|no| replace{"Spawn result, or Workflow rules/build changed since spawn?"}
+  replace -->|yes| replacement["Fresh --replacement-of retained handle with returned pair; keep old agent idle"]
+  replace -->|no| reuse["Followup to same agent with returned pair"]
+```
 
-   ```text
-   python "<workflow>/scripts/check_agent_context.py" --project-root "<workspace>" --agent-id "<exact-handle>" --session-path "<retained-session-path>"
-   ```
+An ordinary completed blocked result is not failure. Recovery requires confirmed
+termination and reconciled effects under operations.md, never a second writer.
+For the measurement use:
 
-   Omit `--session-path` until a measurement of this agent returned it.
+```text
+python "<workflow>/scripts/check_agent_context.py" --project-root "<workspace>" --agent-id "<exact-handle>" --session-path "<retained-session-path>"
+```
 
-3. Act on the helper's returned `action`:
+Omit --session-path until this agent's first measurement supplies it.
 
-   | Result | Dispatch arguments |
-   | --- | --- |
-   | `reuse`: strictly below Setup threshold | Same agent: `--agent-id`, `--model` from `model`, `--thinking` from `reasoning_effort`. If Workflow rules or the build changed since spawn, use fresh `--replacement-of` with that pair instead. |
-   | `spawn`: at or above threshold | Fresh agent: `--replacement-of` from `replacement_of`, `--model` from `model`, `--thinking` from `reasoning_effort`. Keep the old agent idle. |
-   | `blocked` or nonzero exit | No dispatch: report the technical problem. Neither reuse nor replacement is permitted, including a fresh pair-change route. |
+The diagram selects the dispatch; map helper fields to arguments as follows:
 
-4. Build the original assignment with the pair choices above and copy the
-   returned native arguments unchanged. First creation uses `--route`; an
-   explicit user role choice uses its pair and `--override-reason`. An explicit
-   Step pair change uses fresh `--route`. A required exposed capability may
-   justify a fresh pair; state the reason. Later inferred risk does not reset
-   a retained pair. The builder diagnoses conflicting flags.
+| Result | Argument values |
+| --- | --- |
+| reuse: strictly below Setup threshold | --agent-id from retained handle, --model from model, --thinking from reasoning_effort |
+| spawn: at or above threshold | --replacement-of from replacement_of, --model from model, --thinking from reasoning_effort |
+
+Build the original assignment and copy the returned native arguments unchanged.
+First creation uses --route; an explicit user role choice uses its pair with
+--override-reason; an explicit Step pair change uses fresh --route.
 
 The context helper resolves exactly one native session from the retained handle
 and this Manager's CODEX_THREAD_ID, or checks that the retained `session_path`
@@ -130,8 +140,8 @@ retained agent and assignment it answers. Use these inputs:
   on that Step.
 - Continuation of the same Step: its complete prior Executor final as
   `--executor-result`, without a Reviewer result.
-- Missing-evidence follow-up after a blocked review: the reviewed Executor final
-  and the blocked Reviewer final, as in [operations](operations.md#user-requests-and-results).
+- Missing-evidence follow-up: use the single dispatch table and unchanged-result
+  rules in [operations](operations.md#user-requests-and-results).
 - Next Step: omit earlier result flags and passed reviews. Take needed accepted
   source or artifact provenance from original Instructions, named artifacts,
   retained history and relevant saved Work Item Evidence. Read an earlier

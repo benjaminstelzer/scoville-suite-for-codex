@@ -214,7 +214,8 @@ def role_prompt(role: str, workspace: Path, context: dict, role_input: dict, lan
     checker = skill / 'scripts/check_text_size.py'
     shell = skill / 'references/shell-commands.md'
     writing_path = skill / 'references/writing.md'
-    for file in (checker, shell, writing_path):
+    delivery = skill / 'references/output-delivery.md'
+    for file in (checker, shell, writing_path, delivery):
         if not file.is_file():
             raise ValueError(f'bundled dependency missing: {file}; use the intact matching suite package before dispatch')
     writing = writing_path.read_text(encoding='utf-8')
@@ -224,7 +225,8 @@ def role_prompt(role: str, workspace: Path, context: dict, role_input: dict, lan
         f'scoville_role={role}', 'dispatch_contract=SCOVILLE_AGENT_DISPATCH_V1',
         f'workspace_root={workspace}',
         f'python: {sys.executable}', f'text_size_checker: {checker}',
-        f'shell_command_rules: {shell}; complete text embedded below.',
+        f'shell_command_rules: {shell}; complete basic rules embedded below.',
+        f'output_delivery_rules: {delivery}; load when the embedded shell rules require it.',
         f'suite_directory: {suite}',
         'Choose appropriate Skills yourself. Resolve selected suite Skills from suite_directory in this matching build, preserving explicit user invocations and overrides. Skill selection grants no extra permissions. Load only the references needed for this assignment.',
         'Do not activate Workflow or Handoff or assume manager permissions. The manager owns Plan, Decision and index edits, staging, commits and dispatch. Do not edit those records, change Workflow settings or create agents/chats. Follow repository constraints. A selected Skill grants no extra role permissions.',

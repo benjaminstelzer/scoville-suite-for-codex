@@ -2,7 +2,10 @@
 
 ## Unreleased - 2026-10-13
 
-- Lower the shared subagent context default to 30%. Keep one Step per assignment
+- Keep repeated assignments lean and wait for inactive agents before replacement. Preserve original Steps, model pairs and required reviews.
+- Load detailed command capture and full-file delivery only when needed. Keep complete output, failure diagnostics and role permissions.
+
+- Revise the shared subagent context default to 45% instead of 30%. Keep one Step per assignment
   and review every changed Step, with depth matched to its risk.
 - Let the manager check results, changed paths and Git statistics; the reviewer
   owns technical diffs. Compare supplied Decision identities without computing

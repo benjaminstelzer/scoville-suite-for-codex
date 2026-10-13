@@ -30,7 +30,7 @@ the user sweat.
 - **Rendered proof.** Source checks alone cannot establish that the interface
   works. Unchecked rendering or interaction stays explicitly unverified.
 
-See the [full instructions](https://github.com/benjaminstelzer/scoville-ui/blob/main/scoville-ui/SKILL.md).
+See the [full instructions](https://github.com/benjaminstelzer/scoville-suite-for-codex/blob/main/packages/scoville-ui/scoville-ui/SKILL.md).
 
 ## What it costs
 
@@ -45,6 +45,8 @@ of check replaces usability testing with the people who will use the product.
 ## Compatibility
 
 Developed for Codex and Claude Code with the project's toolchain and browser or platform access for rendered checks and interactions. Fable, Astra, SOL or Opus (5.0+) are recommended. Luna 6 with High reasoning passed the selected comprehension and functional checks in Codex. Other routes and hosts remain unverified.
+
+Python 3.11+ and the bundled text-size checker are required for size checks.
 
 ## Install
 

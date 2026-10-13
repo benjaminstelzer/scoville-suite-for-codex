@@ -616,12 +616,37 @@ class NativeCreationTests(unittest.TestCase):
             self.assertIn(f'shell_command_rules: {shell.resolve()};', prompt)
             self.assertEqual(prompt.count(shell.read_text(encoding='utf-8')), 1)
 
-
-
-
-
-
-
+    def test_missing_delivery_reference_blocks_publication_then_corrected_call_reaches_consumer(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            root = base / 'project'
+            copy_started_profile(root)
+            copy = base / 'suite' / PACKAGE.name
+            shutil.copytree(PACKAGE, copy)
+            shutil.copytree(PACKAGE.parent / 'scoville-code', copy.parent / 'scoville-code')
+            shutil.copytree(PACKAGE.parent / 'scoville-plan', copy.parent / 'scoville-plan')
+            delivery = copy / 'references/output-delivery.md'
+            original = delivery.read_bytes()
+            delivery.unlink()
+            assignment = root / 'assignment.txt'
+            command = [sys.executable, str(copy / 'scripts/build_dispatch_prompt.py'),
+                       '--communication-language', 'German', '--project-root', str(root), '--format', 'create',
+                       '--project-name', 'Fixture',
+                       '--worker-number', '1', '--model', 'gpt-6-sol', '--thinking', 'high',
+                       '--override-reason', 'Fixture explicit role choice',
+                       '--unit', 'W-001/step-1', '--role', 'executor',
+                       '--assignment-file', str(assignment)]
+            failed = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
+            self.assertNotEqual(0, failed.returncode)
+            self.assertEqual('', failed.stdout)
+            self.assertFalse(assignment.exists())
+            self.assertIn(str(delivery.resolve()), failed.stderr)
+            delivery.write_bytes(original)
+            corrected = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
+            self.consume(corrected)
+            prompt = assignment.read_text(encoding='utf-8')
+            self.assertIn(f'output_delivery_rules: {delivery.resolve()};', prompt)
+            self.assertNotIn(delivery.read_text(encoding='utf-8'), prompt)
 
 if __name__ == '__main__':
     unittest.main()

@@ -79,6 +79,12 @@ class AdviserPromptTests(unittest.TestCase):
             self.assertEqual(sys.executable, fields['python'])
             self.assertEqual((copy / 'scripts/check_text_size.py').resolve(), Path(fields['text_size_checker']))
             self.assertTrue(Path(fields['text_size_checker']).is_file())
+            delivery_field = next(line.split(': ', 1)[1] for line in prompt.splitlines()
+                                  if line.startswith('output_delivery_rules: '))
+            delivery = Path(delivery_field.split(';', 1)[0])
+            self.assertEqual((copy / 'references/output-delivery.md').resolve(), delivery)
+            self.assertTrue(delivery.is_file())
+            self.assertNotIn(delivery.read_text(encoding='utf-8'), prompt)
             planned = root / 'Vollständige Rückgabe.txt'
             complete = ('Required café 漢字 facts.\n' * 220 + 'FINAL_REQUIRED_FACT\n').encode('utf-8')
             planned.write_bytes(complete)
@@ -136,6 +142,30 @@ class AdviserPromptTests(unittest.TestCase):
             prompt = json.loads(corrected.stdout)['message']
             self.assertIn(f'shell_command_rules: {shell.resolve()};', prompt)
             self.assertNotIn(shell.read_text(encoding='utf-8'), prompt)
+
+    def test_conditional_delivery_reference_missing_then_restored_is_consumable(self):
+        with tempfile.TemporaryDirectory() as directory:
+            copy = Path(directory) / PACKAGE.name
+            shutil.copytree(PACKAGE, copy)
+            delivery = copy / 'references/output-delivery.md'
+            original = delivery.read_bytes()
+            delivery.unlink()
+            script = copy / 'scripts/build_adviser_prompt.py'
+            failed = self.run_prompt(extra=self.SPAWN, script=script)
+            self.assertNotEqual(0, failed.returncode)
+            self.assertEqual('', failed.stdout)
+            self.assertIn(str(delivery.resolve()), failed.stderr)
+            self.assertIn('usage:', failed.stderr)
+            delivery.write_bytes(original)
+            corrected = self.run_prompt(extra=self.SPAWN, script=script)
+            self.assertEqual(0, corrected.returncode, corrected.stderr)
+            prompt = json.loads(corrected.stdout)['message']
+            supplied = next(line.split(': ', 1)[1].split(';', 1)[0]
+                            for line in prompt.splitlines()
+                            if line.startswith('output_delivery_rules: '))
+            self.assertEqual(delivery.resolve(), Path(supplied))
+            self.assertEqual(original, Path(supplied).read_bytes())
+            self.assertNotIn(original.decode('utf-8'), prompt)
 
     def test_missing_spawn_fields_name_argument_and_corrected_call_succeeds(self):
         for flag in ('--task-name', '--model', '--effort'):

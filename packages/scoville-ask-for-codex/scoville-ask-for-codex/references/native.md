@@ -76,7 +76,5 @@ preserve reference and scope. A new follow-up question supplies a new reference
 and explicit scope. Retain the intended message before sending; reconcile an
 uncertain result instead of resending blindly. Keep each adviser independent.
 
-Follow-ups use the same agent and its settings. The follow-up tool has no model
-override. If the user requests different settings, explain that this requires
-a fresh adviser and obtain that choice unless already authorized. Never replace
-an unavailable handle silently.
+Follow the entrypoint's follow-up settings policy; this tool cannot override
+model or effort. Never replace an unavailable handle silently.
