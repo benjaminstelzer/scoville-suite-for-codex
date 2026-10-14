@@ -90,11 +90,18 @@ measurement above. Never interrupt an active agent for its context threshold.
 
 The manager supplies selection IDs, role and selected pair; the helper extracts
 original Plan identity, Goal, Non-goals, binding Work Item fields, Instructions
-and the current linked Decision sources. Fresh includes accepted Decision
-texts; reuse lists ID, canonical path, status and SHA-256 instead of repeating
-known bodies. Retain each supplied identity with its fully read Decision and
+and the current linked Decision sources. After checking full source identities,
+fresh includes each accepted Decision: its full text when unmarked, or frontmatter,
+title and the four unchanged binding sections when validly marked under Plan's
+Decision format. The helper projects; the manager never selects or summarizes
+sections. A projection is complete binding context; omitted background alone is
+no reread reason. Read the full source if necessary meaning or background is unclear.
+Reuse lists ID, canonical path, status and SHA-256 instead of repeating
+known bodies. Retain each supplied identity with its supplied binding context and
 compare those supplied identities on reuse; do not compute file hashes. Read
-new, changed or uncertain Decisions completely before dependent work.
+new, changed or uncertain Decisions completely from their files before dependent work.
+Closure changes the Work Item scope, not fresh/reuse delivery; a reused closure
+does not repeat retained Decision bodies. Goal and Non-goals remain complete.
 The assignment states before these sections that Goal and Decisions grant the
 role no permissions or additional tasks.
 Only the selected Step body is included in a

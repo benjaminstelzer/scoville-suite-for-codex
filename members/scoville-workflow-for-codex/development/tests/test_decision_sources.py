@@ -61,6 +61,14 @@ class DecisionSourceTests(unittest.TestCase):
             plan.write_text(original.replace('Decisions: [ADR-0001]','Decisions: []'), encoding='utf-8')
             self.assertEqual(prompt_builder.select_unit(SELECTOR,root,'W-001/step-1')['decision_sources'], [])
 
+    def test_accepted_status_in_code_does_not_make_historical_source_binding(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, source = self.setup_project(directory)
+            text = source.read_text(encoding='utf-8').replace('status: accepted', 'status: superseded')
+            source.write_bytes((text + '\n```text\nstatus: accepted\n```\n').encode('utf-8'))
+            context = prompt_builder.select_unit(SELECTOR, root, 'W-001/step-1')
+            self.assertNotIn('## Binding Decision', prompt_builder.build_prompt('executor', root, context, {}, 'German'))
+
     def test_missing_or_ambiguous_source_produces_no_assignment(self):
         for missing in (True, False):
             with self.subTest(missing=missing), tempfile.TemporaryDirectory() as directory:
@@ -91,5 +99,46 @@ class DecisionSourceTests(unittest.TestCase):
             self.assertIn(report, reuse)
             self.assertIn(str(source.resolve()), reuse)
             self.assertNotIn('## Binding Decision', reuse)
+
+    def test_marked_and_unmarked_sources_for_fresh_reuse_steps_and_closure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, source = self.setup_project(directory)
+            text = source.read_text(encoding='utf-8').replace('## Decision\n', '## Decision\n\nBinding sections: complete\n')
+            source.write_bytes(text.encode('utf-8'))
+            extra = source.with_name('0002-background.md')
+            extra_text = text.replace('ADR-0001', 'ADR-0002').replace('Binding sections: complete\n', '').replace('Manual inspection can miss structural errors.', 'UNMARKED_BACKGROUND remains required.')
+            extra.write_bytes(extra_text.encode('utf-8'))
+            plan = root/'docs/plans/0001-validate-profile.md'
+            plan.write_bytes(plan.read_bytes().replace(b'Decisions: [ADR-0001]', b'Decisions: [ADR-0001, ADR-0002]'))
+            for unit in ('W-001/step-1', 'W-001'):
+                context = prompt_builder.select_unit(SELECTOR, root, unit)
+                self.assertEqual(text, context['decisions'][0])
+                self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(), context['decision_sources'][0]['sha256'])
+                roles = ('reviewer',) if unit == 'W-001' else ('executor', 'reviewer', 'explorer')
+                for role in roles:
+                    with self.subTest(unit=unit, role=role):
+                        inputs = ({'executor_result': 'status: done\nchanges: none\n'} if role == 'reviewer'
+                                  else {'supplemental_context': 'Investigate only.'} if role == 'explorer' else {})
+                        fresh = prompt_builder.build_prompt(role, root, context, inputs, 'German')
+                        reuse = prompt_builder.build_prompt(role, root, context, inputs, 'German', reuse=True)
+                        self.assertNotIn('Manual inspection can miss structural errors.', fresh)
+                        self.assertIn(extra_text, fresh)
+                        for phrase in ('Use a validator that never mutates project state.',
+                                       'Compare profile bytes before and after validation.',
+                                       'Revisit when the native format version changes.'):
+                            self.assertIn(phrase, fresh)
+                        self.assertNotIn('## Binding Decision', reuse)
+                        for prompt in (fresh, reuse):
+                            self.assertIn(context['plan']['goal'], prompt)
+                            self.assertIn(context['plan']['non_goals'], prompt)
+                            key = 'context_text' if unit == 'W-001' else 'source_text'
+                            self.assertIn(context['work_item'][key].rstrip(), prompt)
+            before = prompt_builder.select_unit(SELECTOR, root, 'W-001/step-1')
+            source.write_bytes(text.replace('Manual inspection can miss structural errors.', 'Updated background.').encode('utf-8'))
+            after = prompt_builder.select_unit(SELECTOR, root, 'W-001/step-1')
+            self.assertNotEqual(before['decision_sources'][0]['sha256'], after['decision_sources'][0]['sha256'])
+            # A background edit changes full identity even when projected text stays identical.
+            from select_context import project_decision_context
+            self.assertEqual(project_decision_context(before['decisions'][0]), project_decision_context(after['decisions'][0]))
 
 if __name__ == '__main__': unittest.main()
