@@ -2,6 +2,9 @@
 
 ## Unreleased - 2026-10-14
 
+- Compare nested report data in code and display only decisive results and necessary diagnostics, including structured state stored in text fields.
+
+
 - Project marked Decisions after full source verification; preserve unmarked texts, original Steps and reuse closure context.
 - Interpret actual report values through their documented meaning. Allow equivalent wording while preserving exact contracts and unresolved outcomes.
 - Process machine reports through code before displaying results. Avoid redundant shared-rule reads and keep check reports focused on decisive evidence.
