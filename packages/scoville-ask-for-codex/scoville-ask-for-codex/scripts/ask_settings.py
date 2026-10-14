@@ -178,8 +178,8 @@ def resolve_settings(defaults: Path, request: dict):
     require(type(deadline) in (int, float) and math.isfinite(deadline) and deadline > 0,
             f"{field('claude.timeout_seconds')}={diagnostic_value(deadline)} must be a positive finite number of seconds; use a value such as 3600")
     budget = claude['max_budget_usd']
-    require(type(budget) in (int, float) and math.isfinite(budget) and budget > 0,
-            f"{field('claude.max_budget_usd')}={diagnostic_value(budget)} must be a positive finite USD amount; use a value such as 5")
+    require(type(budget) in (int, float) and math.isfinite(budget) and budget >= 0,
+            f"{field('claude.max_budget_usd')}={diagnostic_value(budget)} must be a nonnegative finite USD amount; use 0 for no helper limit or a positive amount such as 5")
     for key in ('session_persistence', 'customizations', 'web_tools'):
         require(type(claude[key]) is bool,
                 f"{field(f'claude.{key}')}={diagnostic_value(claude[key])} must be a JSON boolean; use true or false")

@@ -62,6 +62,9 @@ The object contains `ask`, `workflow` or both sections. The `ask` section suppor
 - `claude` for `max_budget_usd`, `session_persistence`, `customizations`,
   `timeout_seconds` and `web_tools`.
 
+`max_budget_usd` accepts a finite amount of 0 or more. Zero removes the helper's
+spend cap, not consumption charges, provider limits, account limits or timeouts.
+
 The `workflow` section supports:
 
 - `execute`, `review` and `explore` for each route's model and reasoning level.

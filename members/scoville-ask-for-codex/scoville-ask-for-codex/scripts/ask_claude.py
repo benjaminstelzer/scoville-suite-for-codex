@@ -102,9 +102,10 @@ def build_command(args: argparse.Namespace, claude_command: list[str]) -> list[s
         allowed_tools,
         "--allowed-tools",
         allowed_tools,
-        "--max-budget-usd",
-        format(args.max_budget_usd, "g"),
     ]
+
+    if args.max_budget_usd != 0:
+        command.extend(["--max-budget-usd", format(args.max_budget_usd, "g")])
 
     mode = session_mode(args)
     if mode == "fresh":

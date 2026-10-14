@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - 2026-10-14
+
+- Parse machine reports completely and display checked facts and all in-scope deviations. Reuse fully read shared rules across Skills without hiding required inputs.
+- Accept zero for no helper spend cap, preserve positive caps and request settings, and keep provider limits and timeouts.
+
 ## Unreleased - 2026-10-13
 
 - Give advisers the conditional delivery path and stop prompt creation when that required source is missing.

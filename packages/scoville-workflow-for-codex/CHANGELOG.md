@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - 2026-10-14
+
+- Parse machine reports completely and display checked facts and all in-scope deviations. Reuse fully read shared rules across Skills without hiding required inputs.
+- Recover through scoped Plan selection while retaining assignments, results and completed effects.
+
 ## Unreleased - 2026-10-13
 
 - Keep repeated assignments lean and wait for inactive agents before replacement. Preserve original Steps, model pairs and required reviews.

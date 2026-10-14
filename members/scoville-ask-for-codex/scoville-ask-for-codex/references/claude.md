@@ -45,6 +45,8 @@ the preparation command: `--model <id>`, `--effort max`, `--web-tools true`
 (or `false`), `--timeout-seconds 3600` or `--max-budget-usd 10`. For example,
 `--effort max --web-tools true` changes those two settings and retains the rest.
 Overrides affect this request only; they do not change project configuration.
+`--max-budget-usd 0` removes the helper's spend cap by omitting the CLI flag.
+It does not mean free use or remove provider, account or timeout limits.
 
 ## Execution and result
 

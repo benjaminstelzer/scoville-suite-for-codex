@@ -94,6 +94,8 @@ class SetupTests(unittest.TestCase):
         before = self.path.read_bytes()
         invalid = [ {'workflow': {key: {}}} for key in ('context', 'manager', 'pin_threads') ]
         invalid += [{'workflow': {'context_threshold_percent': value}} for value in (True, False, 0, 101, 50.0, '50', {})]
+        invalid += [{'ask': {'claude': {'max_budget_usd': value}}}
+                    for value in (-1, True, False, None, '0', float('nan'), float('inf'), -float('inf'))]
         invalid += [{'workflow': {'unknown': {}}}, {'ask': {'pin_threads': False}},
                     {'ask': {'claude': {'timeout_seconds': 0}}},
                     {'workflow': {'execute': {'low': {'reasoning': 'bad'}}}},
@@ -161,6 +163,23 @@ class SetupTests(unittest.TestCase):
         value = json.loads(self.path.read_text())
         self.assertEqual(value, {'workflow': {'context_threshold_percent': 40}, 'other': {'keep': True}})
         self.assertEqual(saved['effective']['workflow']['context_threshold_percent'], 40)
+
+    def test_zero_claude_budget_is_saved_shown_and_resolved_by_ask(self):
+        self.save({'other': {'keep': 'Ä 中文'}})
+        status, saved = self.run_setup('set', {'ask': {'claude': {'max_budget_usd': 0}}})
+        self.assertEqual(status, 0, saved)
+        self.assertEqual(json.loads(self.path.read_text(encoding='utf-8')),
+                         {'other': {'keep': 'Ä 中文'}, 'ask': {'claude': {'max_budget_usd': 0}}})
+        before = self.path.read_bytes()
+        status, shown = self.run_setup('show')
+        self.assertEqual(status, 0, shown)
+        self.assertEqual(shown['effective']['ask']['claude']['max_budget_usd'], 0)
+        self.assertEqual(self.path.read_bytes(), before)
+        helper = self.base / 'scoville-ask-for-codex/scoville-ask-for-codex/scripts/ask.py'
+        resolved = subprocess.run([sys.executable, str(helper), '--project-root', str(self.project)],
+                                  capture_output=True, text=True, encoding='utf-8')
+        self.assertEqual(resolved.returncode, 0, resolved.stdout + resolved.stderr)
+        self.assertEqual(json.loads(resolved.stdout)['config']['claude']['max_budget_usd'], 0)
 
     def test_setup_is_codex_suite_only(self):
         for profile, layout, expected in [('codex', 'suite', True), ('codex', 'standalone', False),

@@ -17,9 +17,7 @@ spawn_agent, followup_task, send_message, wait_agent, list_agents and interrupt_
 are available. Retain exact handles, never titles or sidebar IDs. The host pair
 belongs only to the manager; Setup owns subagent pairs and user overrides name a role.
 
-Reuse fully read shared writing/shell rules across matching-build Suite Skills.
-Reload after explicit reload, changed rules/build or missing, incomplete or uncertain
-retained text. Load output-delivery.md only under shell-rule triggers. Reuse needed
+Load output-delivery.md only under shell-rule triggers. Reuse needed
 Skills, unchanged evidence and passing checks. Retain role counters, launched pairs,
 assignments, complete results and open findings across pauses and compaction.
 
@@ -136,8 +134,11 @@ previous status proves no termination. Report uncertain handles/diagnostics and 
 no competing writer. Then save and validate observed pause, unfinished checks, open
 reviews and decisions. Resume only on explicit activation.
 
-After compaction, recover the same assignments, actual results and completed effects;
-repeat no completed work just to rebuild history. For a confirmed failed/interrupted
+After compaction, normally recover Plan state through its scoped selection route.
+Read a specific Plan or Decision directly when authoring, resolving a conflict
+or independently checking facts requires it. Recover the same assignments,
+actual results and completed effects; repeat no completed work to rebuild history.
+For a confirmed failed/interrupted
 child: establish termination, reconcile effects/checks, clear its association without
 measurement/reuse, then redispatch the same unit/role with unchanged role inputs and
 open findings. Use the helper, next role number and --replacement-of with the retained

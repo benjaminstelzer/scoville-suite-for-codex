@@ -67,6 +67,11 @@ the process working directory if neither was supplied. `project_config` is
 rejected with migration guidance. Keep settings unchanged during a run.
 Display resolved settings when configuration is requested.
 
+`claude.max_budget_usd` accepts a finite amount of 0 or more. Zero removes this
+helper's spend limit; it does not mean free use or remove provider, account or
+timeout limits. Positive amounts set the CLI spend cap. Request overrides do
+not save project settings.
+
 The Claude-only `prepare` request contains:
 
 - `mode=review|consultation` to select the kind of advice.

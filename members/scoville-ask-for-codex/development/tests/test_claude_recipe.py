@@ -82,6 +82,11 @@ class ClaudeRecipeTests(unittest.TestCase):
             self.assertIn('adviser_id: ' + entry['adviser']['id'], request['prompt'])
 
     def test_fresh_followup_and_overrides_reach_cli(self):
+        for budget in (3.125, 0, -0.0):
+            with self.subTest(budget=budget):
+                self.fresh_followup_and_overrides_reach_cli(budget)
+
+    def fresh_followup_and_overrides_reach_cli(self, budget):
         with tempfile.TemporaryDirectory() as temporary:
             base = Path(temporary)
             project = base / 'project'
@@ -97,14 +102,15 @@ class ClaudeRecipeTests(unittest.TestCase):
                       '--scope', 'sample.py', '--reference', 'round-1', '--output-file', str(request_file)]
             generated = self.cli('--project-root', str(project), '--adviser', 'claude', *common,
                                  '--effort', 'max', '--web-tools', 'true',
-                                 '--timeout-seconds', '45', '--max-budget-usd', '3')
+                                 '--timeout-seconds', '45', '--max-budget-usd', str(budget))
             self.assertEqual(generated.returncode, 0, generated.stdout + generated.stderr)
             self.assertEqual(json.loads(generated.stdout)['request_file'], str(request_file))
             initial = json.loads(request_file.read_text(encoding='utf-8'))
             self.assertEqual(initial['adviser']['effort'], 'max')
             self.assertTrue(initial['claude']['web_tools'])
             self.assertEqual(initial['claude']['timeout_seconds'], 45)
-            self.assertEqual(initial['claude']['max_budget_usd'], 3)
+            self.assertEqual(initial['claude']['max_budget_usd'], budget)
+            self.assertEqual(json.loads(generated.stdout)['claude']['max_budget_usd'], budget)
             self.assertEqual(json.loads(config.read_text(encoding='utf-8'))['ask']['presets']['claude']['effort'], 'medium')
 
             fake_cli = base / 'fake_claude.py'
@@ -127,6 +133,10 @@ class ClaudeRecipeTests(unittest.TestCase):
                 return json.loads(completed.stdout), json.loads((project / 'received.json').read_text(encoding='utf-8'))
 
             answer, received = consume(request_file)
+            if budget == 0:
+                self.assertNotIn('--max-budget-usd', received['args'])
+            else:
+                self.assertEqual(received['args'][received['args'].index('--max-budget-usd') + 1], str(budget))
             self.assertEqual(received['prompt'], initial['prompt'])
             self.assertTrue(received['prompt'].endswith(question))
             self.assertEqual(Path(received['cwd']), project)
@@ -146,6 +156,10 @@ class ClaudeRecipeTests(unittest.TestCase):
             for key in ('adviser', 'claude', 'cwd'):
                 self.assertEqual(resumed[key], initial[key])
             answer, received = consume(followup_file)
+            if budget == 0:
+                self.assertNotIn('--max-budget-usd', received['args'])
+            else:
+                self.assertEqual(received['args'][received['args'].index('--max-budget-usd') + 1], str(budget))
             self.assertEqual(answer['context_mode'], 'continued')
             self.assertEqual(received['args'][received['args'].index('--resume') + 1], 'exact-session')
             self.assertEqual(received['prompt'], resumed['prompt'])

@@ -122,6 +122,21 @@ class AskBehaviorTests(unittest.TestCase):
         result = ask.resolve({"overrides": {"claude": {"timeout_seconds": 2400}}})
         self.assertEqual(result["config"]["claude"]["timeout_seconds"], 2400)
 
+    def test_invalid_claude_budgets_stop_before_launch_and_zero_is_supported(self):
+        request = ask.prepare(prepare_request([ADVISERS[1]]))['entries'][0]['request']
+        for budget in (-1, True, False, None, '0', float('nan'), float('inf'), -float('inf')):
+            with self.subTest(budget=budget):
+                with self.assertRaisesRegex(ValueError, 'max_budget_usd=.*nonnegative finite'):
+                    ask.resolve({'overrides': {'claude': {'max_budget_usd': budget}}})
+                invalid = {**request, 'claude': {**request['claude'], 'max_budget_usd': budget}}
+                with mock.patch.object(ask.ask_claude, 'run_command') as launch:
+                    with self.assertRaisesRegex(ValueError, 'max_budget_usd=.*nonnegative finite'):
+                        ask.claude(invalid)
+                    launch.assert_not_called()
+        for budget in (0, -0.0, 5.25):
+            resolved = ask.resolve({'overrides': {'claude': {'max_budget_usd': budget}}})
+            self.assertEqual(resolved['config']['claude']['max_budget_usd'], budget)
+
     def test_prepare_mode_diagnostic_and_corrected_claude_request(self):
         request = prepare_request([ADVISERS[1]])
         with self.assertRaisesRegex(ValueError, r"request\.mode=None .*'review' or 'consultation'"):
