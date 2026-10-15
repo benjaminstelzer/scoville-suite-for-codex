@@ -72,7 +72,7 @@ permissions. A future task or a risk label adds no reading requirement.
 | Change planning records, review assigned native Plan or Decision fields, coordinate dependent outcomes across interruption, preserve engineering continuation state, or resolve a material choice left open by inspection | [Planning](references/planning-and-decisions.md) |
 | Explore or change code, locate ownership or root cause, or review implementation | [Change](references/change-workflow.md) |
 | Choose, run or interpret checks, or judge completion evidence | [Validation](references/validation.md) |
-| Write instructions, reviews or a completion report | Use fully loaded shared writing rules from the same build, including rules embedded in the assignment. If they are not loaded, read [Writing](references/writing.md) before writing. Do not reopen the file unless a stated reload reason applies. |
+| Process machine reports or logs, or write instructions, reviews or a completion report | Use fully loaded shared writing rules from the same build, including rules embedded in the assignment. If they are not loaded, read [Writing](references/writing.md) before that work. Do not reopen the file unless a stated reload reason applies. |
 
 Implementation needs Change and Validation. Combine other routes only for work actually required. Recording future work does not authorize its
 implementation or require its validation route. If a needed reference is
@@ -191,6 +191,9 @@ Use that executable wherever examples say `python` or `<verified-python>`,
 including Python commands after `--run --`.
 Report a missing runtime only when no suitable installed interpreter is found.
 
+Before processing machine reports or logs, use the [shared writing rules](references/writing.md).
+If their complete text is not loaded, read it in a separate call before reading
+the data. Reuse retained rules under their existing reload conditions.
 Before helper calls, follow [shell command rules](references/shell-commands.md).
 
 ## Runtime helpers

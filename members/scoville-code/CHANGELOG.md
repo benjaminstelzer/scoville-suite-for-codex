@@ -2,6 +2,8 @@
 
 ## Unreleased - 2026-10-15
 
+- Process complete reports in code, including saved captures and failures. Load the rules before data, preserve required original text, and keep parser errors from echoing stored state. Evaluate producer output before display, retain one-time results, and distinguish saved captures from missing output.
+
 - Recognize fully loaded writing rules from the same build, including rules embedded in an assignment. Read them again only when a stated reload reason applies.
 
 
