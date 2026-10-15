@@ -2,6 +2,10 @@
 
 
 
+## Unreleased - 2026-10-15
+
+- Scoville Code recognizes fully loaded writing rules from the same build, including rules embedded in an assignment. Read them again only when a stated reload reason applies.
+
 ## Unreleased - 2026-10-14
 
 - Compare nested report data in code and display only decisive results and necessary diagnostics, including structured state stored in text fields.
