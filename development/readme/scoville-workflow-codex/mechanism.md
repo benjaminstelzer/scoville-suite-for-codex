@@ -5,64 +5,81 @@ coordinates Explorer, Executor and Reviewer. It writes no source code.
 The helper sends original Plan context and exactly one selected Step; the
 manager does not rewrite the assignment. Agents choose relevant Skills themselves.
 
+Each named call continues in the diagram with that title. Agent selection returns
+to its caller only when an agent is ready. A measurement error stops dispatch.
+
+### Work Item control
+
 ```mermaid
 flowchart TD
-    G{"Activation: Git workspace clean before Plan writes?"} -->|Yes| S
-    G -->|No or Git unavailable| BP
-    S["Manager selects ONE Step"] --> ST["Manager saves execution start/resume state"]
-    ST --> E{"Executor for current Work Item exists?"}
-    E -->|No| EN["Spawn and initialize Executor once"]
-    E -->|Yes| EC{"Measured context below threshold?"}
-    EC -->|Yes| ER["Reuse Executor; next task only"]
-    EC -->|Valid at or above| EE["Replace Executor; retain pair"]
-    EC -->|Measurement error| B["Stop dispatch; report technical problem"]
-    EN --> H["Helper validates start and sends original Step"]
-    EE --> H
-    ER --> H
-    H --> W["Execute Step and checks; return done or problem"]
-    W --> WR{"Executor result"}
-    WR -->|blocked| BP["Manager resolves prerequisite; stop dependent work"]
-    BP -->|missing Executor result: same Step| E
-    WR -->|done| MC{"Manager: Step complete, required checks met, effects clear?"}
-    MC -->|No or unclear| BP
-    MC -->|Yes| CR{"Changes or open Step review?"}
-    CR -->|Yes| R{"Reviewer for current Work Item exists?"}
-    CR -->|No| SA["Manager records completed Step and evidence"]
-    R -->|No| RN["Spawn and initialize Reviewer once"]
-    R -->|Yes| RC{"Measured context below threshold?"}
-    RC -->|Yes| RR["Reuse Reviewer; next task only"]
-    RC -->|Valid at or above| RE["Replace Reviewer; retain pair"]
-    RC -->|Measurement error| B
-    RN --> V["Helper sends SAME Step and Executor result"]
-    RE --> V
-    RR --> V
-    V --> A{"Step review result"}
-    A -->|blocked| BP
-    A -->|changes_requested| F["Manager adds unchanged review result; same Step"]
-    F --> ST
-    A -->|pass| CS["Manager records Step; commits reviewed work and Plan progress"]
-    CS -->|success or no versionable changes| N
-    CS -->|commit failed or forbidden| BP
-    SA --> N{"All Steps complete and required Step reviews passed?"}
+    G{"Clean Git workspace<br/>before activation writes?"} -->|Yes| S["Manager selects ONE Step"]
+    G -->|No or Git unavailable| BP["Manager resolves prerequisite<br/>Dependent work stays stopped"]
+    BP -->|Missing Executor result only| REC[["Recover SAME Step<br/>Enter Executor selection<br/>in Step execution and review"]]
+    REC -->|Step completed| N
+    S --> T[["Call: Step execution and review"]]
+    T -->|Step completed| N{"All Steps complete and<br/>required Step reviews passed?"}
     N -->|No| NA{"Next Step authorized?"}
     NA -->|Yes| S
-    NA -->|No| STOP["Commit pending Plan if no unreviewed work; stop with Work Item open"]
-    N -->|Yes| C["Select Reviewer by same agent check; helper sends full Work Item"]
-    C --> P{"Closure result"}
+    NA -->|No| STOP["Commit pending Plan if no unreviewed work<br/>Stop with Work Item open"]
+    N -->|Yes| C[["Call: Agent selection<br/>Reviewer for current Work Item"]]
+    C -->|Agent ready| H["Helper sends full Work Item<br/>Every Step and full Acceptance"]
+    H --> P{"Closure result"}
     P -->|blocked| BP
-    P -->|changes_requested| K["Manager selects ONE affected Step; keeps Plan and Work Item"]
-    K --> F
-    P -->|pass| D["Accept Work Item; next authorized Work Item or finish"]
-    Q["Question, idea or planning preparation"] --> X{"Explorer for Manager thread exists?"}
-    X -->|No| XN["Spawn and initialize Explorer once"]
-    X -->|Yes| XC{"Measured context below threshold?"}
-    XC -->|Yes| XR["Reuse Explorer; next task only"]
-    XC -->|Valid at or above| XE["Replace Explorer; retain pair"]
-    XC -->|Measurement error| B
-    XR --> XP["Investigate read-only; report to Manager"]
-    XN --> XP
-    XE --> XP
-    XP --> M["Manager answers user and writes authorized Plan changes"]
+    P -->|changes_requested| K["Select ONE affected Step<br/>Keep Plan and Work Item<br/>Add unchanged review result"]
+    K --> T
+    P -->|pass| D["Accept Work Item<br/>Next authorized Work Item or finish"]
+```
+
+### Step execution and review
+
+```mermaid
+flowchart TD
+    ST["Manager saves execution<br/>start or resume state"] --> E[["Executor selection<br/>Call: Agent selection<br/>Current Work Item"]]
+    E -->|Agent ready| H["Helper validates start<br/>Sends original selected Step"]
+    H --> W["Execute Step and required checks<br/>Return complete result"]
+    W --> WR{"Executor result"}
+    WR -->|blocked| BP["Manager resolves prerequisite<br/>Dependent work stays stopped"]
+    BP -->|Missing Executor result only| E
+    WR -->|done| MC{"Step complete, required checks met<br/>and effects clear?"}
+    MC -->|No or unclear| BP
+    MC -->|Yes| CR{"Changes or open Step review?"}
+    CR -->|No| SA["Record completed Step and evidence"]
+    CR -->|Yes| R[["Call: Agent selection<br/>Reviewer for current Work Item"]]
+    R -->|Agent ready| V["Helper sends SAME Step<br/>and complete Executor result"]
+    V --> A{"Step review result"}
+    A -->|blocked| BP
+    A -->|changes_requested| F["Add unchanged review result<br/>Keep the SAME Step"]
+    F --> ST
+    A -->|pass| CS["Record Step and commit reviewed work<br/>with Plan progress"]
+    CS -->|Success or no versionable changes| DONE["Return: Step completed<br/>to Work Item control"]
+    CS -->|Commit failed or forbidden| BP
+    SA --> DONE
+```
+
+### Agent selection
+
+This check serves Executor, Reviewer and Explorer, including closure review.
+Measure only after the associated agent has completed its work and is idle.
+
+```mermaid
+flowchart TD
+    E{"Associated agent exists?"} -->|No| NEW["Spawn and initialize agent once"]
+    E -->|Yes| C{"Valid measured context<br/>below threshold?"}
+    C -->|Yes| REUSE["Reuse agent<br/>Next task only"]
+    C -->|Valid at or above| REPLACE["Replace and initialize agent<br/>Retain model and reasoning pair"]
+    C -->|Measurement error| B["Stop dispatch<br/>Report technical problem to Manager"]
+    NEW --> READY["Return: agent ready<br/>to the calling diagram"]
+    REUSE --> READY
+    REPLACE --> READY
+```
+
+### Explorer requests
+
+```mermaid
+flowchart TD
+    Q["Question, idea or planning preparation"] --> X[["Call: Agent selection<br/>Explorer for Manager thread"]]
+    X -->|Agent ready| XP["Investigate read-only<br/>Report to Manager"]
+    XP --> M["Manager answers the user<br/>and writes authorized Plan changes"]
 ```
 
 Executor and Reviewer stay associated with one Work Item; Explorer with the

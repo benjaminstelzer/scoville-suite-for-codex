@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - 2026-10-16
+
+- Group equivalent checks in internal results while preserving checked scope, decisive values, deviations and closure coverage.
+- Follow Work Item control, Step review, agent selection and Explorer requests in four focused diagrams with explicit handoffs and correction paths.
+
 ## Unreleased - 2026-10-15
 
 - Process complete reports in code, including saved captures and failures. Load the rules before data, preserve required original text, and keep parser errors from echoing stored state. Evaluate producer output before display, retain one-time results, and distinguish saved captures from missing output.

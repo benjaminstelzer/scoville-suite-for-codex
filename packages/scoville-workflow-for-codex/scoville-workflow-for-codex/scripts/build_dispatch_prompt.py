@@ -142,7 +142,7 @@ def result_contract(role: str) -> list[str]:
         "Return minimal labelled fields, no narration.",
         ("""Use these fields:
 status: pass | changes_requested | blocked
-evidence: <decisive sources and check evidence; for closure, concise coverage of every Step and Acceptance criterion>
+evidence: <decisive sources, what you checked and the result; group matching checks and retain values needed to judge the result. For deviations, give expected and actual values. For closure, give concise coverage of every Step and Acceptance criterion>
 findings: <none, or each location, effect, smallest correction and affected Step number or none>
 blocker: <only for blocked: exact prerequisite or decision>
 limits: <material missing evidence, or none>
@@ -150,7 +150,7 @@ Return pass only when the assigned review ran with no unresolved defect or requi
          """Return done when this ONE Step and its required checks finish. A blocker returns blocked; name its cause and effect and stop dependent writes. Use these fields; no recap, work log or Acceptance verdict:
 status: done | blocked
 changes: <changed paths or groups and their effect, including deletions, or none>
-checks: <each decisive command or observation and its actual result; also non-file configuration or behavior changes and their observed effects, or none>
+checks: <each decisive command or observation and its actual result; group checks with the same purpose and result, retaining checked scope and decisive values in this field. Include non-file configuration or behavior changes and their observed effects, or none>
 problems: <cause and effect, or none>
 limits: <missing baseline or other evidence limit, or none>
 For generated outputs, report the successful current generation and observed expected outputs. Time evidence can support creation; existence or a preserved timestamp alone does not prove this run created them. Inspect generated content only when the Step, Acceptance, project contract or a concrete defect requires it.

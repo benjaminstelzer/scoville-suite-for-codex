@@ -2,6 +2,11 @@
 
 
 
+## Unreleased - 2026-10-16
+
+- Group equivalent checks in internal results while preserving checked scope, decisive values, deviations and closure coverage.
+- Follow Work Item control, Step review, agent selection and Explorer requests in four focused diagrams with explicit handoffs and correction paths.
+
 ## Unreleased - 2026-10-15
 
 - Reuse applicable Decisions before adding new ones. Explicit maintenance can consolidate equivalent Decisions and retire proved temporary conditions and irrelevant links while preserving live constraints and historical review limits.
