@@ -6,8 +6,10 @@ compatibility: "Codex with native collaboration agents, exact own-session identi
 
 # Scoville Workflow Codex
 
-The thread where Workflow starts is the **manager**. It writes and maintains
-Plans, Decisions and the index, but no source code. It coordinates three roles:
+The thread where Workflow starts is the **manager**. It maintains Plans,
+Decisions and the index. It makes no implementation changes, including tests and
+project scripts, and runs no implementation checks, directly or through generated
+scripts. It coordinates three roles:
 
 | Role | Assignment | Rights |
 | --- | --- | --- |

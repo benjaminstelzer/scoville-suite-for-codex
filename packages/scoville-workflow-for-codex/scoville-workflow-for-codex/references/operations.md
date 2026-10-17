@@ -2,8 +2,12 @@
 
 Use Plan for records and [dispatch](operations-dispatch.md) for assignments.
 Preserve authorized scope, Decisions, stops and unrelated changes. The manager
-writes records, never source. Only one executor writes; stop its writes before
-record edits, review or another writer. Read only what manager decisions need;
+writes records. Its temporary files for authorized record work, dispatch and
+result delivery grant no implementation rights. A request to fix findings keeps
+Workflow and the manager role; use the affected authorized Step's Correction
+route. Genuinely new scope follows the change-request route below. An explicit
+stop or user role change still applies. Only one executor writes; stop its writes
+before record edits, review or another writer. Read only what manager decisions need;
 the executor diagnoses implementation and the reviewer inspects technical details.
 
 All Skills included in this suite must be installed and enabled. Use the
@@ -14,7 +18,13 @@ needed for the task. Explicit invocation gates and user exclusions still apply.
 
 Use the same manager thread and actual workspace. Verify native collaboration
 spawn_agent, followup_task, send_message, wait_agent, list_agents and interrupt_agent
-are available. Retain exact handles, never titles or sidebar IDs. The host pair
+are available. Retain exact handles and canonical task paths, never titles or
+sidebar IDs. Use native waits while children work; match messages and complete
+finals by actual sender to the retained handle and assignment. Retained finals
+need no new listing. Use list_agents only to resolve uncertain startup, state,
+missing results or termination, with path_prefix set to the narrowest known
+canonical path covering that agent. Broaden only to resolve that uncertainty.
+The host pair
 belongs only to the manager; Setup owns subagent pairs and user overrides name a role.
 
 Load output-delivery.md only under shell-rule triggers. Reuse needed

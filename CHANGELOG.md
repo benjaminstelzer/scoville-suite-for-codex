@@ -2,6 +2,11 @@
 
 
 
+## Unreleased - 2026-10-18
+
+- Keep implementation and its checks with the Executor, including changes through temporary scripts and requests to fix review findings.
+- Reuse retained agent results and narrow necessary native state queries. Keep completion, actual writer quiescence and the 50% subagent context check.
+
 ## Unreleased - 2026-10-17
 
 - Raise the shared subagent context default from 45% to 50%.

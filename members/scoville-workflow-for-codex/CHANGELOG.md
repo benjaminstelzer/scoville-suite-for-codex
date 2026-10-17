@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - 2026-10-18
+
+- Keep implementation and its checks with the Executor, including tests, project scripts and temporary-script changes. Fix requests keep the current Manager role.
+- Retain matching complete results and narrow necessary native state queries by canonical task path, without weakening writer quiescence or context handovers.
+
 ## Unreleased - 2026-10-17
 
 - Raise the shared context default to 50% for Explorer, Executor and Reviewer.

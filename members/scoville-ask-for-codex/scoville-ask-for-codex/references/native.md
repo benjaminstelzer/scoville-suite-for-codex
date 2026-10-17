@@ -23,7 +23,7 @@ A helper error or incomplete output stops dispatch. Correct its named input;
 never repair the generated prompt. The host decides model/effort availability.
 
 Retain adviser ID, requested settings, reference, scope and generated task name,
-then the returned exact native handle. The host identifies the final's sender;
+then the returned exact native handle and canonical task path. The host identifies the final's sender;
 no startup callback is required. A handle is not a complete answer. Actual model
 telemetry stays separate from requested settings.
 
@@ -33,7 +33,7 @@ capacity permits an actual spawn attempt, not a claim that all advisers fit.
 | --- | --- |
 | Capacity refusal | Retain the diagnostic and running advisers; mark undispatched ones pending. |
 | Rejected spawn | Retain the failure. |
-| Ambiguous result | Use `collaboration.list_agents` once to reconcile the exact retained task name with the returned handle; if unresolved, report that adviser unresolved with partial results. |
+| Ambiguous result | Use `collaboration.list_agents` with the narrowest known canonical `path_prefix` that can resolve the retained task name and handle. Broaden only for that uncertainty; if unresolved, report the adviser unresolved with partial results. |
 
 Never retry automatically or treat an unmatched agent as the requested adviser.
 Do not wake completed advisers for cleanup, replace selected advisers, change
@@ -41,14 +41,16 @@ settings, create Codex chats or assume a `close_agent` tool exists.
 
 ## Collect and follow up
 
-1. Use collaboration.wait_agent for bounded waits while advisers work. Consume
-   actual messages and final responses; the wait summary is not an answer.
+1. Use collaboration.wait_agent for bounded waits while advisers work. It waits
+   for any mailbox update. Consume actual messages and final responses; the wait
+   summary is not an answer.
 2. Require the exact adviser's native final and completion. Match host sender
    to retained handle and answer to the latest question, adviser identity,
    reference and scope. Questions and substantive send_message are partial.
 3. For complete-file delivery, read the entire file before
    accepting or using it. Metadata alone is insufficient.
-4. Retain complete answers once. Missing or incomplete answers remain unresolved.
+4. Retain complete answers once; do not list advisers whose complete answers are
+   retained. Missing or incomplete answers remain unresolved.
 5. If only a label repeats, identify the answer from its retained assignment.
    A different reference or scope needs clarification. Never accept an earlier
    final as the answer to a later same-handle follow-up.
@@ -65,9 +67,9 @@ Once its complete native final is received, send no routine acknowledgement,
 closure message or keepalive to the completed adviser. It has ended its turn.
 Retaining a handle does not keep the turn active or prove a host slot is free.
 Necessary follow-ups use the targeted route below, not queued send_message.
-If a necessary message targets an agent whose state is unclear, check its exact
-handle with `collaboration.list_agents` once first. A completion race remains
-possible; add no polling loop.
+If a necessary message targets an agent whose state is unclear, check once with
+`collaboration.list_agents`, `path_prefix` set to its retained canonical task
+path. A completion race remains possible; add no polling loop.
 
 For a necessary clarification or authorized follow-up, use
 `collaboration.followup_task` with the retained agent ID or canonical task name.

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - 2026-10-18
+
+- Retain canonical adviser paths and complete answers. Narrow uncertain native-state queries and match actual messages to the current question; a wait summary is no answer.
+- Scope direct tool requests before display when code preprocessing is unavailable.
+
 ## Unreleased - 2026-10-15
 
 - Process complete reports in code, including saved captures and failures. Load the rules before data, preserve required original text, and keep parser errors from echoing stored state. Evaluate producer output before display, retain one-time results, and distinguish saved captures from missing output.

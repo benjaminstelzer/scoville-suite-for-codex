@@ -42,7 +42,7 @@ flowchart TD
   associated{"Associated role agent?"}
   associated -->|none| fresh["Build fresh; select configured route or explicit override"]
   associated -->|confirmed failed or interrupted| recovery["Failure recovery in operations.md; end this check"]
-  associated -->|exists| idle{"Complete native final and native state establish idle?"}
+  associated -->|exists| idle{"Matching complete native final and completion establish idle?"}
   idle -->|running or uncertain| wait["Wait; dispatch nothing"]
   idle -->|yes| context{"Final reports a threshold or compaction handover?"}
   context -->|technical measurement error| blocked["Resolve technical blocker; no replacement loop"]
@@ -56,6 +56,8 @@ flowchart TD
 An ordinary completed blocked result is not failure. Establish actual process,
 write and restore quiescence as well as native completion and the complete Final
 before reuse or replacement. A measurement never proves this safety boundary.
+Retained matching completion evidence needs no new inventory query unless a
+later action or conflicting evidence makes it uncertain.
 Recovery follows operations.md; never start a second writer.
 
 The diagram selects dispatch arguments:
@@ -203,7 +205,7 @@ A binding output cap needs its actual decision; never truncate context. Missing
 helpers or unresolved failures block the operation. Reconcile uncertain effects
 before any retry.
 
-Wait on exact native handles; timeout is not completion. For oversized results,
+Track exact native handles while waiting; timeout is not completion. For oversized results,
 require actual native completion and read the whole supplied file under the
 shared delivery procedure. Metadata and partial messages are
 not results. Children may use the named external Python/checker for command capture, size checks,
