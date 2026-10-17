@@ -6,7 +6,7 @@ and reasoning. Unspecified Explorer fields inherit effective Executor values.
 The host chooses the manager model. Reads create no file.
 
 `workflow.context_threshold_percent` is the one threshold for all subagents.
-Its bundled default is 45. Subagents check their own active context on each task
+Its bundled default is 50. Subagents check their own active context on each task
 and before substantial work chains. At or above it, or after their own compaction,
 they return safely for replacement. The manager does not measure context.
 A measurement error blocks work; it is no automatic replacement request.

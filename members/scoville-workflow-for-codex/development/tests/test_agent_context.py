@@ -62,14 +62,14 @@ class ContextTests(unittest.TestCase):
         self.assertNotIn('reason', result)
 
     def test_only_own_active_last_call_controls_threshold(self):
-        for used, action in ((44, 'continue'), (45, 'handover'), (90, 'handover')):
+        for used, action in ((45, 'continue'), (49, 'continue'), (50, 'handover'), (90, 'handover')):
             self.write(events(used))
             run = self.run_helper()
             self.assertEqual(run.returncode, 0, run.stderr)
             data = json.loads(run.stdout)
             self.assertEqual(data['action'], action)
             self.assertEqual(data['used_tokens'], used)
-            self.assertEqual(data['threshold_percent'], 45)
+            self.assertEqual(data['threshold_percent'], 50)
             self.assertEqual((data['thread_id'], data['parent_thread_id'], data['agent_id']),
                              (THREAD, 'fixture-parent', AGENT))
             self.assertEqual(data['reason'], 'threshold' if action == 'handover' else None)
@@ -143,11 +143,11 @@ class ContextTests(unittest.TestCase):
 
     def test_live_call_uses_new_usage_and_current_turn_start_window(self):
         data = events(20)
-        newer = copy.deepcopy(events(45)[3])
+        newer = copy.deepcopy(events(50)[3])
         data.append(newer)
         self.write(renumber(data))
         result = json.loads(self.run_helper().stdout)
-        self.assertEqual((result['used_tokens'], result['action']), (45, 'handover'))
+        self.assertEqual((result['used_tokens'], result['action']), (50, 'handover'))
         for change in ('missing_window', 'new_context', 'foreign_usage'):
             broken = copy.deepcopy(data)
             if change == 'missing_window':

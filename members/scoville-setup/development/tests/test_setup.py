@@ -156,7 +156,7 @@ class SetupTests(unittest.TestCase):
     def test_one_shared_threshold_is_saved_and_inherited_without_legacy_context(self):
         status, shown = self.run_setup('show')
         self.assertEqual(status, 0)
-        self.assertEqual(shown['effective']['workflow']['context_threshold_percent'], 45)
+        self.assertEqual(shown['effective']['workflow']['context_threshold_percent'], 50)
         self.save({'workflow': {'context': {'worker_percent': 82}}, 'other': {'keep': True}})
         status, saved = self.run_setup('set', {'workflow': {'context_threshold_percent': 40}})
         self.assertEqual(status, 0, saved)

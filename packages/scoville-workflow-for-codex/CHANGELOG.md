@@ -2,6 +2,7 @@
 
 ## Unreleased - 2026-10-17
 
+- Raise the shared context default to 50% for Explorer, Executor and Reviewer.
 - Subagents check their own active context at natural work boundaries and return safely at the shared threshold or after compaction. The manager uses the complete result and actual quiescence for same-task replacement; its duplicate context measurement is removed.
 
 ## Unreleased - 2026-10-16

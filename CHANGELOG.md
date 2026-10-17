@@ -4,6 +4,8 @@
 
 ## Unreleased - 2026-10-17
 
+- Raise the shared subagent context default from 45% to 50%.
+- Reuse successful Actions evidence for unchanged Python. Check configuration, documentation and build-tool changes locally without rerunning the platform matrix.
 - Move context checks into subagents. Keep one shared threshold, safe same-task handovers and complete review inputs; remove the manager's duplicate measurement.
 
 
