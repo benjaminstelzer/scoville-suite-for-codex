@@ -70,8 +70,9 @@ The `workflow` section supports:
 - `execute`, `review` and `explore` for each route's model and reasoning level.
   Unspecified `explore` fields inherit the effective `execute` values.
 - `context_threshold_percent`, one integer from 1 to 100 for all subagents.
-  Before a new assignment, reuse an idle agent strictly below the threshold;
-  at or above it, start a new one. This does not interrupt ongoing work.
+  Each subagent measures on every new assignment and before substantial work
+  chains. At or above the threshold it returns safely for replacement. The
+  manager does not measure context or interrupt ongoing work for this check.
 
 The visible chat is the Workflow manager; the host chooses its model.
 Missing route and threshold fields use bundled defaults. Old Workflow manager, context and

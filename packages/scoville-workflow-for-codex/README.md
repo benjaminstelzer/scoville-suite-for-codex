@@ -20,7 +20,8 @@ The helper sends original Plan context and exactly one selected Step; the
 manager does not rewrite the assignment. Agents choose relevant Skills themselves.
 
 Each named call continues in the diagram with that title. Agent selection returns
-to its caller only when an agent is ready. A measurement error stops dispatch.
+to its caller only when an agent is ready. Subagents measure their own context;
+the manager uses their results and native completion, not a second measurement.
 
 ### Work Item control
 
@@ -38,7 +39,8 @@ flowchart TD
     N -->|Yes| C[["Call: Agent selection<br/>Reviewer for current Work Item"]]
     C -->|Agent ready| H["Helper sends full Work Item<br/>Every Step and full Acceptance"]
     H --> P{"Closure result"}
-    P -->|blocked| BP
+    P -->|blocked: context handover| C
+    P -->|other blocked| BP
     P -->|changes_requested| K["Select ONE affected Step<br/>Keep Plan and Work Item<br/>Add unchanged review result"]
     K --> T
     P -->|pass| D["Accept Work Item<br/>Next authorized Work Item or finish"]
@@ -52,7 +54,8 @@ flowchart TD
     E -->|Agent ready| H["Helper validates start<br/>Sends original selected Step"]
     H --> W["Execute Step and required checks<br/>Return complete result"]
     W --> WR{"Executor result"}
-    WR -->|blocked| BP["Manager resolves prerequisite<br/>Dependent work stays stopped"]
+    WR -->|blocked: context handover| E
+    WR -->|other blocked| BP["Manager resolves prerequisite<br/>Dependent work stays stopped"]
     BP -->|Missing Executor result only| E
     WR -->|done| MC{"Step complete, required checks met<br/>and effects clear?"}
     MC -->|No or unclear| BP
@@ -61,7 +64,8 @@ flowchart TD
     CR -->|Yes| R[["Call: Agent selection<br/>Reviewer for current Work Item"]]
     R -->|Agent ready| V["Helper sends SAME Step<br/>and complete Executor result"]
     V --> A{"Step review result"}
-    A -->|blocked| BP
+    A -->|blocked: context handover| R
+    A -->|other blocked| BP
     A -->|changes_requested| F["Add unchanged review result<br/>Keep the SAME Step"]
     F --> ST
     A -->|pass| CS["Record Step and commit reviewed work<br/>with Plan progress"]
@@ -73,15 +77,18 @@ flowchart TD
 ### Agent selection
 
 This check serves Executor, Reviewer and Explorer, including closure review.
-Measure only after the associated agent has completed its work and is idle.
+Establish a complete native Final, native completion and actual process, write
+and restore quiescence before reuse or replacement.
 
 ```mermaid
 flowchart TD
     E{"Associated agent exists?"} -->|No| NEW["Spawn and initialize agent once"]
-    E -->|Yes| C{"Valid measured context<br/>below threshold?"}
-    C -->|Yes| REUSE["Reuse agent<br/>Next task only"]
-    C -->|Valid at or above| REPLACE["Replace and initialize agent<br/>Retain model and reasoning pair"]
-    C -->|Measurement error| B["Stop dispatch<br/>Report technical problem to Manager"]
+    E -->|Yes| I{"Complete and quiescent?"}
+    I -->|No or uncertain| WAIT["Wait or recover failure<br/>No competing writer"]
+    I -->|Yes| C{"Context handover or changed build?"}
+    C -->|No| REUSE["Reuse agent<br/>Next task only"]
+    C -->|Yes| REPLACE["Replace and initialize agent<br/>Same assignment and retained pair"]
+    C -->|Technical measurement error| B["Resolve prerequisite<br/>No replacement loop"]
     NEW --> READY["Return: agent ready<br/>to the calling diagram"]
     REUSE --> READY
     REPLACE --> READY
@@ -93,22 +100,27 @@ flowchart TD
 flowchart TD
     Q["Question, idea or planning preparation"] --> X[["Call: Agent selection<br/>Explorer for Manager thread"]]
     X -->|Agent ready| XP["Investigate read-only<br/>Report to Manager"]
-    XP --> M["Manager answers the user<br/>and writes authorized Plan changes"]
+    XP --> XR{"Explorer result"}
+    XR -->|blocked: context handover| X
+    XR -->|done or other blocked| M["Manager answers the user<br/>and writes authorized Plan changes"]
 ```
 
 Executor and Reviewer stay associated with one Work Item; Explorer with the
-manager thread. One threshold applies before all subagent assignments.
+manager thread. One threshold applies to all subagents.
 Fresh agents receive role, writing, shell-command and result rules once.
 Reuse sends only the next task and its binding context and evidence; it does
 not reload those rules or already loaded Skills. Codex supplies project rules.
 The Reviewer retains both Step and closure policies from its first assignment.
-Establish completion and idle state before measuring an associated agent.
-No existing agent means first creation. A valid measurement below threshold means
-reuse; at or above means replace with the retained pair. Replacement does not
-reset the role's model choice. A missing measurement or execution blocker
-returns a problem to manager, not an automatic replacement. An incompatible
-newly selected model pair requires a new agent. Ongoing writes are not interrupted
-for threshold checks. Host compaction continues the same assignments.
+On every task, each subagent checks its own active context at the first available
+tool boundary and before the next substantial work chain. At the threshold or
+after its own compaction, it safely finishes or stops started actions and returns
+blocked with effects, checks, remaining work and actual process/restore state.
+The manager then replaces it for that same open assignment with complete needed
+results; neither Step completion nor review pass is implied. A technical
+measurement error blocks work without an automatic replacement. Ordinary reuse
+and context replacement retain the launched pair. A changed Workflow build or
+explicitly required different pair also requires a fresh agent. The manager
+never interrupts ongoing writes for context checks or measures context itself.
 
 Use complete unchanged native finals for review and correction inputs. Missing
 required change attribution blocks review; recover it through the same
@@ -141,7 +153,8 @@ Step without changing Acceptance; changed or unclear requirements need the user.
 - **Git.** Git and a clean worktree are required before activation Plan writes.
   The manager commits each passed changed Step with Plan progress before advancing.
 - **Reuse.** Executor and Reviewer belong to the current Work Item; Explorer to
-  the manager thread. A helper checks one shared threshold before assignments.
+  the manager thread. Each subagent checks its own context on every assignment
+  and before substantial work chains, then returns safely when replacement is due.
 - **Model choices.** Configured executor, reviewer and explorer models and effort are respected.
   Unsupported settings stop dependent work rather than being substituted.
 - **Continuity.** The same chat continues after compaction from concise Plan
@@ -197,9 +210,11 @@ and reasoning. Unspecified Explorer fields inherit effective Executor values.
 The host chooses the manager model. Reads create no file.
 
 `workflow.context_threshold_percent` is the one threshold for all subagents.
-Its bundled default is 45. Reuse an idle associated agent below it; start a new
-one at or above it. Check only before assignments. A failed measurement is a
-technical problem, not a spawn fallback. There is no manager threshold or rollover.
+Its bundled default is 45. Subagents check their own active context on each task
+and before substantial work chains. At or above it, or after their own compaction,
+they return safely for replacement. The manager does not measure context.
+A measurement error blocks work; it is no automatic replacement request.
+There is no manager threshold or rollover.
 
 Legacy `manager`, nested `context` and `pin_threads` settings are ignored on
 reads and removed only by an authorized save. They do not configure this new

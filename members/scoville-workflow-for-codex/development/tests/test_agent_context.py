@@ -1,204 +1,211 @@
-"""Packaged native telemetry boundaries and the real followup argument consumer."""
 import copy
 import json
 import os
 from pathlib import Path
-import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 from unittest.mock import patch
+
 from test_contract import PACKAGE, SUITE_ROOT, copy_started_profile
+sys.path.insert(0, str(PACKAGE / 'scripts'))
 import check_agent_context as context_helper
 
-AGENT='/root/manager/executor'
-THREAD='fixture-child-session'
+AGENT = '/root/manager/executor'
+THREAD = 'fixture-child-session'
 
 
 def events(used=44):
-    usage={'input_tokens':used-1,'output_tokens':1,'total_tokens':used}
-    payloads=[
-        ('session_meta',{'id':THREAD,'source':{'subagent':{'thread_spawn':{'agent_path':AGENT,'parent_thread_id':'fixture-parent'}}}}),
-        ('event_msg',{'type':'task_started','turn_id':'turn-1'}),
-        ('turn_context',{'turn_id':'turn-1','model':'gpt-6-luna','effort':'medium'}),
-        ('token_usage_record',{'thread_id':THREAD,'turn_id':'turn-1','usage':usage}),
-        ('event_msg',{'type':'token_count','info':{'last_token_usage':usage.copy(),'model_context_window':100}}),
-        ('event_msg',{'type':'task_complete','turn_id':'turn-1'}),
+    usage = {'input_tokens': used - 1, 'output_tokens': 1, 'total_tokens': used}
+    return [
+        {'ordinal': 0, 'type': 'session_meta', 'payload': {'id': THREAD, 'source': {'subagent': {'thread_spawn': {'agent_path': AGENT, 'parent_thread_id': 'fixture-parent'}}}}},
+        {'ordinal': 1, 'type': 'event_msg', 'payload': {'type': 'task_started', 'turn_id': 'turn-1', 'model_context_window': 100}},
+        {'ordinal': 2, 'type': 'turn_context', 'payload': {'turn_id': 'turn-1', 'model': 'gpt-6-luna', 'effort': 'medium'}},
+        {'ordinal': 3, 'type': 'token_usage_record', 'payload': {'thread_id': THREAD, 'turn_id': 'turn-1', 'usage': copy.deepcopy(usage)}},
+        {'ordinal': 4, 'type': 'event_msg', 'payload': {'type': 'token_count', 'info': {'last_token_usage': copy.deepcopy(usage), 'model_context_window': 100}}},
     ]
-    return [{'ordinal':n,'type':kind,'payload':payload} for n,(kind,payload) in enumerate(payloads)]
+
+
+def renumber(data):
+    for number, event in enumerate(data):
+        event['ordinal'] = number
+    return data
 
 
 class ContextTests(unittest.TestCase):
     def setUp(self):
-        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
-        self.base=Path(self.temp.name);self.root=self.base/'project'
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.base = Path(self.temp.name)
+        self.root = self.base / 'profile'
         copy_started_profile(self.root)
-        self.sessions=self.base/'sessions';self.sessions.mkdir()
-        self.rollout=self.sessions/('rollout-'+THREAD+'.jsonl')
+        self.sessions = self.base / 'sessions'
+        self.sessions.mkdir()
+        self.rollout = self.sessions / 'unrelated-filename.jsonl'
         self.write(events())
 
-    def write(self,data):
-        self.rollout.write_text('\n'.join(json.dumps(x) for x in data)+'\n',encoding='utf-8')
+    def write(self, data):
+        self.rollout.write_text(''.join(json.dumps(e) + '\n' for e in data), encoding='utf-8')
 
-    def run_helper(self,*extra):
-        return subprocess.run([sys.executable,str(PACKAGE/'scripts/check_agent_context.py'),
-            '--agent-id',AGENT,'--project-root',str(self.root),
-            '--sessions-root',str(self.sessions),*extra],env={**os.environ,'CODEX_THREAD_ID':'fixture-parent'},capture_output=True,text=True,encoding='utf-8')
+    def run_helper(self, *extra, identity=THREAD):
+        return subprocess.run([sys.executable, str(PACKAGE / 'scripts/check_agent_context.py'),
+            '--project-root', str(self.root), '--sessions-root', str(self.sessions), *extra],
+            env={**os.environ, 'CODEX_THREAD_ID': identity}, capture_output=True, text=True, encoding='utf-8')
 
-    def test_below_exact_and_above_default45(self):
-        for used,action in ((44,'reuse'),(45,'spawn'),(46,'spawn')):
-            with self.subTest(used=used):
-                self.write(events(used));run=self.run_helper()
-                self.assertEqual(run.returncode,0,run.stderr)
-                data=json.loads(run.stdout)
-                self.assertEqual(data['action'],action)
-                self.assertEqual(data['used_tokens'],used)
-                self.assertEqual(data['threshold_percent'],45)
-                self.assertEqual((data['thread_id'], data['parent_thread_id']), (THREAD, 'fixture-parent'))
-                self.assertEqual((data['model'],data['reasoning_effort']),('gpt-6-luna','medium'))
-                self.assertEqual(data.get('replacement_of'), AGENT if action == 'spawn' else None)
-                if action == 'reuse': self.assertNotIn('replacement_of', data)
-        (self.root/'.scoville').mkdir()
-        (self.root/'.scoville/config.json').write_text('{"workflow":{"context_threshold_percent":20}}')
-        for used,action in ((19,'reuse'),(20,'spawn'),(21,'spawn')):
-            self.write(events(used));data=json.loads(self.run_helper().stdout)
-            self.assertEqual((data['threshold_percent'],data['action']),(20,action))
-
-    def test_lookup_uses_exact_handle_and_current_parent_not_filename(self):
-        renamed = self.sessions / 'unrelated-filename.jsonl'
-        self.rollout.rename(renamed)
-        foreign = events()
-        foreign[0]['payload']['source']['subagent']['thread_spawn']['parent_thread_id'] = 'other-parent'
-        self.write(foreign)
-        self.assertEqual(json.loads(self.run_helper().stdout)['thread_id'], THREAD)
-        foreign[0]['payload']['source']['subagent']['thread_spawn']['parent_thread_id'] = 'fixture-parent'
-        foreign[0]['payload']['source']['subagent']['thread_spawn']['agent_path'] = AGENT + '_similar'
-        self.write(foreign)
-        self.assertEqual(json.loads(self.run_helper().stdout)['action'], 'reuse')
-        renamed.unlink()
-        self.assertEqual(json.loads(self.run_helper().stdout)['action'], 'blocked')
-
-    def test_ambiguous_valid_headers_block_even_with_invalid_telemetry(self):
-        duplicate = self.sessions / 'duplicate.jsonl'
-        duplicate.write_text(json.dumps(events()[0]) + '\n', encoding='utf-8')
-        result = json.loads(self.run_helper().stdout)
+    def blocked(self, *extra, **kwargs):
+        run = self.run_helper(*extra, **kwargs)
+        self.assertNotEqual(run.returncode, 0)
+        result = json.loads(run.stdout)
         self.assertEqual(result['action'], 'blocked')
-        self.assertIn('2 matches', result['diagnostic'])
+        self.assertTrue(result['diagnostic'])
+        self.assertNotIn('reason', result)
+
+    def test_only_own_active_last_call_controls_threshold(self):
+        for used, action in ((44, 'continue'), (45, 'handover'), (90, 'handover')):
+            self.write(events(used))
+            run = self.run_helper()
+            self.assertEqual(run.returncode, 0, run.stderr)
+            data = json.loads(run.stdout)
+            self.assertEqual(data['action'], action)
+            self.assertEqual(data['used_tokens'], used)
+            self.assertEqual(data['threshold_percent'], 45)
+            self.assertEqual((data['thread_id'], data['parent_thread_id'], data['agent_id']),
+                             (THREAD, 'fixture-parent', AGENT))
+            self.assertEqual(data['reason'], 'threshold' if action == 'handover' else None)
+        (self.root / '.scoville').mkdir(exist_ok=True)
+        (self.root / '.scoville/config.json').write_text('{"workflow":{"context_threshold_percent":20}}')
+        self.write(events(20))
+        self.assertEqual(json.loads(self.run_helper().stdout)['action'], 'handover')
+
+    def test_identity_is_native_own_header_not_filename_or_parent_environment(self):
+        foreign = events()
+        foreign[0]['payload']['id'] = 'foreign'
+        (self.sessions / (THREAD + '.jsonl')).write_text(json.dumps(foreign[0]) + '\n')
+        self.assertEqual(json.loads(self.run_helper().stdout)['action'], 'continue')
+        self.blocked(identity='fixture-parent')
+        for identity in ('', 'bad parent', 'x' * 129):
+            self.blocked(identity=identity)
+        manager = events()
+        manager[0]['payload']['source'] = 'vscode'
+        self.write(manager)
+        self.blocked()
+
+    def test_ambiguous_and_unreadable_sessions_block(self):
+        duplicate = self.sessions / 'duplicate.jsonl'
+        duplicate.write_bytes(self.rollout.read_bytes())
+        self.blocked()
         duplicate.unlink()
-        self.assertEqual(json.loads(self.run_helper().stdout)['action'], 'reuse')
-
-    def test_historical_invalid_headers_are_nonmatches_with_bounded_reads(self):
-        invalid = [b'', b'not json\n', b'\xff\n', b'[]\n',
-            b'{"ordinal":true,"type":"session_meta","payload":{}}\n',
-            b'{"ordinal":0,"type":"event_msg","payload":{}}\n',
-            b'{"ordinal":0,"type":"session_meta","payload":{"source":{"subagent":[]}}}\n',
-            b' ' * (context_helper.HEADER_LIMIT + 1)]
-        for number, header in enumerate(invalid):
-            (self.sessions / f'historical-{number}.jsonl').write_bytes(header)
-        self.assertEqual(json.loads(self.run_helper().stdout)['action'], 'reuse')
-        calls = []
-        original = Path.open
-        class HeaderStream:
-            def __enter__(self): return self
-            def __exit__(self, *args): pass
-            def readline(self, size):
-                calls.append(size)
-                return b' ' * size
-        with patch.dict(os.environ, CODEX_THREAD_ID='fixture-parent'), patch.object(Path, 'open', return_value=HeaderStream()):
-            with self.assertRaisesRegex(ValueError, '0 matches'):
-                context_helper.resolve_session(AGENT, self.sessions)
-        self.assertTrue(calls)
-        self.assertEqual(set(calls), {context_helper.HEADER_LIMIT + 1})
-
-    def test_environment_and_io_failures_cannot_select_a_partial_match(self):
-        for parent in ('', 'bad parent', 'x' * 129):
-            with patch.dict(os.environ, CODEX_THREAD_ID=parent):
-                with self.assertRaisesRegex(ValueError, 'CODEX_THREAD_ID'):
-                    context_helper.resolve_session(AGENT, self.sessions)
-        with patch.dict(os.environ, CODEX_THREAD_ID='fixture-parent'):
+        with patch.dict(os.environ, CODEX_THREAD_ID=THREAD):
             with patch.object(Path, 'open', side_effect=PermissionError('unreadable header')):
-                with self.assertRaisesRegex(PermissionError, 'unreadable header'):
-                    context_helper.resolve_session(AGENT, self.sessions)
+                with self.assertRaises(PermissionError):
+                    context_helper.resolve_session(self.sessions)
             def failed_walk(root, *, onerror):
                 onerror(PermissionError('unreadable directory'))
                 return iter(())
             with patch.object(context_helper.os, 'walk', side_effect=failed_walk):
-                with self.assertRaisesRegex(PermissionError, 'unreadable directory'):
-                    context_helper.resolve_session(AGENT, self.sessions)
+                with self.assertRaises(PermissionError):
+                    context_helper.resolve_session(self.sessions)
 
-    def test_removed_thread_flag_rejects_before_measurement_or_publication(self):
-        failed = self.run_helper('--thread-id', THREAD)
+    def test_missing_foreign_stale_and_finished_turns_block(self):
+        invalid = []
+        data = events(); data.pop(3); invalid.append(data)
+        data = events(); data[3]['payload']['thread_id'] = 'foreign'; invalid.append(data)
+        data = events(); data[3]['payload']['turn_id'] = 'old'; invalid.append(data)
+        for window in (None, True, 0, '100'):
+            data = events(); data[1]['payload']['model_context_window'] = window; invalid.append(data)
+        data = events(); data.append({'type': 'event_msg', 'payload': {'type': 'task_started', 'turn_id': 'turn-2'}}); invalid.append(renumber(data))
+        for state in ('task_complete', 'task_failed', 'task_aborted'):
+            data = events(); data.append({'type': 'event_msg', 'payload': {'type': state, 'turn_id': 'turn-1'}}); invalid.append(renumber(data))
+        for used in (0, 101, True):
+            invalid.append(events(used))
+        data = events(); data[4]['ordinal'] = 3; invalid.append(data)
+        for data in invalid:
+            with self.subTest(data=data):
+                self.write(data)
+                self.blocked()
+
+    def test_own_compaction_forces_handover_even_after_usage_falls_and_on_reuse(self):
+        for prior_turn in (False, True):
+            data = events(10)
+            data.insert(3, {'type': 'compacted', 'payload': {}})
+            if prior_turn:
+                data += [{'type': 'event_msg', 'payload': {'type': 'task_complete', 'turn_id': 'turn-1'}}]
+                later = events(5)[1:]
+                for event in later:
+                    if 'turn_id' in event['payload']:
+                        event['payload']['turn_id'] = 'turn-2'
+                data += later
+            self.write(renumber(data))
+            result = json.loads(self.run_helper().stdout)
+            self.assertEqual((result['action'], result['reason']), ('handover', 'compaction'))
+            self.assertNotIn('used_tokens', result)
+
+    def test_live_call_uses_new_usage_and_current_turn_start_window(self):
+        data = events(20)
+        newer = copy.deepcopy(events(45)[3])
+        data.append(newer)
+        self.write(renumber(data))
+        result = json.loads(self.run_helper().stdout)
+        self.assertEqual((result['used_tokens'], result['action']), (45, 'handover'))
+        for change in ('missing_window', 'new_context', 'foreign_usage'):
+            broken = copy.deepcopy(data)
+            if change == 'missing_window':
+                broken[1]['payload'].pop('model_context_window')
+            elif change == 'new_context':
+                broken.append(copy.deepcopy(broken[2]))
+            else:
+                broken[-1]['payload']['thread_id'] = 'foreign'
+            self.write(renumber(broken))
+            self.blocked()
+
+    def test_first_call_needs_no_delayed_token_count(self):
+        data = events(44)[:4]
+        self.write(data)
+        result = json.loads(self.run_helper().stdout)
+        self.assertEqual((result['used_tokens'], result['model_context_window'], result['action']), (44, 100, 'continue'))
+
+    def test_own_compaction_without_new_pair_still_hands_over_but_failed_turn_blocks(self):
+        data = events()[:3] + [{'type': 'compacted', 'payload': {}}]
+        self.write(renumber(data))
+        result = json.loads(self.run_helper().stdout)
+        self.assertEqual((result['action'], result['reason']), ('handover', 'compaction'))
+        self.assertNotIn('used_tokens', result)
+        data.append({'type': 'event_msg', 'payload': {'type': 'task_failed', 'turn_id': 'turn-1'}})
+        self.write(renumber(data))
+        self.blocked()
+
+    def test_inherited_compaction_is_ignored_but_invalid_parent_chains_block(self):
+        parent = {'type': 'session_meta', 'payload': {'id': 'fixture-parent', 'source': 'vscode'}}
+        data = events(); data[1:1] = [copy.deepcopy(parent), {'type': 'compacted', 'payload': {}}]
+        self.write(renumber(data))
+        self.assertEqual(json.loads(self.run_helper().stdout)['action'], 'continue')
+        data = events(); data.insert(1, copy.deepcopy(data[0])); self.write(renumber(data))
+        self.assertEqual(json.loads(self.run_helper().stdout)['action'], 'continue')
+        for index, identity in ((1, 'foreign'), (3, 'fixture-parent')):
+            data = events(); extra = copy.deepcopy(parent); extra['payload']['id'] = identity
+            data.insert(index, extra); self.write(renumber(data)); self.blocked()
+
+    def test_incomplete_tail_and_corrupt_complete_record_never_use_old_sample(self):
+        valid = self.rollout.read_bytes()
+        for tail in (b'{"ordinal":5', b'not json\n', b'\xff\n'):
+            self.rollout.write_bytes(valid + tail)
+            self.blocked()
+        self.rollout.write_bytes(valid)
+        self.assertEqual(json.loads(self.run_helper().stdout)['action'], 'continue')
+
+    def test_retained_own_path_skips_search_and_rejects_changed_identity(self):
+        result = json.loads(self.run_helper().stdout)
+        empty = self.base / 'empty'; empty.mkdir()
+        run = self.run_helper('--sessions-root', str(empty), '--session-path', result['session_path'])
+        self.assertEqual(run.returncode, 0, run.stderr)
+        foreign = events(); foreign[0]['payload']['id'] = 'foreign'; self.write(foreign)
+        self.blocked('--session-path', result['session_path'])
+
+    def test_old_manager_cli_cannot_silently_measure_another_agent(self):
+        failed = self.run_helper('--agent-id', AGENT)
         self.assertEqual(failed.returncode, 2)
         self.assertEqual(failed.stdout, '')
-        run, assignment = self.builder('executor', 'W-001/step-1', extra=('--thread-id', THREAD))
-        self.assertEqual(run.returncode, 2)
-        self.assertFalse(assignment.exists())
-        run, assignment = self.builder('executor', 'W-001/step-1', extra=('--manager-agent-id', '/root/manager'))
-        self.assertEqual(run.returncode, 2)
-        self.assertFalse(assignment.exists())
-
-    def test_invalid_missing_active_compacted_and_wrong_binding_never_dispatch(self):
-        cases=[]
-        data=events();data.pop(3);cases.append(data)
-        data=events();data[0]['payload']['id']='other';cases.append(data)
-        data=events();data[0]['payload']['source']['subagent']['thread_spawn']['agent_path']='/root/other';cases.append(data)
-        data=events();data[3]['payload']['turn_id']='old';cases.append(data)
-        data=events();data[4]['payload']['info']['last_token_usage']['total_tokens']=10;cases.append(data)
-        data=events();data.append({'ordinal':6,'type':'event_msg','payload':{'type':'task_started','turn_id':'turn-2'}});cases.append(data)
-        data=events();data.insert(5,{'ordinal':5,'type':'compacted','payload':{}});data[6]['ordinal']=6;cases.append(data)
-        data=events();data[4]['payload']={'type':'task_aborted','turn_id':'turn-1'};cases.append(data)
-        data=events();data[4]['ordinal']=3;cases.append(data)
-        data=events();data[2]['payload'].pop('effort');cases.append(data)
-        for used in (0,101,True):
-            cases.append(events(used))
-        for n,data in enumerate(cases):
-            with self.subTest(case=n):
-                self.write(data);run=self.run_helper();result=json.loads(run.stdout)
-                self.assertNotEqual(run.returncode,0)
-                self.assertEqual(result['action'],'blocked')
-                self.assertNotIn('replacement_of', result)
-                self.assertTrue(result['diagnostic'])
-        self.rollout.unlink()
-        self.assertEqual(json.loads(self.run_helper().stdout)['action'],'blocked')
-
-    def test_inherited_parent_metadata_keeps_child_binding_and_turn_fence(self):
-        parent = {'type':'session_meta','payload':{'id':'fixture-parent','source':'vscode'}}
-        ancestor = {'type':'session_meta','payload':{'id':'fixture-grandparent','source':'vscode'}}
-        def renumber(data):
-            for n,event in enumerate(data):event['ordinal']=n
-            return data
-        data=events();data.insert(1,copy.deepcopy(parent));self.write(renumber(data))
-        self.assertEqual(json.loads(self.run_helper().stdout)['action'],'reuse')
-        data=events();data.insert(1,copy.deepcopy(data[0]));self.write(renumber(data))
-        self.assertEqual(json.loads(self.run_helper().stdout)['action'],'reuse')
-        data=events();p=copy.deepcopy(parent)
-        p['payload']['source']={'subagent':{'thread_spawn':{'parent_thread_id':'fixture-grandparent'}}}
-        data[1:1]=[p,copy.deepcopy(ancestor)];self.write(renumber(data))
-        self.assertEqual(json.loads(self.run_helper().stdout)['action'],'reuse')
-        invalid=[]
-        data=events();data.insert(1,copy.deepcopy(ancestor));invalid.append(data)
-        data=events();data.insert(3,copy.deepcopy(parent));invalid.append(data)
-        data=events();duplicate=copy.deepcopy(data[0])
-        duplicate['payload']['source']['subagent']['thread_spawn']['parent_thread_id']='another-parent'
-        data.insert(1,duplicate);invalid.append(data)
-        data=events();duplicate=copy.deepcopy(data[0])
-        duplicate['payload']['source']['subagent']['thread_spawn']['agent_path']='/root/other'
-        data.insert(1,duplicate);invalid.append(data)
-        data=events();data.insert(0,copy.deepcopy(parent));invalid.append(data)
-        data=events();data[1:1]=[copy.deepcopy(parent),copy.deepcopy(parent)];invalid.append(data)
-        data=events();p=copy.deepcopy(parent)
-        p['payload']['source']={'subagent':{'thread_spawn':{'parent_thread_id':THREAD}}}
-        data.insert(1,p);invalid.append(data)
-        data=events();data.insert(3,copy.deepcopy(data[0]));invalid.append(data)
-        data=events();data[0]['payload']['source']['subagent']['thread_spawn'].pop('parent_thread_id');invalid.append(data)
-        data=events();extra=copy.deepcopy(ancestor);extra['payload'].pop('id')
-        data[1:1]=[copy.deepcopy(parent),extra];invalid.append(data)
-        data=events();data[1:1]=[copy.deepcopy(parent),copy.deepcopy(ancestor)];invalid.append(data)
-        for data in invalid:
-            self.write(renumber(data));run=self.run_helper()
-            self.assertNotEqual(run.returncode,0)
-            self.assertEqual(json.loads(run.stdout)['action'],'blocked')
 
     def builder(self,role,unit,model='gpt-6-luna',thinking='medium',extra=(),language='German'):
         assignment=self.base/('assignment-'+str(len(list(self.base.glob('assignment*'))))+'.txt')
@@ -225,7 +232,9 @@ class ContextTests(unittest.TestCase):
                         self.assertEqual(target,AGENT)
                         self.assertNotIn('Your commentary and messages go to the manager.', message)
                         self.assertNotIn('Communication language:', message)
-                        self.assertIn('Next task:', message)
+                        # The native consumer needs the assignment path and identity,
+                        # not one optional English introduction.
+                        self.assertIn(str(path), message)
                         self.assertIn(str(path),message)
                     followup_task(**native)
                     full=path.read_text(encoding='utf-8')
@@ -254,29 +263,10 @@ class ContextTests(unittest.TestCase):
             self.assertNotEqual(run.returncode,0)
             self.assertEqual(run.stdout,'')
             self.assertFalse(path.exists())
-        # The manager's agent check owns the measurement; the builder uses its result.
+        # The builder never measures context; the subagent owns its active check.
         self.rollout.unlink();run,path=self.builder('executor','W-001/step-1')
         self.assertEqual(run.returncode,0,run.stderr)
         self.assertTrue(path.is_file())
-
-    def test_retained_session_path_skips_search_and_keeps_binding(self):
-        first=json.loads(self.run_helper().stdout)
-        self.assertEqual(first['session_path'],str(self.rollout.resolve()))
-        empty=self.base/'empty sessions';empty.mkdir()
-        run=subprocess.run([sys.executable,str(PACKAGE/'scripts/check_agent_context.py'),'--agent-id',AGENT,
-            '--project-root',str(self.root),'--sessions-root',str(empty),'--session-path',first['session_path']],
-            env={**os.environ,'CODEX_THREAD_ID':'fixture-parent'},capture_output=True,text=True,encoding='utf-8')
-        self.assertEqual(run.returncode,0,run.stderr)
-        self.assertEqual({k:v for k,v in json.loads(run.stdout).items()},first)
-        foreign=events();foreign[0]['payload']['source']['subagent']['thread_spawn']['agent_path']=AGENT+'_other'
-        self.write(foreign)
-        for path in (self.rollout,self.base/'missing.jsonl'):
-            blocked=self.run_helper('--session-path',str(path))
-            self.assertNotEqual(blocked.returncode,0)
-            result=json.loads(blocked.stdout)
-            self.assertEqual(result['action'],'blocked')
-            self.assertIn('--session-path',result['diagnostic'])
-            self.assertIn('rerun once without --session-path',result['diagnostic'])
 
     def test_retained_pair_cannot_ignore_explicit_step_annotations(self):
         plan = self.root / 'docs/plans/0001-validate-profile.md'

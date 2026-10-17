@@ -140,10 +140,11 @@ or independently checking facts requires it. Recover the same assignments,
 actual results and completed effects; repeat no completed work to rebuild history.
 For a confirmed failed/interrupted
 child: establish termination, reconcile effects/checks, clear its association without
-measurement/reuse, then redispatch the same unit/role with unchanged role inputs and
+reuse, then redispatch the same unit/role with unchanged role inputs and
 open findings. Use the helper, next role number and --replacement-of with the retained
 pair unless explicit Step/user choice changes it. Completed blocked is not failed.
-Never bypass failed idle-agent measurement. Uncertain spawn/result forbids duplicate dispatch.
+A technical self-measurement error blocks dependent work; do not replace agents in a retry loop.
+Uncertain spawn/result forbids duplicate dispatch.
 
 Before leaving, commit pending owned Plan records only when no unreviewed implementation
 remains; otherwise report dirty paths. Completion requires requested Acceptance,

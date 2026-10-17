@@ -2,6 +2,14 @@
 
 
 
+## Unreleased - 2026-10-17
+
+- Move context checks into subagents. Keep one shared threshold, safe same-task handovers and complete review inputs; remove the manager's duplicate measurement.
+
+
+
+
+
 ## Unreleased - 2026-10-16
 
 - Group equivalent checks in internal results while preserving checked scope, decisive values, deviations and closure coverage.

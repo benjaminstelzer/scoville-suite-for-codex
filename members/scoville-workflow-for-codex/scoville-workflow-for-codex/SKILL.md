@@ -1,7 +1,7 @@
 ---
 name: scoville-workflow-for-codex
 description: Execute ordered Scoville Plan work in Codex on explicit activation, such as "Start Scoville Workflow", $scoville-workflow-for-codex or scoflow codex. The visible chat manages executors, independent reviews and Plan progress. Generic delegation and discussion do not activate it.
-compatibility: "Codex with native collaboration agents, exact agent and session identities, completed-turn context telemetry, shared workspace, filesystem and Git access, Python 3.11+ and compatible Scoville Plan helpers. Codex Suite only."
+compatibility: "Codex with native collaboration agents, exact own-session identities, active-turn context telemetry, shared workspace, filesystem and Git access, Python 3.11+ and compatible Scoville Plan helpers. Codex Suite only."
 ---
 
 # Scoville Workflow Codex
@@ -19,7 +19,8 @@ Only necessary oversized-result delivery under the shared procedure permits
 temporary writes by read-only roles. At most one executor writes. The manager
 edits records only after the writer stops. Workflow activation authorizes
 accepted-Step commits, subject to explicit user and project restrictions.
-There is no Runner, successor manager or mid-assignment rollover.
+There is no Runner or successor manager. Subagents can return unfinished work
+at a safe context handover; the original assignment stays open.
 
 Read the [shared writing rules](references/writing.md), then
 [operations](references/operations.md) before managing work. Use Scoville Plan's

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased - 2026-10-17
+
+- Subagents check their own active context at natural work boundaries and return safely at the shared threshold or after compaction. The manager uses the complete result and actual quiescence for same-task replacement; its duplicate context measurement is removed.
+
 ## Unreleased - 2026-10-16
 
 - Group equivalent checks in internal results while preserving checked scope, decisive values, deviations and closure coverage.

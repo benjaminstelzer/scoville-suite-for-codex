@@ -32,8 +32,7 @@ lacks, justifies a fresh agent; state the reason.
 
 ## Check the agent before every assignment
 
-Retain each role's exact handle, launched pair and, after its first measurement,
-`session_path`. Executor
+Retain each role's exact handle and launched pair. Executor
 and Reviewer belong to the current Work Item; Explorer belongs to this manager
 thread. Apply this agent check to execution, review, closure, corrections and
 missing-result questions:
@@ -45,46 +44,56 @@ flowchart TD
   associated -->|confirmed failed or interrupted| recovery["Failure recovery in operations.md; end this check"]
   associated -->|exists| idle{"Complete native final and native state establish idle?"}
   idle -->|running or uncertain| wait["Wait; dispatch nothing"]
-  idle -->|yes| measure["Measure idle agent once when next assignment is ready"]
-  measure --> result{"Helper result?"}
-  result -->|blocked or nonzero exit| blocked["Report technical problem; no reuse, replacement or pair-change bypass"]
-  result -->|reuse or spawn| choice{"Explicit user/Step pair change or required capability unavailable in retained pair?"}
+  idle -->|yes| context{"Final reports a threshold or compaction handover?"}
+  context -->|technical measurement error| blocked["Resolve technical blocker; no replacement loop"]
+  context -->|yes or no| choice{"Explicit user/Step pair change or required capability unavailable in retained pair?"}
   choice -->|yes| changed["Build fresh with justified pair; preserve original unit and role inputs"]
-  choice -->|no| replace{"Spawn result, or Workflow rules/build changed since spawn?"}
-  replace -->|yes| replacement["Fresh --replacement-of retained handle with returned pair; keep old agent idle"]
-  replace -->|no| reuse["Followup to same agent with returned pair"]
+  choice -->|no| replace{"Context handover, or Workflow rules/build changed since spawn?"}
+  replace -->|yes| replacement["Fresh --replacement-of retained handle with launched pair; keep old agent idle"]
+  replace -->|no| reuse["Followup to same agent with launched pair"]
 ```
 
-An ordinary completed blocked result is not failure. Recovery requires confirmed
-termination and reconciled effects under operations.md, never a second writer.
-For the measurement use:
+An ordinary completed blocked result is not failure. Establish actual process,
+write and restore quiescence as well as native completion and the complete Final
+before reuse or replacement. A measurement never proves this safety boundary.
+Recovery follows operations.md; never start a second writer.
 
-```text
-python "<workflow>/scripts/check_agent_context.py" --project-root "<workspace>" --agent-id "<exact-handle>" --session-path "<retained-session-path>"
-```
-
-Omit --session-path until this agent's first measurement supplies it.
-
-The diagram selects the dispatch; map helper fields to arguments as follows:
+The diagram selects dispatch arguments:
 
 | Result | Argument values |
 | --- | --- |
-| reuse: strictly below Setup threshold | --agent-id from retained handle, --model from model, --thinking from reasoning_effort |
-| spawn: at or above threshold | --replacement-of from replacement_of, --model from model, --thinking from reasoning_effort |
+| reuse | --agent-id from retained handle, --model and --thinking from its launched pair |
+| replacement | --replacement-of from retained handle, --model and --thinking from its launched pair |
 
 Build the original assignment and copy the returned native arguments unchanged.
 First creation uses --route; an explicit user role choice uses its pair with
 --override-reason; an explicit Step pair change uses fresh --route.
 
-The context helper resolves exactly one native session from the retained handle
-and this Manager's CODEX_THREAD_ID, or checks that the retained `session_path`
-still binds them. Missing or ambiguous identity blocks dispatch; never copy
-session IDs or search for similar names. It reads completed-turn last-call
-total_tokens and model_context_window, never cumulative usage or live writing
-telemetry.
+Only the subagent runs check_agent_context.py, in its own native environment.
+The helper binds CODEX_THREAD_ID to its own session and parent and validates
+current-turn last-call usage against the window. At or above the configured
+threshold, or after compaction since its first own task_started, it requests a
+safe handover. Inherited compaction does not count. Missing or invalid telemetry
+is a technical blocker, not a threshold result. The Manager neither measures
+context nor reads telemetry. Never interrupt an active agent for its threshold.
+followup_task cannot change model or reasoning.
 
-followup_task cannot change model or reasoning. The builder relies on the one
-measurement above. Never interrupt an active agent for its context threshold.
+For a confirmed context handover, keep the same open original assignment and
+replace even if a later compaction reduced usage. Do not mark its Step done or
+its review passed. Preserve complete role inputs:
+
+- Executor: same original Step and its complete Final as --executor-result;
+  retain any unresolved --reviewer-result.
+- Reviewer: same Step or closure scope, current complete --executor-result and
+  its complete partial review as --reviewer-result.
+- Explorer: original complete question plus its relevant complete partial answer
+  in --supplemental-context.
+
+The replacement continues remaining work without repeating completed effects.
+Return context reasons in existing problems (Executor) or blocker (Reviewer or
+Explorer) with actual effects, checks, remaining work and process/restore state.
+No new status: use blocked. A technical measurement error requires repair of
+that prerequisite, not repeated fresh replacements.
 
 ## Build the assignment
 
@@ -197,6 +206,6 @@ before any retry.
 Wait on exact native handles; timeout is not completion. For oversized results,
 require actual native completion and read the whole supplied file under the
 shared delivery procedure. Metadata and partial messages are
-not results. Children may use the named external Python/checker only for command capture, size checks
-and necessary result delivery; no unrelated access. They neither edit
+not results. Children may use the named external Python/checker for command capture, size checks,
+their own context telemetry and necessary result delivery; no unrelated access. They neither edit
 Plan records, stage, commit, change Workflow settings nor create other agents.
