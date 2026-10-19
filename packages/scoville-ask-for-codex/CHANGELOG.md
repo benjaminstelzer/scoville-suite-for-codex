@@ -2,6 +2,7 @@
 
 ## Unreleased - 2026-10-19
 
+- Write reports as compact lists of checked scope, results and relevant gaps. Group equivalent outcomes and refer to existing evidence instead of retelling the run.
 - Apply one shared evidence rule in user and agent exchanges: defend supported conclusions, correct demonstrated errors, and respect user decisions without treating them as factual proof.
 - Defend supported adviser conclusions with decisive facts across native and Claude consultations. Revisions name the demonstrated correction; confidence or pressure to agree does not establish a fact.
 - Exchange disputed claims neutrally and preserve unresolved disagreements and valid alternatives.
