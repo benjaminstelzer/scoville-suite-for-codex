@@ -12,7 +12,8 @@ Manage `.scoville/config.json` in the selected project root. Its values override
 the imported Skill defaults per field. There is no personal settings layer or
 parent-directory search. This Skill is supplied only in the Codex Suite.
 
-When explaining settings or reporting changes, read and apply the
+When explaining settings, reporting changes or assessing a disputed factual
+or technical conclusion, read and apply the
 [shared writing rules](references/writing.md).
 
 Use the project's known absolute root. Ask for the root only if it is unknown.

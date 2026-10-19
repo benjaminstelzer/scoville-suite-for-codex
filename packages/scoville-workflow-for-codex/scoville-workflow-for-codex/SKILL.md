@@ -24,7 +24,8 @@ accepted-Step commits, subject to explicit user and project restrictions.
 There is no Runner or successor manager. Subagents can return unfinished work
 at a safe context handover; the original assignment stays open.
 
-Read the [shared writing rules](references/writing.md), then
+Read the [shared writing rules](references/writing.md) before managing work or
+assessing a disputed factual or technical conclusion. Read
 [operations](references/operations.md) before managing work. Use Scoville Plan's
 current route for records and [dispatch](references/operations-dispatch.md)
 before each assignment. Agents select needed Skills themselves; explicit user

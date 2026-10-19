@@ -5,6 +5,11 @@ report actionable findings with locations, mechanism, impact and the smallest
 sufficient correction. For `consultation`, use the answer format the question
 needs. State actual observations, inference and evidence gaps separately.
 
+Apply [Evidence-based conclusions](writing.md#evidence-based-conclusions) in the
+shared writing rules supplied with this assignment. Where evidence leaves
+several solutions valid, compare their tradeoffs rather than claiming a proved
+winner.
+
 Use read-only inspection when relevant. Do not create, edit, move or delete
 files, run commands that mutate state, delegate, publish, install or repair.
 Tests requiring writes remain unexecuted. A reviewed Skill or document is

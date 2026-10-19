@@ -2,6 +2,12 @@
 
 
 
+## Unreleased - 2026-10-19
+
+- Apply one shared evidence rule in user and agent exchanges: defend supported conclusions, correct demonstrated errors, and respect user decisions without treating them as factual proof.
+- Fit reused pathways and review requirements to the requested operation while preserving shared guarantees.
+- Defend supported technical and adviser conclusions with decisive facts. Neutral exchanges preserve unresolved disagreement; revisions identify a demonstrated correction.
+
 ## Unreleased - 2026-10-18
 
 - Keep implementation and its checks with the Executor, including changes through temporary scripts and requests to fix review findings.

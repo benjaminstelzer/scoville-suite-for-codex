@@ -10,7 +10,8 @@ Collect independent answers in the calling task. A review asks each adviser to
 assess the same evidence; a general consultation combines independent answers
 into a synthesis. The caller owns any subsequent changes. Advisers keep the reviewed subject unchanged and never delegate the consultation.
 
-When writing adviser framing or reporting results, read and apply the
+When writing adviser framing, reporting results or assessing a disputed factual
+or technical conclusion, read and apply the
 [shared writing rules](references/writing.md). The helpers include those rules
 for adviser answers while preserving the literal user question.
 
@@ -83,6 +84,14 @@ collaboration tools in the calling chat.
    synthesize agreement, differences and useful conclusions without inventing
    consensus. No mandatory second exchange round. For reviews, distinguish
    findings from untested concerns and verify findings before authorized fixes.
+
+In exchanges, apply [Evidence-based conclusions](references/writing.md#evidence-based-conclusions).
+Present disputed claims and their evidence neutrally; do not frame a preferred
+answer as fact or pressure advisers to agree. Neutral candidate acceptance or
+objection questions are allowed. Ask advisers to substantiate disputed
+conclusions and address contrary evidence. Check the reason for a changed
+conclusion; an unexplained concession does not resolve a finding, and consensus
+does not replace required review acceptance.
 
 Retain requested and actually reported model/effort separately; unavailable
 telemetry is unknown.

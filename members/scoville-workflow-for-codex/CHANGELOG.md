@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased - 2026-10-19
+
+- Apply one shared evidence rule in user and agent exchanges: defend supported conclusions, correct demonstrated errors, and respect user decisions without treating them as factual proof.
+
 ## Unreleased - 2026-10-18
 
 - Keep implementation and its checks with the Executor, including tests, project scripts and temporary-script changes. Fix requests keep the current Manager role.
